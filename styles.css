@@ -16,8 +16,7 @@
   --jh-shadow: 0 6px 16px -8px rgba(16, 42, 67, 0.08),
     0 1px 3px 0 rgba(16, 42, 67, 0.05);
   --jh-shadow-soft: 0 4px 10px 0 rgba(0, 0, 0, 0.06);
-  --jh-font: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
-    "Segoe UI", Arial, sans-serif;
+  --jh-font: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
 }
 
 * {
@@ -58,21 +57,22 @@ button {
   grid-column: 2;
   grid-row: 1;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   height: 56px;
   min-width: 0;
-  padding-right: 32px;
   background: var(--jh-card);
   box-shadow: var(--jh-shadow);
 }
 
 .topbar__right {
+  position: absolute;
+  top: 12px;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 24px;
+  width: 540px;
   height: 32px;
+  padding-right: 32px;
 }
 
 .certificate {
@@ -117,35 +117,20 @@ button {
 
 .avatar {
   position: relative;
+  display: block;
   width: 28px;
   height: 28px;
   overflow: hidden;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 33%, #ffe3ce 0 16%, transparent 17%),
-    linear-gradient(160deg, #eaf5ff 0%, #d7e7ff 100%);
 }
 
-.avatar::before {
+.avatar img {
   position: absolute;
-  left: 7px;
-  top: 7px;
-  width: 14px;
-  height: 9px;
-  border-radius: 9px 9px 5px 5px;
-  background: #2f4057;
-  content: "";
-}
-
-.avatar::after {
-  position: absolute;
-  left: 6px;
-  bottom: 4px;
-  width: 16px;
-  height: 9px;
-  border-radius: 8px 8px 3px 3px;
-  background: #ffffff;
-  content: "";
+  width: 1800px;
+  height: 1143px;
+  max-width: none;
+  left: -1625px;
+  top: -24px;
 }
 
 .btn {
@@ -230,6 +215,7 @@ button {
   display: block;
   width: 79px;
   height: 20px;
+  object-fit: contain;
 }
 
 .sidebar__content {
@@ -446,11 +432,21 @@ button {
   overflow: hidden;
   cursor: pointer;
   color: #ffffff;
-  background:
-    radial-gradient(circle at 28% 54%, transparent 0 70px, rgba(255, 255, 255, 0.1) 72px 73px, transparent 75px 96px, rgba(255, 255, 255, 0.08) 98px 99px, transparent 101px 124px, rgba(255, 255, 255, 0.07) 126px 127px, transparent 129px),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px 11px),
-    linear-gradient(270deg, var(--jh-blue-light), var(--jh-blue));
+  background: linear-gradient(270deg, var(--jh-blue-light), var(--jh-blue));
   box-shadow: var(--jh-shadow);
+  isolation: isolate;
+}
+
+.consult-card__bg {
+  position: absolute;
+  left: -9px;
+  top: -5px;
+  z-index: 0;
+  width: 418px;
+  height: 258px;
+  max-width: none;
+  object-fit: fill;
+  pointer-events: none;
 }
 
 .consult-card__content {
@@ -463,6 +459,9 @@ button {
   width: 100%;
   height: 240px;
   padding: 24px 32px;
+  border-radius: 12px;
+  filter: drop-shadow(0 1px 1.5px rgba(16, 42, 67, 0.05))
+    drop-shadow(0 6px 8px rgba(16, 42, 67, 0.08));
 }
 
 .consult-card__icon {
@@ -474,7 +473,14 @@ button {
   margin-bottom: 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
   box-shadow: 0 1px 4px rgba(29, 74, 131, 0.15);
+}
+
+.consult-card__icon svg {
+  width: 88px;
+  height: 88px;
 }
 
 .consult-card h2 {
@@ -606,32 +612,26 @@ button {
 }
 
 .check-icon {
-  position: relative;
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
   width: 24px;
   height: 24px;
-  border-radius: 4px;
-  background: linear-gradient(270deg, var(--jh-blue-light), var(--jh-blue));
 }
 
-.check-icon::after {
-  position: absolute;
-  left: 6px;
-  top: 5px;
-  width: 10px;
-  height: 6px;
-  border-left: 2px solid #ffffff;
-  border-bottom: 2px solid #ffffff;
-  transform: rotate(-45deg);
-  content: "";
+.check-icon svg {
+  width: 27px;
+  height: 27px;
+  max-width: none;
 }
 
 .service-tile[aria-checked="false"] .check-icon {
   border: 1px solid #c8d0d8;
+  border-radius: 4px;
   background: #ffffff;
 }
 
-.service-tile[aria-checked="false"] .check-icon::after {
+.service-tile[aria-checked="false"] .check-icon svg {
   display: none;
 }
 
@@ -639,7 +639,7 @@ button {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 475px;
+  height: 474px;
   padding: 24px 32px;
 }
 
@@ -680,6 +680,7 @@ button {
 .announcement {
   display: flex;
   flex-direction: column;
+  align-items: center;
   width: 100%;
   height: 302px;
   padding: 20px 24px;
@@ -692,12 +693,16 @@ button {
   flex-direction: column;
   flex: 0 0 auto;
   gap: 16px;
+  width: 288px;
+  height: 216px;
 }
 
 .announcement__title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 288px;
+  height: 24px;
 }
 
 .announcement__title {
@@ -722,11 +727,10 @@ button {
 }
 
 .announcement__body {
-  position: relative;
   flex: 0 0 auto;
-  height: 198px;
+  width: 288px;
+  height: 176px;
   overflow: hidden;
-  padding-bottom: 22px;
   color: var(--jh-text-secondary);
   font-size: 14px;
   line-height: 22px;
@@ -734,22 +738,13 @@ button {
   white-space: pre-wrap;
 }
 
-.announcement__body p {
-  margin: 0;
-}
-
 .announcement__body .link {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 22px;
-  background: var(--jh-panel);
   color: var(--jh-blue);
 }
 
 .announcement__footer {
-  margin: 4px 0 0;
+  width: 288px;
+  margin: 26px 0 0;
   color: var(--jh-text-secondary);
   font-size: 12px;
   line-height: 20px;
@@ -814,6 +809,35 @@ button {
   border-radius: 6px;
   background: #ffffff;
   color: var(--jh-blue);
+}
+
+.quick-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-icon--schedule {
+  width: 23px;
+  height: 24px;
+}
+
+.quick-icon--schedule .quick-icon__mark {
+  position: absolute;
+  left: 4px;
+  top: -2px;
+}
+
+.quick-icon--clock {
+  width: 28px;
+  height: 27px;
+}
+
+.quick-icon--clock .quick-icon__hand {
+  position: absolute;
+  left: 12px;
+  top: 5px;
 }
 
 .quick-card__title {
@@ -930,6 +954,7 @@ svg {
 
   .brand-mark {
     width: 44px;
+    height: auto;
   }
 
   .sidebar__content {
