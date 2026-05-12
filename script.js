@@ -1,6 +1,11 @@
+const validAppModes = new Set(["responsive", "fixed-left", "fixed-center"]);
+const requestedAppMode = window.JH_APP_MODE || "responsive";
+const appMode = validAppModes.has(requestedAppMode) ? requestedAppMode : "responsive";
+const assetUrl = (path) => new URL(path, document.currentScript.src).href;
+
 const icons = {
   logo: `
-    <img class="brand-mark" src="./assets/logo-source.png" alt="嘉虹健康" />`,
+    <img class="brand-mark" src="${assetUrl("assets/logo-source.png")}" alt="嘉虹健康" />`,
   home: `
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <path d="M6 14.6667V8.00004H10V14.6667M2 6.00004L8 1.33337L14 6.00004V13.3334C14 13.687 13.8595 14.0261 13.6095 14.2762C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2762C2.14048 14.0261 2 13.687 2 13.3334V6.00004Z" stroke="#006EF9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -174,7 +179,7 @@ function renderTopbar() {
         <div class="user-chip">
           <div class="user-chip__body">
             <span class="avatar" aria-hidden="true">
-              <img src="./assets/avatar-source.png" alt="" />
+              <img src="${assetUrl("assets/avatar-source.png")}" alt="" />
             </span>
             <span>张医生</span>
           </div>
@@ -210,7 +215,7 @@ function renderWaitingCard() {
 function renderConsultCard() {
   return `
     <button class="consult-card" type="button" aria-label="进入问诊室">
-      <img class="consult-card__bg" src="./assets/consult-bg.png" alt="" aria-hidden="true" />
+      <img class="consult-card__bg" src="${assetUrl("assets/consult-bg.png")}" alt="" aria-hidden="true" />
       <div class="consult-card__content">
         <div class="consult-card__icon">${icons.stethoscope}</div>
         <h2>进入问诊室</h2>
@@ -316,8 +321,9 @@ function renderMain() {
 }
 
 function renderApp() {
+  document.body.classList.add(`page-mode-${appMode}`);
   document.getElementById("app").innerHTML = `
-    <div class="app-shell">
+    <div class="app-shell app-shell--${appMode}">
       ${renderTopbar()}
       ${renderSidebar()}
       ${renderMain()}
