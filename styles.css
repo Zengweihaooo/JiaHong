@@ -488,10 +488,10 @@ button {
   left: -9px;
   top: -5px;
   z-index: 0;
-  width: 418px;
-  height: 258px;
+  width: calc(100% + 18px);
+  height: calc(100% + 10px);
   max-width: none;
-  object-fit: fill;
+  object-fit: cover;
   pointer-events: none;
 }
 
