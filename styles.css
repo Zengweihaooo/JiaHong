@@ -17,6 +17,7 @@
     0 1px 3px 0 rgba(16, 42, 67, 0.05);
   --jh-shadow-soft: 0 4px 10px 0 rgba(0, 0, 0, 0.06);
   --jh-font: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --jh-fixed-offset-x: 0px;
 }
 
 * {
@@ -1120,6 +1121,9 @@ body.page-mode-fixed-center #app {
 .app-shell--fixed-left,
 .app-shell--fixed-center {
   --sidebar-width: 160px;
+  position: absolute;
+  top: 0;
+  left: var(--jh-fixed-offset-x);
   width: 1440px;
   min-width: 1440px;
   height: 900px;
@@ -1134,8 +1138,7 @@ body.page-mode-fixed-center #app {
 }
 
 .app-shell--fixed-center {
-  margin-left: 0;
-  margin-right: auto;
+  margin: 0;
 }
 
 .app-shell--fixed-left .topbar,
@@ -1338,11 +1341,4 @@ body.page-mode-fixed-center #app {
 .app-shell--fixed-center .quick-card {
   width: 176px;
   height: 160px;
-}
-
-@media (min-width: 1440px) {
-  .app-shell--fixed-center {
-    margin-left: auto;
-    margin-right: auto;
-  }
 }

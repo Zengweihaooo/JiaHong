@@ -3,6 +3,7 @@ const requestedAppMode = window.JH_APP_MODE || "responsive";
 const appMode = validAppModes.has(requestedAppMode) ? requestedAppMode : "responsive";
 const assetUrl = (path) => new URL(path, document.currentScript.src).href;
 const siteBasePath = new URL(".", document.currentScript.src).pathname.replace(/\/$/, "");
+const fixedDesignWidth = 1440;
 
 const versionRoutes = [
   { label: "首页", path: "/", mode: "responsive" },
@@ -372,6 +373,19 @@ function renderApp() {
     </div>`;
 }
 
+function syncFixedViewport() {
+  if (appMode === "responsive") {
+    document.documentElement.style.removeProperty("--jh-fixed-offset-x");
+    return;
+  }
+
+  const viewportWidth = window.innerWidth;
+  const offsetX =
+    appMode === "fixed-center" ? Math.max(0, (viewportWidth - fixedDesignWidth) / 2) : 0;
+
+  document.documentElement.style.setProperty("--jh-fixed-offset-x", `${offsetX}px`);
+}
+
 function showToast(message) {
   const toast = document.querySelector(".toast");
   window.clearTimeout(showToast.timer);
@@ -427,5 +441,7 @@ function bindInteractions() {
   });
 }
 
+syncFixedViewport();
 renderApp();
 bindInteractions();
+window.addEventListener("resize", syncFixedViewport);
