@@ -4,6 +4,15 @@ const appMode = validAppModes.has(requestedAppMode) ? requestedAppMode : "respon
 const assetUrl = (path) => new URL(path, document.currentScript.src).href;
 const siteBasePath = new URL(".", document.currentScript.src).pathname.replace(/\/$/, "");
 const fixedDesignWidth = 1440;
+const appView =
+  window.JH_APP_VIEW ||
+  (location.pathname.includes("/video")
+    ? "video"
+    : location.pathname.includes("/text")
+      ? "text"
+      : location.pathname.includes("/room")
+        ? "room"
+        : "home");
 
 const versionRoutes = [
   { label: "首页", path: "/", mode: "responsive" },
@@ -28,6 +37,28 @@ function getCurrentVersionPath() {
     return rest.startsWith("/") ? rest : `/${rest}`;
   }
   return normalized;
+}
+
+function getCurrentVersionBasePath() {
+  const currentPath = getCurrentVersionPath();
+  const match = currentPath.match(/^\/([123])(?:\/|$)/);
+  return match ? `/${match[1]}/` : "/";
+}
+
+function getRoomHref() {
+  return getVersionHref(`${getCurrentVersionBasePath()}room/`);
+}
+
+function getTextHref() {
+  return getVersionHref(`${getCurrentVersionBasePath()}text/`);
+}
+
+function getVideoHref() {
+  return getVersionHref(`${getCurrentVersionBasePath()}video/`);
+}
+
+function getHomeHref() {
+  return getVersionHref(getCurrentVersionBasePath());
 }
 
 const icons = {
@@ -266,6 +297,310 @@ function renderConsultCard() {
     </button>`;
 }
 
+function renderRoomCheckbox(label) {
+  return `
+    <span class="room-check" aria-hidden="true">
+      <img src="${assetUrl("assets/room-check.svg")}" alt="" />
+    </span>
+    <span class="room-check__label">${label}</span>`;
+}
+
+function renderRoomTopbar() {
+  return `
+    <header class="room-topbar">
+      <div class="room-topbar__inner">
+        <a class="room-back-btn" href="${getHomeHref()}" aria-label="返回首页">
+          <img src="${assetUrl("assets/room-back.svg")}" alt="" />
+          <span>返回首页</span>
+        </a>
+        <div class="room-topbar__right">
+          <button class="btn btn--primary room-service-btn" type="button">在线客服</button>
+          <button class="room-status" type="button" aria-label="出诊状态：在线">
+            <span class="badge room-status__badge">在线</span>
+            <img src="${assetUrl("assets/room-chevron.svg")}" alt="" />
+          </button>
+          <div class="room-service-switches" aria-label="服务类型">
+            <button class="room-service-check" type="button" aria-pressed="true">
+              ${renderRoomCheckbox("视频问诊")}
+            </button>
+            <button class="room-service-check" type="button" aria-pressed="true">
+              ${renderRoomCheckbox("图文问诊")}
+            </button>
+          </div>
+          <div class="room-user">
+            <span class="room-user__divider" aria-hidden="true"></span>
+            <span class="avatar" aria-hidden="true">
+              <img src="${assetUrl("assets/avatar-source.png")}" alt="" />
+            </span>
+            <span>张医生</span>
+          </div>
+        </div>
+      </div>
+    </header>`;
+}
+
+function renderRoomSidebar() {
+  const hasMessages = appView === "text" || appView === "video";
+  const waitingCount = hasMessages ? 4 : 0;
+  return `
+    <aside class="room-sidebar" aria-label="问诊消息栏">
+      <div class="room-sidebar__section room-sidebar__section--head">
+        <div class="room-title-row">
+          <h1>问诊室</h1>
+          <div class="room-waiting">
+            <span>待接诊</span>
+            <strong>${waitingCount}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="room-sidebar__section room-sidebar__section--filters">
+        <div class="room-tags room-tags--type">
+          <button class="room-tag is-active" type="button">全部</button>
+          <button class="room-tag" type="button">图文</button>
+          <button class="room-tag" type="button">视频</button>
+        </div>
+        <div class="room-tags room-tags--state">
+          <button class="room-tag room-tag--wide is-active" type="button">进行中</button>
+          <button class="room-tag room-tag--wide" type="button">已结束</button>
+        </div>
+      </div>
+      ${
+        hasMessages
+          ? `<div class="message-list" aria-label="会话列表">
+              ${renderMessageItem("图文", appView === "text", "text")}
+              ${renderMessageItem("视频", appView === "video", "video")}
+              ${renderMessageItem("图文", false, "text")}
+              ${renderMessageItem("视频", false, "video")}
+            </div>`
+          : ""
+      }
+    </aside>`;
+}
+
+function renderMessageItem(type, active, targetView) {
+  return `
+    <button class="message-item${active ? " is-active" : ""}" type="button" data-target-view="${targetView}">
+      <span class="message-item__stripe" aria-hidden="true"></span>
+      <span class="message-item__body">
+        <span class="message-item__type message-item__type--${type === "图文" ? "text" : "video"}">${type}</span>
+        <span class="message-item__title">武汉市好药师大药房</span>
+        <span class="message-item__preview">您好！请问那个药怎么...</span>
+      </span>
+      <span class="message-item__badge">1</span>
+    </button>`;
+}
+
+function renderRoomMain() {
+  return `
+    <main class="room-main">
+      <section class="room-card" aria-label="候诊室">
+        <button class="btn btn--outline room-refresh" type="button">刷新列表</button>
+        <div class="room-empty">
+          <img class="room-empty__icon" src="${assetUrl("assets/room-empty.svg")}" alt="" aria-hidden="true" />
+          <div class="room-empty__copy">
+            <h2>暂无待接诊订单</h2>
+            <p>保持在线后，系统将自动接收新的图文或视频问诊</p>
+          </div>
+        </div>
+      </section>
+    </main>`;
+}
+
+function renderRoom() {
+  return `
+    <div class="app-shell room-shell app-shell--${appMode}">
+      ${renderRoomTopbar()}
+      ${renderRoomSidebar()}
+      ${renderRoomMain()}
+      <div class="toast" role="status" aria-live="polite"></div>
+    </div>`;
+}
+
+function renderTextMain() {
+  return `
+    <main class="text-main">
+      <section class="text-card" aria-label="图文问诊">
+        <div class="pharmacy-bar">
+          <div class="pharmacy-bar__left">
+            <h2>武汉市好药师大药房南岸店</h2>
+            <span class="risk-tag risk-tag--inspection">迎检</span>
+            <span class="risk-tag risk-tag--medicine">中药</span>
+          </div>
+          <div class="pharmacy-bar__right">
+            <span class="duration-chip">
+              <span class="duration-chip__clock" aria-hidden="true"></span>
+              <strong>问诊持续时长：00:00:55</strong>
+            </span>
+            <button class="danger-btn" type="button">取消问诊</button>
+          </div>
+        </div>
+        <div class="consult-workspace">
+          ${renderChatPanel()}
+          ${renderPrescriptionPanel()}
+        </div>
+      </section>
+    </main>`;
+}
+
+function renderChatPanel() {
+  return `
+    <section class="chat-panel" aria-label="聊天区域">
+      <div class="chat-thread">
+        <p class="chat-date">2026-01-13 16:38:21</p>
+        <div class="chat-bubble chat-bubble--doctor">
+          <p>您好，下图已经出现局部明显脱落，请问下<br />续是否继续原方案使用，药物是否有变化？<br />患者无异常，请问是否需要补充？</p>
+        </div>
+        <div class="chat-bubble chat-bubble--patient">
+          <p>还有发烧</p>
+        </div>
+      </div>
+      <div class="ai-reply">
+        <div class="ai-reply__head">
+          <span class="ai-spark" aria-hidden="true">✦</span>
+          <h3>智能推荐回复</h3>
+        </div>
+        <div class="ai-reply__options">
+          <button type="button">头痛发烧多久啦？体温多少度？</button>
+          <button type="button">持续几天了？头痛具体位置在哪，程度如何？</button>
+          <button type="button">这是一串智能回复的文字内容，并且这是一行的最长字符数</button>
+        </div>
+        <div class="chat-input">
+          <div class="chat-input__quick">快捷回复</div>
+          <p>输入回复内容，或点击上方AI推荐快速填充...</p>
+          <button type="button">发送</button>
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderPrescriptionPanel(includeSecondMedicine = false) {
+  const medicineRow = `
+          <div class="medicine-table__row">
+            <span>1</span><span>阿奇霉素分散片</span><span>处方药</span><span class="table-input">0.125g*6片</span><span class="table-input">口服</span><span class="table-input">1次/日</span><span class="table-input">0.25毫克</span><span>1</span><span class="table-input">盒</span><span class="risk-small">高</span><button type="button">删除</button>
+          </div>`;
+
+  return `
+    <section class="prescription-panel" aria-label="处方信息">
+      <div class="patient-info">
+        <div class="patient-info__name">柯思达&nbsp;&nbsp;男&nbsp;&nbsp;30岁</div>
+        <div class="patient-info__grid">
+          <span>体重 /KG：XX</span>
+          <span>*妊娠哺乳：　否</span>
+          <span>手机号：XXXXXXXXXXX</span>
+          <span>*肝功能异常：　否</span>
+          <span>证件号：XXXXXXXXXXXXXXXXXX</span>
+          <span>*肾功能异常：　否</span>
+          <span>过敏史：无</span>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+      <div class="diagnosis-section">
+        <h3>疾病信息</h3>
+        <div class="diagnosis-row">
+          <label><span>*</span>诊断</label>
+          <button class="select-control" type="button">请选择诊断</button>
+          <div class="diagnosis-input">
+            <span>支气管肺炎</span>
+            <button type="button" aria-label="移除诊断">×</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-divider"></div>
+      <div class="medicine-section">
+        <h3>所需药品</h3>
+        <div class="medicine-search">请输入药品名称或首字母做模糊查询</div>
+        <div class="medicine-table">
+          <div class="medicine-table__row medicine-table__head">
+            <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
+          </div>
+          ${medicineRow}
+          ${includeSecondMedicine ? medicineRow : ""}
+        </div>
+      </div>
+      <div class="prescription-actions">
+        <button class="select-control" type="button">请选择</button>
+        <div>
+          <button class="end-btn" type="button">结束问诊</button>
+          <button class="submit-btn" type="button">提交处方</button>
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderTextPage() {
+  return `
+    <div class="app-shell room-shell text-shell app-shell--${appMode}">
+      ${renderRoomTopbar()}
+      ${renderRoomSidebar()}
+      ${renderTextMain()}
+      <div class="toast" role="status" aria-live="polite"></div>
+    </div>`;
+}
+
+function renderVideoChatPanel() {
+  return `
+    <section class="chat-panel video-chat-panel" aria-label="视频聊天区域">
+      <div class="video-window">
+        <img class="video-window__main" src="${assetUrl("assets/video-main.png")}" alt="" />
+        <div class="video-window__pip">
+          <img src="${assetUrl("assets/video-doctor.png")}" alt="" />
+        </div>
+      </div>
+      <div class="video-chat-thread">
+        <p class="chat-date">2026-01-13 16:38:21</p>
+        <div class="chat-bubble chat-bubble--doctor">
+          <p>您好，下图已经出现局部明显脱落，请问下<br />续是否继续原方案使用，药物是否有变化？<br />患者无异常，请问是否需要补充？</p>
+        </div>
+        <div class="chat-bubble chat-bubble--patient">
+          <p>还有发烧</p>
+        </div>
+      </div>
+      <div class="video-input-wrap">
+        <div class="chat-input">
+          <div class="chat-input__quick">快捷回复</div>
+          <p>输入回复内容，或点击上方AI推荐快速填充...</p>
+          <button type="button">发送</button>
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderVideoMain() {
+  return `
+    <main class="text-main">
+      <section class="text-card" aria-label="视频问诊">
+        <div class="pharmacy-bar">
+          <div class="pharmacy-bar__left">
+            <h2>武汉市好药师大药房南岸店</h2>
+            <span class="risk-tag risk-tag--inspection">迎检</span>
+            <span class="risk-tag risk-tag--medicine">中药</span>
+          </div>
+          <div class="pharmacy-bar__right">
+            <span class="duration-chip">
+              <span class="duration-chip__clock" aria-hidden="true"></span>
+              <strong>问诊持续时长：00:00:55</strong>
+            </span>
+            <button class="danger-btn" type="button">取消问诊</button>
+          </div>
+        </div>
+        <div class="consult-workspace">
+          ${renderVideoChatPanel()}
+          ${renderPrescriptionPanel(true)}
+        </div>
+      </section>
+    </main>`;
+}
+
+function renderVideoPage() {
+  return `
+    <div class="app-shell room-shell text-shell video-shell app-shell--${appMode}">
+      ${renderRoomTopbar()}
+      ${renderRoomSidebar()}
+      ${renderVideoMain()}
+      <div class="toast" role="status" aria-live="polite"></div>
+    </div>`;
+}
+
 function renderServiceCard() {
   return `
     <section class="card card--compact service-card" aria-label="接诊状态与服务开关">
@@ -363,8 +698,15 @@ function renderMain() {
 }
 
 function renderApp() {
-  document.body.classList.add(`page-mode-${appMode}`);
-  document.getElementById("app").innerHTML = `
+  document.body.classList.add(`page-mode-${appMode}`, `page-view-${appView}`);
+  document.getElementById("app").innerHTML =
+    appView === "room"
+      ? renderRoom()
+      : appView === "text"
+        ? renderTextPage()
+        : appView === "video"
+          ? renderVideoPage()
+      : `
     <div class="app-shell app-shell--${appMode}">
       ${renderTopbar()}
       ${renderSidebar()}
@@ -408,14 +750,16 @@ function bindInteractions() {
 
   const statusText = document.querySelector("[data-status-text]");
   const switchButton = document.querySelector(".switch");
-  switchButton.addEventListener("click", () => {
-    const nextState = !switchButton.classList.contains("is-on");
-    switchButton.classList.toggle("is-on", nextState);
-    switchButton.setAttribute("aria-pressed", String(nextState));
-    statusText.textContent = nextState ? "在线" : "离线";
-    statusText.style.color = nextState ? "" : "#747c85";
-    statusText.style.background = nextState ? "" : "#eceef0";
-  });
+  if (statusText && switchButton) {
+    switchButton.addEventListener("click", () => {
+      const nextState = !switchButton.classList.contains("is-on");
+      switchButton.classList.toggle("is-on", nextState);
+      switchButton.setAttribute("aria-pressed", String(nextState));
+      statusText.textContent = nextState ? "在线" : "离线";
+      statusText.style.color = nextState ? "" : "#747c85";
+      statusText.style.background = nextState ? "" : "#eceef0";
+    });
+  }
 
   document.querySelectorAll(".service-tile").forEach((tile) => {
     tile.addEventListener("click", () => {
@@ -424,9 +768,12 @@ function bindInteractions() {
     });
   });
 
-  document.querySelector(".consult-card").addEventListener("click", () => {
-    showToast("进入问诊室");
-  });
+  const consultCard = document.querySelector(".consult-card");
+  if (consultCard) {
+    consultCard.addEventListener("click", () => {
+      window.location.href = getRoomHref();
+    });
+  }
 
   document.querySelectorAll(".quick-card").forEach((card) => {
     card.addEventListener("click", () => {
@@ -437,6 +784,38 @@ function bindInteractions() {
   document.querySelectorAll(".btn").forEach((button) => {
     button.addEventListener("click", () => {
       showToast(button.textContent.trim());
+    });
+  });
+
+  const roomRefresh = document.querySelector(".room-refresh");
+  if (roomRefresh) {
+    roomRefresh.addEventListener("click", () => {
+      window.location.href = getTextHref();
+    });
+  }
+
+  document.querySelectorAll(".room-tag").forEach((tag) => {
+    tag.addEventListener("click", () => {
+      const group = tag.closest(".room-tags");
+      group.querySelectorAll(".room-tag").forEach((node) => node.classList.remove("is-active"));
+      tag.classList.add("is-active");
+    });
+  });
+
+  document.querySelectorAll(".room-service-check").forEach((button) => {
+    button.addEventListener("click", () => {
+      const enabled = button.getAttribute("aria-pressed") === "true";
+      button.setAttribute("aria-pressed", String(!enabled));
+    });
+  });
+
+  document.querySelectorAll(".message-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (item.dataset.targetView === "video") {
+        window.location.href = getVideoHref();
+      } else if (item.dataset.targetView === "text") {
+        window.location.href = getTextHref();
+      }
     });
   });
 }
