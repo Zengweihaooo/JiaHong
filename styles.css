@@ -297,7 +297,8 @@ button {
   text-align: left;
 }
 
-.menu-item svg {
+.menu-item svg,
+.menu-icon {
   flex: 0 0 16px;
   width: 16px;
   height: 16px;
@@ -524,7 +525,8 @@ button {
   box-shadow: 0 1px 4px rgba(29, 74, 131, 0.15);
 }
 
-.consult-card__icon svg {
+.consult-card__icon svg,
+.consult-card__icon-img {
   width: 88px;
   height: 88px;
 }
@@ -1032,7 +1034,8 @@ svg {
     padding: 7px;
   }
 
-  .menu-item svg {
+  .menu-item svg,
+  .menu-icon {
     margin-right: 0;
   }
 
@@ -1208,7 +1211,9 @@ body.page-mode-fixed-center #app {
 }
 
 .app-shell--fixed-left .menu-item svg,
-.app-shell--fixed-center .menu-item svg {
+.app-shell--fixed-center .menu-item svg,
+.app-shell--fixed-left .menu-icon,
+.app-shell--fixed-center .menu-icon {
   margin-right: 8px;
 }
 
@@ -1421,6 +1426,15 @@ body.page-view-room {
 }
 
 .room-status img {
+  width: 9.4px;
+  height: 5.4px;
+}
+
+.room-status__chevron {
+  display: inline-flex;
+  flex: 0 0 16px;
+  align-items: center;
+  justify-content: center;
   width: 16px;
   height: 16px;
 }
@@ -2376,6 +2390,7 @@ body.page-view-room {
 .medicine-search {
   display: flex;
   align-items: center;
+  gap: 8px;
   width: 100%;
   height: 34px;
   padding: 5px 12px;
@@ -2386,10 +2401,14 @@ body.page-view-room {
   line-height: 22px;
 }
 
-.medicine-search::before {
-  margin-right: 8px;
-  color: var(--jh-text-tertiary);
-  content: "⌕";
+.medicine-search__icon {
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  mask: url("./assets/search-icon.png") -0.213px 0 / 16px 16px no-repeat;
+  -webkit-mask: url("./assets/search-icon.png") -0.213px 0 / 16px 16px no-repeat;
 }
 
 .medicine-table {

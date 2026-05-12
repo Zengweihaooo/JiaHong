@@ -63,58 +63,29 @@ function getHomeHref() {
 
 const icons = {
   logo: `
-    <img class="brand-mark" src="${assetUrl("assets/logo-source.png")}" alt="嘉虹健康" />`,
+    <img class="brand-mark" src="${assetUrl("assets/home-logo-figma.png")}" alt="嘉虹健康" />`,
   home: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M6 14.6667V8.00004H10V14.6667M2 6.00004L8 1.33337L14 6.00004V13.3334C14 13.687 13.8595 14.0261 13.6095 14.2762C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2762C2.14048 14.0261 2 13.687 2 13.3334V6.00004Z" stroke="#006EF9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-active-icon.svg")}" alt="" aria-hidden="true" />`,
   dashboard: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M12.6667 2H3.33333C2.59695 2 2 2.59695 2 3.33333V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V3.33333C14 2.59695 13.403 2 12.6667 2Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M6.66667 4.66667H4.66667V10.6667H6.66667V4.66667Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M11.3333 4.66667H9.33333V8H11.3333V4.66667Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-trello-icon.svg")}" alt="" aria-hidden="true" />`,
   circle: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8.00065 14.6667C11.6825 14.6667 14.6673 11.6819 14.6673 8.00004C14.6673 4.31814 11.6825 1.33337 8.00065 1.33337C4.31875 1.33337 1.33398 4.31814 1.33398 8.00004C1.33398 11.6819 4.31875 14.6667 8.00065 14.6667Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M8.00065 10C9.10522 10 10.0007 9.10461 10.0007 8.00004C10.0007 6.89547 9.10522 6.00004 8.00065 6.00004C6.89608 6.00004 6.00065 6.89547 6.00065 8.00004C6.00065 9.10461 6.89608 10 8.00065 10Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-disc-icon.svg")}" alt="" aria-hidden="true" />`,
   clipboard: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M10.666 2.66671H11.9993C12.353 2.66671 12.6921 2.80718 12.9422 3.05723C13.1922 3.30728 13.3327 3.64642 13.3327 4.00004V13.3334C13.3327 13.687 13.1922 14.0261 12.9422 14.2762C12.6921 14.5262 12.353 14.6667 11.9993 14.6667H3.99935C3.64573 14.6667 3.30659 14.5262 3.05654 14.2762C2.80649 14.0261 2.66602 13.687 2.66602 13.3334V4.00004C2.66602 3.64642 2.80649 3.30728 3.05654 3.05723C3.30659 2.80718 3.64573 2.66671 3.99935 2.66671H5.33268M5.99935 1.33337H9.99935C10.3675 1.33337 10.666 1.63185 10.666 2.00004V3.33337C10.666 3.70156 10.3675 4.00004 9.99935 4.00004H5.99935C5.63116 4.00004 5.33268 3.70156 5.33268 3.33337V2.00004C5.33268 1.63185 5.63116 1.33337 5.99935 1.33337Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-clipboard-icon.svg")}" alt="" aria-hidden="true" />`,
   checkSquare: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M6 7.33333L8 9.33333L14.6667 2.66667M14 8V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V3.33333C2 2.97971 2.14048 2.64057 2.39052 2.39052C2.64057 2.14048 2.97971 2 3.33333 2H10.6667" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-check-square-icon.svg")}" alt="" aria-hidden="true" />`,
   briefcase: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M10.6673 14V3.33333C10.6673 2.97971 10.5268 2.64057 10.2768 2.39052C10.0267 2.14048 9.68761 2 9.33398 2H6.66732C6.3137 2 5.97456 2.14048 5.72451 2.39052C5.47446 2.64057 5.33398 2.97971 5.33398 3.33333V14M2.66732 4.66667H13.334C14.0704 4.66667 14.6673 5.26362 14.6673 6V12.6667C14.6673 13.403 14.0704 14 13.334 14H2.66732C1.93094 14 1.33398 13.403 1.33398 12.6667V6C1.33398 5.26362 1.93094 4.66667 2.66732 4.66667Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-briefcase-icon.svg")}" alt="" aria-hidden="true" />`,
   calendar: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M10.6667 1.33337V4.00004M5.33333 1.33337V4.00004M2 6.66671H14M3.33333 2.66671H12.6667C13.403 2.66671 14 3.26366 14 4.00004V13.3334C14 14.0698 13.403 14.6667 12.6667 14.6667H3.33333C2.59695 14.6667 2 14.0698 2 13.3334V4.00004C2 3.26366 2.59695 2.66671 3.33333 2.66671Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-calendar-icon.svg")}" alt="" aria-hidden="true" />`,
   user: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M14 14.5V13.0556C14 12.2894 13.6839 11.5546 13.1213 11.0128C12.5587 10.471 11.7956 10.1667 11 10.1667H5C4.20435 10.1667 3.44129 10.471 2.87868 11.0128C2.31607 11.5546 2 12.2894 2 13.0556V14.5M11 4.38889C11 5.98438 9.65685 7.27778 8 7.27778C6.34315 7.27778 5 5.98438 5 4.38889C5 2.7934 6.34315 1.5 8 1.5C9.65685 1.5 11 2.7934 11 4.38889Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-user-icon.svg")}" alt="" aria-hidden="true" />`,
   shield: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M5.33398 6.66667L8.00065 9.33333L10.6673 6.66667M2.66732 2H13.334C13.6876 2 14.0267 2.14048 14.2768 2.39052C14.5268 2.64057 14.6673 2.97971 14.6673 3.33333V7.33333C14.6673 9.10144 13.9649 10.7971 12.7147 12.0474C11.4645 13.2976 9.76876 14 8.00065 14C7.12517 14 6.25827 13.8276 5.44943 13.4925C4.64059 13.1575 3.90566 12.6664 3.28661 12.0474C2.03636 10.7971 1.33398 9.10144 1.33398 7.33333V3.33333C1.33398 2.97971 1.47446 2.64057 1.72451 2.39052C1.97456 2.14048 2.3137 2 2.66732 2Z" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-pocket-icon.svg")}" alt="" aria-hidden="true" />`,
   menu: `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M2 8H14M2 4H14M2 12H14" stroke="black" stroke-opacity="0.6" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`,
+    <img class="menu-icon" src="${assetUrl("assets/home-menu-icon.svg")}" alt="" aria-hidden="true" />`,
   stethoscope: `
-    <svg width="88" height="88" viewBox="0 0 88 88" fill="none" aria-hidden="true">
-      <path d="M24.884 9.48853C23.4014 9.48853 22.2002 10.6898 22.2002 12.1723V14.8561C22.2002 16.3386 23.4015 17.5398 24.884 17.5398C26.3665 17.5398 27.5677 16.3386 27.5677 14.8561V12.1723C27.5677 10.6898 26.3665 9.48853 24.884 9.48853Z" fill="white"/>
-      <path d="M40.9866 9.48853C39.504 9.48853 38.3029 10.6898 38.3029 12.1723V14.8561C38.3029 16.3386 39.5041 17.5398 40.9866 17.5398C42.4692 17.5398 43.6704 16.3386 43.6704 14.8561V12.1723C43.6705 10.6898 42.4692 9.48853 40.9866 9.48853Z" fill="white"/>
-      <path d="M82.506 36.7336C82.506 31.1223 77.9797 26.5575 72.4164 26.5575C66.8531 26.5575 62.3268 31.1222 62.3268 36.7336C62.3268 41.3497 65.3934 45.2514 69.5779 46.4918V66.6643C69.5779 70.2864 67.1405 73.3458 64.2558 73.3458H41.3448C39.2716 73.3458 37.354 71.9201 36.6813 69.8783C36.0134 67.8504 35.9573 64.654 35.9824 62.5582H46.2737C52.1481 62.5582 56.8158 58.0284 58.1665 51.0175C58.1814 50.938 58.1927 50.8576 58.2014 50.7773L60.914 23.6841C60.9227 23.5951 60.9271 23.5059 60.9271 23.4168C60.9271 16.5483 56.1746 11.3685 49.8714 11.3685C48.3888 11.3685 47.1876 12.5698 47.1876 14.0523C47.1876 15.5348 48.3889 16.7361 49.8714 16.7361C53.7293 16.7361 55.5133 20.1101 55.5587 23.2918L52.8732 50.1159C52.2084 53.4061 50.096 57.1906 46.2738 57.1906H20.2239C16.6201 57.1906 14.1443 53.5895 13.6305 50.1797L10.9388 23.2919C10.9843 20.1102 12.7683 16.7361 16.6262 16.7361C18.1088 16.7361 19.31 15.5349 19.31 14.0524C19.31 12.5699 18.1087 11.3686 16.6262 11.3686C10.323 11.3686 5.57043 16.5484 5.57043 23.4169C5.57043 23.506 5.57483 23.5951 5.58354 23.6842L8.29527 50.7773C8.29966 50.8167 8.30397 50.856 8.31013 50.8944C9.1497 56.691 13.5117 62.5583 20.2239 62.5583H30.6141C30.5837 65.042 30.663 68.7627 31.5828 71.5576C32.9937 75.8374 36.9163 78.7135 41.3448 78.7135H64.2558C70.1502 78.7135 74.9455 73.3083 74.9455 66.6643V46.5722C79.2865 45.4358 82.506 41.4619 82.506 36.7336ZM72.4164 41.5412C69.813 41.5412 67.6944 39.3842 67.6944 36.7336C67.6944 34.0821 69.813 31.9251 72.4164 31.9251C75.0198 31.9251 77.1383 34.0821 77.1383 36.7336C77.1383 39.3842 75.0198 41.5412 72.4164 41.5412Z" fill="white"/>
-      <path d="M30.2513 47.0629V51.5359C30.2513 53.0185 31.4526 54.2197 32.9351 54.2197C34.4177 54.2197 35.6189 53.0184 35.6189 51.5359V47.0629C35.6189 45.5803 34.4176 44.3792 32.9351 44.3792C31.4525 44.3792 30.2513 45.5804 30.2513 47.0629Z" fill="white"/>
-      <path d="M25.5058 25.004C26.469 26.5547 29.1126 29.1791 32.9086 29.1791C36.6861 29.1791 39.3621 26.5748 40.348 25.0354C41.1403 23.7983 40.7805 22.169 39.5539 21.3618C38.3277 20.5537 36.6687 20.897 35.8453 22.1139C35.834 22.1305 34.6755 23.8113 32.9087 23.8113C31.1906 23.8113 30.1222 22.2554 30.0501 22.1471C29.2617 20.9074 27.6197 20.5299 26.3696 21.3084C25.11 22.0904 24.7235 23.7451 25.5058 25.004Z" fill="white"/>
-    </svg>`,
+    <img class="consult-card__icon-img" src="${assetUrl("assets/consult-icon.svg")}" alt="" aria-hidden="true" />`,
   quickCalendar: `
     <span class="quick-icon quick-icon--schedule" aria-hidden="true">
       <svg width="23" height="24" viewBox="0 0 23 24" fill="none">
@@ -317,7 +288,9 @@ function renderRoomTopbar() {
           <button class="btn btn--primary room-service-btn" type="button">在线客服</button>
           <button class="room-status" type="button" aria-label="出诊状态：在线">
             <span class="badge room-status__badge">在线</span>
-            <img src="${assetUrl("assets/room-chevron.svg")}" alt="" />
+            <span class="room-status__chevron" aria-hidden="true">
+              <img src="${assetUrl("assets/room-chevron.svg")}" alt="" />
+            </span>
           </button>
           <div class="room-service-switches" aria-label="服务类型">
             <button class="room-service-check" type="button" aria-pressed="true">
@@ -508,7 +481,10 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
       <div class="section-divider"></div>
       <div class="medicine-section">
         <h3>所需药品</h3>
-        <div class="medicine-search">请输入药品名称或首字母做模糊查询</div>
+        <div class="medicine-search">
+          <span class="medicine-search__icon" aria-hidden="true"></span>
+          <span>请输入药品名称或首字母做模糊查询</span>
+        </div>
         <div class="medicine-table">
           <div class="medicine-table__row medicine-table__head">
             <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
