@@ -1,22 +1,45 @@
-const validAppModes = new Set(["responsive", "fixed-left", "fixed-center"]);
-const requestedAppMode = window.JH_APP_MODE || "responsive";
-const appMode = validAppModes.has(requestedAppMode) ? requestedAppMode : "responsive";
 const assetUrl = (path) => new URL(path, document.currentScript.src).href;
 const siteBasePath = new URL(".", document.currentScript.src).pathname.replace(/\/$/, "");
 const fixedDesignWidth = 1440;
-const appView =
-  window.JH_APP_VIEW ||
-  (location.pathname.includes("/video")
-    ? "video"
-    : location.pathname.includes("/text")
-      ? "text"
-      : location.pathname.includes("/room")
-        ? "room"
-        : "home");
+const validAppModes = new Set(["responsive", "fixed-left", "fixed-center"]);
+const validAppViews = new Set(["home", "room", "text", "video"]);
+
+function getCurrentRoutePath() {
+  const normalized = location.pathname.replace(/\/+$/, "") || "/";
+  const base = siteBasePath || "";
+  if (base && normalized.startsWith(base)) {
+    const rest = normalized.slice(base.length) || "/";
+    return rest.startsWith("/") ? rest : `/${rest}`;
+  }
+  return normalized;
+}
+
+function inferAppMode() {
+  const currentPath = getCurrentRoutePath();
+  if (currentPath.startsWith("/2/") || currentPath === "/2") {
+    return "fixed-left";
+  }
+  if (currentPath.startsWith("/3/") || currentPath === "/3") {
+    return "fixed-center";
+  }
+  return "responsive";
+}
+
+function inferAppView() {
+  const currentPath = getCurrentRoutePath();
+  if (currentPath.includes("/video")) return "video";
+  if (currentPath.includes("/text")) return "text";
+  if (currentPath.includes("/room")) return "room";
+  return "home";
+}
+
+const requestedAppMode = window.JH_APP_MODE || inferAppMode();
+const appMode = validAppModes.has(requestedAppMode) ? requestedAppMode : inferAppMode();
+const requestedAppView = window.JH_APP_VIEW || inferAppView();
+const appView = validAppViews.has(requestedAppView) ? requestedAppView : "home";
 
 const versionRoutes = [
-  { label: "首页", path: "/", mode: "responsive" },
-  { label: "版本 1", path: "/1/", mode: "responsive" },
+  { label: "版本 1", path: "/", mode: "responsive", aliases: ["/", "/1"] },
   { label: "版本 2", path: "/2/", mode: "fixed-left" },
   { label: "版本 3", path: "/3/", mode: "fixed-center" }
 ];
@@ -29,20 +52,10 @@ function getVersionHref(path) {
   return `${base}${path}`;
 }
 
-function getCurrentVersionPath() {
-  const normalized = location.pathname.replace(/\/+$/, "") || "/";
-  const base = siteBasePath || "";
-  if (base && normalized.startsWith(base)) {
-    const rest = normalized.slice(base.length) || "/";
-    return rest.startsWith("/") ? rest : `/${rest}`;
-  }
-  return normalized;
-}
-
 function getCurrentVersionBasePath() {
-  const currentPath = getCurrentVersionPath();
+  const currentPath = getCurrentRoutePath();
   const match = currentPath.match(/^\/([123])(?:\/|$)/);
-  return match ? `/${match[1]}/` : "/";
+  return match ? `/${match[1]}/` : "/1/";
 }
 
 function getRoomHref() {
@@ -58,7 +71,8 @@ function getVideoHref() {
 }
 
 function getHomeHref() {
-  return getVersionHref(getCurrentVersionBasePath());
+  const basePath = getCurrentVersionBasePath();
+  return getVersionHref(basePath === "/1/" ? "/" : basePath);
 }
 
 const icons = {
@@ -164,7 +178,24 @@ const quickActions = [
   { title: "", desc: "添加快捷入口", icon: "plus" }
 ];
 
-const services = ["图文问诊", "视频问诊", "图文咨询"];
+const services = [
+  { key: "text", label: "图文问诊", enabled: true },
+  { key: "video", label: "视频问诊", enabled: true },
+  { key: "consult", label: "图文咨询", enabled: true }
+];
+
+const serviceState = services.reduce((state, service) => {
+  state[service.key] = service.enabled;
+  return state;
+}, {});
+
+function renderServiceCheckboxIcon() {
+  return `
+    <svg class="check-icon__svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect width="24" height="24" rx="4" fill="#006EF9"/>
+      <path d="M7 12.2L10.2 15.4L17.4 8.2" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+}
 
 function renderMenu() {
   return menuGroups
@@ -194,12 +225,14 @@ function renderSidebar() {
 }
 
 function renderTopbar() {
-  const currentVersionPath = getCurrentVersionPath();
+  const currentVersionPath = getCurrentRoutePath();
   const versionNav = versionRoutes
     .map((item) => {
-      const isActive =
-        currentVersionPath === item.path.replace(/\/+$/, "") ||
-        (item.path === "/" && currentVersionPath === "/");
+      const normalizedItemPath = item.path.replace(/\/+$/, "") || "/";
+      const aliases = item.aliases || [normalizedItemPath];
+      const isActive = aliases.some(
+        (alias) => currentVersionPath === alias || currentVersionPath.startsWith(`${alias}/`)
+      );
       return `<a class="version-nav__item${isActive ? " is-active" : ""}" href="${getVersionHref(item.path)}" data-mode="${item.mode}">${item.label}</a>`;
     })
     .join("");
@@ -217,8 +250,8 @@ function renderTopbar() {
           <span>2027-01-15</span>
         </div>
         <div class="topbar__actions">
-          <button class="btn btn--primary" type="button">在线客服</button>
-          <button class="btn btn--outline" type="button">医生招聘</button>
+          <button class="jh-btn jh-btn--md jh-btn--primary btn btn--primary" type="button">在线客服</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary btn btn--outline" type="button">医生招聘</button>
         </div>
         <div class="user-chip">
           <div class="user-chip__body">
@@ -280,12 +313,12 @@ function renderRoomTopbar() {
   return `
     <header class="room-topbar">
       <div class="room-topbar__inner">
-        <a class="room-back-btn" href="${getHomeHref()}" aria-label="返回首页">
+        <a class="jh-btn jh-btn--md jh-btn--neutral jh-btn--icon room-back-btn" href="${getHomeHref()}" aria-label="返回首页">
           <img src="${assetUrl("assets/room-back.svg")}" alt="" />
           <span>返回首页</span>
         </a>
         <div class="room-topbar__right">
-          <button class="btn btn--primary room-service-btn" type="button">在线客服</button>
+          <button class="jh-btn jh-btn--md jh-btn--primary btn btn--primary room-service-btn" type="button">在线客服</button>
           <button class="room-status" type="button" aria-label="出诊状态：在线">
             <span class="badge room-status__badge">在线</span>
             <span class="room-status__chevron" aria-hidden="true">
@@ -328,13 +361,13 @@ function renderRoomSidebar() {
       </div>
       <div class="room-sidebar__section room-sidebar__section--filters">
         <div class="room-tags room-tags--type">
-          <button class="room-tag is-active" type="button">全部</button>
-          <button class="room-tag" type="button">图文</button>
-          <button class="room-tag" type="button">视频</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary room-tag is-active" type="button">全部</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary room-tag" type="button">图文</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary room-tag" type="button">视频</button>
         </div>
         <div class="room-tags room-tags--state">
-          <button class="room-tag room-tag--wide is-active" type="button">进行中</button>
-          <button class="room-tag room-tag--wide" type="button">已结束</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary room-tag room-tag--wide is-active" type="button">进行中</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary room-tag room-tag--wide" type="button">已结束</button>
         </div>
       </div>
       ${
@@ -359,7 +392,7 @@ function renderMessageItem(type, active, targetView) {
         <span class="message-item__title">武汉市好药师大药房</span>
         <span class="message-item__preview">您好！请问那个药怎么...</span>
       </span>
-      <span class="message-item__badge">1</span>
+      ${active ? "" : '<span class="message-item__badge">1</span>'}
     </button>`;
 }
 
@@ -367,7 +400,7 @@ function renderRoomMain() {
   return `
     <main class="room-main">
       <section class="room-card" aria-label="候诊室">
-        <button class="btn btn--outline room-refresh" type="button">刷新列表</button>
+        <button class="jh-btn jh-btn--md jh-btn--outline-secondary btn btn--outline room-refresh" type="button">刷新列表</button>
         <div class="room-empty">
           <img class="room-empty__icon" src="${assetUrl("assets/room-empty.svg")}" alt="" aria-hidden="true" />
           <div class="room-empty__copy">
@@ -404,7 +437,7 @@ function renderTextMain() {
               <span class="duration-chip__clock" aria-hidden="true"></span>
               <strong>问诊持续时长：00:00:55</strong>
             </span>
-            <button class="danger-btn" type="button">取消问诊</button>
+            <button class="jh-btn jh-btn--md jh-btn--danger danger-btn" type="button">取消问诊</button>
           </div>
         </div>
         <div class="consult-workspace">
@@ -421,7 +454,7 @@ function renderChatPanel() {
       <div class="chat-thread">
         <p class="chat-date">2026-01-13 16:38:21</p>
         <div class="chat-bubble chat-bubble--doctor">
-          <p>您好，下图已经出现局部明显脱落，请问下<br />续是否继续原方案使用，药物是否有变化？<br />患者无异常，请问是否需要补充？</p>
+          <p>您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？</p>
         </div>
         <div class="chat-bubble chat-bubble--patient">
           <p>还有发烧</p>
@@ -433,14 +466,14 @@ function renderChatPanel() {
           <h3>智能推荐回复</h3>
         </div>
         <div class="ai-reply__options">
-          <button type="button">头痛发烧多久啦？体温多少度？</button>
-          <button type="button">持续几天了？头痛具体位置在哪，程度如何？</button>
-          <button type="button">这是一串智能回复的文字内容，并且这是一行的最长字符数</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-primary ai-option-btn" type="button">头痛发烧多久啦？体温多少度？</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-primary ai-option-btn" type="button">持续几天了？头痛具体位置在哪，程度如何？</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-primary ai-option-btn" type="button">这是一串智能回复的文字内容，并且这是一行的最长字符数</button>
         </div>
         <div class="chat-input">
-          <div class="chat-input__quick">快捷回复</div>
-          <p>输入回复内容，或点击上方AI推荐快速填充...</p>
-          <button type="button">发送</button>
+          <button class="jh-btn jh-btn--outline-primary chat-input__quick" type="button">快捷回复</button>
+          <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
+          <button class="jh-btn jh-btn--md jh-btn--primary chat-input__send" type="button">发送</button>
         </div>
       </div>
     </section>`;
@@ -449,7 +482,7 @@ function renderChatPanel() {
 function renderPrescriptionPanel(includeSecondMedicine = false) {
   const medicineRow = `
           <div class="medicine-table__row">
-            <span>1</span><span>阿奇霉素分散片</span><span>处方药</span><span class="table-input">0.125g*6片</span><span class="table-input">口服</span><span class="table-input">1次/日</span><span class="table-input">0.25毫克</span><span>1</span><span class="table-input">盒</span><span class="risk-small">高</span><button type="button">删除</button>
+            <span>1</span><span>阿奇霉素分散片</span><span>处方药</span><span class="table-input">0.125g*6片</span><span class="table-input">口服</span><span class="table-input">1次/日</span><span class="table-input">0.25毫克</span><span>1</span><span class="table-input">盒</span><span class="risk-small">高</span><button class="jh-btn--text" type="button">删除</button>
           </div>`;
 
   return `
@@ -471,9 +504,9 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
         <h3>疾病信息</h3>
         <div class="diagnosis-row">
           <label><span>*</span>诊断</label>
-          <button class="select-control" type="button">请选择诊断</button>
+          <button class="jh-btn jh-btn--md jh-btn--outline-secondary select-control" type="button">请选择诊断</button>
           <div class="diagnosis-input">
-            <span>支气管肺炎</span>
+            <span>急性支气管炎</span>
             <button type="button" aria-label="移除诊断">×</button>
           </div>
         </div>
@@ -494,10 +527,10 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
         </div>
       </div>
       <div class="prescription-actions">
-        <button class="select-control" type="button">请选择</button>
+        <button class="jh-btn jh-btn--md jh-btn--outline-secondary select-control" type="button">请选择</button>
         <div>
-          <button class="end-btn" type="button">结束问诊</button>
-          <button class="submit-btn" type="button">提交处方</button>
+          <button class="jh-btn jh-btn--md jh-btn--soft-danger end-btn" type="button">结束问诊</button>
+          <button class="jh-btn jh-btn--md jh-btn--primary submit-btn" type="button">提交处方</button>
         </div>
       </div>
     </section>`;
@@ -525,7 +558,7 @@ function renderVideoChatPanel() {
       <div class="video-chat-thread">
         <p class="chat-date">2026-01-13 16:38:21</p>
         <div class="chat-bubble chat-bubble--doctor">
-          <p>您好，下图已经出现局部明显脱落，请问下<br />续是否继续原方案使用，药物是否有变化？<br />患者无异常，请问是否需要补充？</p>
+          <p>您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？</p>
         </div>
         <div class="chat-bubble chat-bubble--patient">
           <p>还有发烧</p>
@@ -533,9 +566,9 @@ function renderVideoChatPanel() {
       </div>
       <div class="video-input-wrap">
         <div class="chat-input">
-          <div class="chat-input__quick">快捷回复</div>
-          <p>输入回复内容，或点击上方AI推荐快速填充...</p>
-          <button type="button">发送</button>
+          <button class="jh-btn jh-btn--outline-primary chat-input__quick" type="button">快捷回复</button>
+          <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
+          <button class="jh-btn jh-btn--md jh-btn--primary chat-input__send" type="button">发送</button>
         </div>
       </div>
     </section>`;
@@ -556,7 +589,7 @@ function renderVideoMain() {
               <span class="duration-chip__clock" aria-hidden="true"></span>
               <strong>问诊持续时长：00:00:55</strong>
             </span>
-            <button class="danger-btn" type="button">取消问诊</button>
+            <button class="jh-btn jh-btn--md jh-btn--danger danger-btn" type="button">取消问诊</button>
           </div>
         </div>
         <div class="consult-workspace">
@@ -592,9 +625,9 @@ function renderServiceCard() {
         ${services
           .map(
             (service) => `
-              <button class="service-tile" type="button" role="checkbox" aria-checked="true" data-service="${service}">
-                <span class="check-icon">${icons.checkbox}</span>
-                <span>${service}</span>
+              <button class="service-tile" type="button" role="checkbox" aria-checked="${serviceState[service.key]}" data-service-key="${service.key}">
+                <span class="check-icon" aria-hidden="true">${renderServiceCheckboxIcon()}</span>
+                <span>${service.label}</span>
               </button>`
           )
           .join("")}
@@ -625,7 +658,7 @@ function renderNoticeCard() {
           </div>
           <p class="announcement__footer">成都双流九州通互联网医院</p>
         </article>
-        <button class="btn btn--outline btn--block" type="button">查看全部公告</button>
+        <button class="jh-btn jh-btn--block-outline btn btn--outline btn--block" type="button">查看全部公告</button>
       </div>
     </section>`;
 }
@@ -714,6 +747,15 @@ function showToast(message) {
   }, 1500);
 }
 
+function setServiceTileState(tile, enabled) {
+  const serviceKey = tile.dataset.serviceKey;
+  if (serviceKey) {
+    serviceState[serviceKey] = enabled;
+  }
+  tile.setAttribute("aria-checked", String(enabled));
+  tile.classList.toggle("is-selected", enabled);
+}
+
 function bindInteractions() {
   document.querySelectorAll(".menu-item").forEach((item) => {
     item.addEventListener("click", () => {
@@ -737,10 +779,30 @@ function bindInteractions() {
     });
   }
 
-  document.querySelectorAll(".service-tile").forEach((tile) => {
-    tile.addEventListener("click", () => {
-      const enabled = tile.getAttribute("aria-checked") === "true";
-      tile.setAttribute("aria-checked", String(!enabled));
+  const serviceList = document.querySelector(".service-list");
+  if (serviceList) {
+    serviceList.querySelectorAll(".service-tile").forEach((tile) => {
+      const serviceKey = tile.dataset.serviceKey;
+      setServiceTileState(tile, Boolean(serviceState[serviceKey]));
+    });
+
+    serviceList.addEventListener("click", (event) => {
+      const currentTile = event.target.closest(".service-tile");
+      if (!currentTile || !serviceList.contains(currentTile)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const serviceKey = currentTile.dataset.serviceKey;
+      setServiceTileState(currentTile, !serviceState[serviceKey]);
+    });
+  }
+
+  document.querySelectorAll(".ai-reply__options button").forEach((option) => {
+    option.addEventListener("click", () => {
+      const input = document.querySelector(".chat-input textarea");
+      if (input) {
+        input.value = option.textContent.trim();
+        input.focus();
+      }
     });
   });
 
@@ -787,6 +849,7 @@ function bindInteractions() {
 
   document.querySelectorAll(".message-item").forEach((item) => {
     item.addEventListener("click", () => {
+      item.querySelector(".message-item__badge")?.remove();
       if (item.dataset.targetView === "video") {
         window.location.href = getVideoHref();
       } else if (item.dataset.targetView === "text") {
