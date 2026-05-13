@@ -161,6 +161,28 @@ const services = [
   { key: "consult", label: "图文咨询", enabled: true }
 ];
 
+const quickReplyCategories = [
+  "续方-必发两项",
+  "续方-询问病史",
+  "续方-风险评估",
+  "续方-安全用药",
+  "续方-异常情况",
+  "续方-售后服务",
+  "续方-凭证不符",
+  "续方-处方备注"
+];
+
+const quickReplyMessages = [
+  "稍后给您开方，请您按处方使用并认真阅读药品说明书。注意忌饮酒，辛辣食物，注意休息。如出现病情变化或其它不适症状，请立即停药并及时当地医院就医。",
+  "请问您是否线下就诊并已明确诊断?",
+  "请问确定是医生推荐使用该药品的吗?",
+  "请问您确定非处于孕期/哺乳期/备孕期吗?",
+  "请问确定不存在肝肾功能异常?",
+  "请问您是否线下就诊并已明确诊断?",
+  "请您按时用药，定期复查，不适随诊。",
+  "如您在用药3-5天后，症状没有缓解或者病情加重，请及时医院就诊，以免延误病情。"
+];
+
 const serviceState = services.reduce((state, service) => {
   state[service.key] = service.enabled;
   return state;
@@ -234,7 +256,7 @@ function renderChatInput({ className = "" } = {}) {
   return `
     <div class="jh-chat-input${className ? ` ${className}` : ""}">
       <div class="jh-chat-input__top">
-        ${renderButton({ text: "快捷回复", tone: "outline-primary" })}
+        ${renderButton({ text: "快捷回复", tone: "outline-primary", className: "quick-reply-trigger" })}
         <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
       </div>
       <div class="jh-chat-input__actions">
@@ -243,9 +265,113 @@ function renderChatInput({ className = "" } = {}) {
     </div>`;
 }
 
-function renderAiReplyOptions(options = []) {
+function renderQuickReplyDialog() {
   return `
-    <div class="ai-reply__options">
+    <div class="quick-reply-overlay" aria-hidden="true">
+      <section class="quick-reply-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-reply-title">
+        <header class="quick-reply-dialog__header">
+          <h2 id="quick-reply-title">快捷用语</h2>
+          <button class="quick-reply-dialog__close" type="button" aria-label="关闭快捷用语">
+            <img src="${assetUrl("assets/quick-reply-close.svg")}" alt="" />
+          </button>
+        </header>
+        <div class="quick-reply-dialog__body">
+          <nav class="quick-reply-categories" aria-label="快捷回复分类">
+            ${quickReplyCategories
+              .map(
+                (category, index) => `
+                  <button class="quick-reply-category${index === 0 ? " is-active" : ""}" type="button">
+                    ${category}
+                  </button>`
+              )
+              .join("")}
+          </nav>
+          <div class="quick-reply-list" role="list">
+            ${quickReplyMessages
+              .map(
+                (message) => `
+                  <button class="quick-reply-message" type="button" role="listitem">
+                    <span>${message}</span>
+                  </button>`
+              )
+              .join("")}
+          </div>
+          <div class="quick-reply-scrollbar" aria-hidden="true"></div>
+        </div>
+        <footer class="quick-reply-dialog__footer">点击快捷用语即可发送</footer>
+      </section>
+    </div>`;
+}
+
+function renderRiskWarningDialog() {
+  const headers = [
+    "药品名称",
+    "患者条件",
+    "重复用药",
+    "用法用量",
+    "给药途径",
+    "相互作用",
+    "生化指标",
+    "配伍",
+    "过敏",
+    "孕产",
+    "其他"
+  ];
+  const rows = [
+    { name: "阿奇霉素分散片", warnings: { 2: "must", 5: "severe" } },
+    { name: "头孢", warnings: { 4: "general" } }
+  ];
+
+  return `
+    <div class="risk-warning-overlay" aria-hidden="true">
+      <section class="risk-warning-dialog" role="dialog" aria-modal="true" aria-labelledby="risk-warning-title">
+        <header class="risk-warning-dialog__header">
+          <h2 id="risk-warning-title">风险检测提醒</h2>
+          <button class="risk-warning-dialog__close" type="button" aria-label="关闭风险检测提醒">
+            <img src="${assetUrl("assets/quick-reply-close.svg")}" alt="" />
+          </button>
+        </header>
+        <div class="risk-warning-dialog__table-wrap">
+          <div class="risk-warning-table" role="table" aria-label="风险检测提醒">
+            <div class="risk-warning-row risk-warning-row--head" role="row">
+              ${headers.map((header) => `<div class="risk-warning-cell" role="columnheader">${header}</div>`).join("")}
+            </div>
+            ${rows
+              .map(
+                (row) => `
+                  <div class="risk-warning-row" role="row">
+                    <div class="risk-warning-cell risk-warning-cell--name" role="cell">${row.name}</div>
+                    ${headers
+                      .slice(1)
+                      .map((_, index) => {
+                        const status = row.warnings[index + 1];
+                        return `<div class="risk-warning-cell risk-warning-cell--status" role="cell">${
+                          status ? `<span class="risk-warning-status risk-warning-status--${status}" aria-hidden="true"></span>` : ""
+                        }</div>`;
+                      })
+                      .join("")}
+                  </div>`
+              )
+              .join("")}
+          </div>
+        </div>
+        <div class="risk-warning-dialog__divider"></div>
+        <div class="risk-warning-dialog__message-wrap">
+          <div class="risk-warning-message">
+            <p>[警示信息-孕产]孕妇禁用</p>
+            <p>[建议信息]本品为高危药品</p>
+          </div>
+        </div>
+      </section>
+    </div>`;
+}
+
+function renderAiReplyOptions(options = []) {
+  const layoutTextThreshold = "这是一串智能回复的文字内容，并且这是一行的最长字符数".length;
+  const maxTextLength = Math.max(0, ...options.map((option) => option.length));
+  const layoutClass = maxTextLength >= layoutTextThreshold ? " ai-reply__options--long" : "";
+  return `
+    <div class="ai-reply__options${layoutClass}" data-layout-threshold="${layoutTextThreshold}">
       ${options
         .map((option) =>
           renderButton({ text: option, tone: "outline-primary", size: "md", className: "jh-btn--ai-pill" })
@@ -257,17 +383,25 @@ function renderAiReplyOptions(options = []) {
 function renderSearchField({ className = "", placeholder = "请输入药品名称或首字母做模糊查询", disabled = false } = {}) {
   return `
     <label class="jh-search-field${className ? ` ${className}` : ""}${disabled ? " is-disabled" : ""}">
-      <span class="jh-search-field__icon" aria-hidden="true"></span>
+      <span class="jh-search-field__icon" aria-hidden="true">
+        <img src="${assetUrl("assets/search-icon.png")}" alt="" />
+      </span>
       <input type="text" placeholder="${placeholder}" aria-label="${placeholder}"${disabled ? " disabled" : ""} />
     </label>`;
 }
 
-function renderSelectField({ label = "请选择", size = "sm", className = "" } = {}) {
+function renderSelectField({ label = "请选择", size = "sm", className = "", showChevron = true } = {}) {
   const safeSize = size === "lg" ? "lg" : "sm";
   return `
     <button class="jh-input-field jh-input-field--${safeSize}${className ? ` ${className}` : ""}" type="button">
       <span>${label}</span>
-      <span class="jh-input-field__chevron" aria-hidden="true"></span>
+      ${
+        showChevron
+          ? `<span class="jh-input-field__chevron" aria-hidden="true">
+              <img src="${assetUrl("assets/figma-consult/chevron-down.svg")}" alt="" />
+            </span>`
+          : ""
+      }
     </button>`;
 }
 
@@ -537,9 +671,7 @@ function renderChatPanel() {
       <div class="chat-thread">
         <p class="chat-date">2026-01-13 16:38:21</p>
         <div class="chat-bubble chat-bubble--doctor">
-          <p>您好，下图已经出现局部明显脱落，请问下</p>
-          <p>续是否继续原方案使用，药物是否有变化？</p>
-          <p>患者无异常，请问是否需要补充？</p>
+          <p>您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？</p>
         </div>
         <div class="chat-bubble chat-bubble--patient">
           <p>还有发烧</p>
@@ -585,29 +717,35 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
         <h3>疾病信息</h3>
         <div class="diagnosis-row">
           <label><span>*</span>诊断</label>
-          ${renderSelectField({ label: "请选择诊断", size: "lg" })}
+          ${renderSelectField({ label: "请选择诊断", size: "lg", className: "diagnosis-select", showChevron: false })}
           <div class="diagnosis-input">
-            <span>急性支气管炎</span>
-            <button type="button" aria-label="移除诊断">×</button>
+            <button class="diagnosis-tag" type="button" aria-label="移除诊断：支气管肺炎">
+              <span>支气管肺炎</span>
+              <span class="diagnosis-tag__close" aria-hidden="true">
+                <img src="${assetUrl("assets/diagnosis-tag-close.svg")}" alt="" />
+              </span>
+            </button>
           </div>
         </div>
       </div>
       <div class="section-divider"></div>
       <div class="medicine-section">
         <h3>所需药品</h3>
-        ${renderSearchField({ className: "medicine-search" })}
-        <div class="medicine-table">
-          <div class="medicine-table__row medicine-table__head">
-            <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
+        <div class="medicine-scroll-area">
+          ${renderSearchField({ className: "medicine-search" })}
+          <div class="medicine-table">
+            <div class="medicine-table__row medicine-table__head">
+              <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
+            </div>
+            ${medicineRow}
+            ${includeSecondMedicine ? medicineRow : ""}
           </div>
-          ${medicineRow}
-          ${includeSecondMedicine ? medicineRow : ""}
         </div>
       </div>
       <div class="prescription-actions">
         ${renderSelectField({ label: "请选择", size: "sm" })}
         <div>
-          ${renderButton({ text: "结束问诊", tone: "soft-danger", size: "md" })}
+          ${renderButton({ text: "结束问诊", tone: "danger", size: "md", className: "end-consult-trigger" })}
           ${renderButton({ text: "提交处方", tone: "primary", size: "md", className: "jh-prescription-submit" })}
         </div>
       </div>
@@ -620,6 +758,8 @@ function renderTextPage() {
       ${renderRoomTopbar()}
       ${renderRoomSidebar()}
       ${renderTextMain()}
+      ${renderQuickReplyDialog()}
+      ${renderRiskWarningDialog()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
 }
@@ -636,9 +776,7 @@ function renderVideoChatPanel() {
       <div class="video-chat-thread">
         <p class="chat-date">2026-01-13 16:38:21</p>
         <div class="chat-bubble chat-bubble--doctor">
-          <p>您好，下图已经出现局部明显脱落，请问下</p>
-          <p>续是否继续原方案使用，药物是否有变化？</p>
-          <p>患者无异常，请问是否需要补充？</p>
+          <p>您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？</p>
         </div>
         <div class="chat-bubble chat-bubble--patient">
           <p>还有发烧</p>
@@ -679,6 +817,8 @@ function renderVideoPage() {
       ${renderRoomTopbar()}
       ${renderRoomSidebar()}
       ${renderVideoMain()}
+      ${renderQuickReplyDialog()}
+      ${renderRiskWarningDialog()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
 }
@@ -828,6 +968,36 @@ function setServiceTileState(tile, enabled) {
   tile.classList.toggle("is-selected", enabled);
 }
 
+function openQuickReplyDialog() {
+  const overlay = document.querySelector(".quick-reply-overlay");
+  if (!overlay) return;
+  overlay.classList.add("is-open");
+  overlay.setAttribute("aria-hidden", "false");
+  overlay.querySelector(".quick-reply-dialog__close")?.focus();
+}
+
+function closeQuickReplyDialog() {
+  const overlay = document.querySelector(".quick-reply-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("is-open");
+  overlay.setAttribute("aria-hidden", "true");
+}
+
+function openRiskWarningDialog() {
+  const overlay = document.querySelector(".risk-warning-overlay");
+  if (!overlay) return;
+  overlay.classList.add("is-open");
+  overlay.setAttribute("aria-hidden", "false");
+  overlay.querySelector(".risk-warning-dialog__close")?.focus();
+}
+
+function closeRiskWarningDialog() {
+  const overlay = document.querySelector(".risk-warning-overlay");
+  if (!overlay) return;
+  overlay.classList.remove("is-open");
+  overlay.setAttribute("aria-hidden", "true");
+}
+
 function bindInteractions() {
   document.querySelectorAll(".menu-item").forEach((item) => {
     item.addEventListener("click", () => {
@@ -877,6 +1047,54 @@ function bindInteractions() {
       }
     });
   });
+
+  const quickReplyOverlay = document.querySelector(".quick-reply-overlay");
+  document.querySelectorAll(".quick-reply-trigger").forEach((button) => {
+    button.addEventListener("click", openQuickReplyDialog);
+  });
+
+  if (quickReplyOverlay) {
+    quickReplyOverlay.querySelector(".quick-reply-dialog__close")?.addEventListener("click", closeQuickReplyDialog);
+    quickReplyOverlay.addEventListener("click", (event) => {
+      if (event.target === quickReplyOverlay) {
+        closeQuickReplyDialog();
+      }
+    });
+
+    quickReplyOverlay.querySelectorAll(".quick-reply-category").forEach((category) => {
+      category.addEventListener("click", () => {
+        quickReplyOverlay
+          .querySelectorAll(".quick-reply-category")
+          .forEach((node) => node.classList.remove("is-active"));
+        category.classList.add("is-active");
+      });
+    });
+
+    quickReplyOverlay.querySelectorAll(".quick-reply-message").forEach((message) => {
+      message.addEventListener("click", () => {
+        const input = document.querySelector(".jh-chat-input textarea");
+        if (input) {
+          input.value = message.textContent.trim();
+          input.focus();
+        }
+        closeQuickReplyDialog();
+      });
+    });
+  }
+
+  const riskWarningOverlay = document.querySelector(".risk-warning-overlay");
+  document.querySelectorAll(".end-consult-trigger").forEach((button) => {
+    button.addEventListener("click", openRiskWarningDialog);
+  });
+
+  if (riskWarningOverlay) {
+    riskWarningOverlay.querySelector(".risk-warning-dialog__close")?.addEventListener("click", closeRiskWarningDialog);
+    riskWarningOverlay.addEventListener("click", (event) => {
+      if (event.target === riskWarningOverlay) {
+        closeRiskWarningDialog();
+      }
+    });
+  }
 
   const consultCard = document.querySelector(".consult-card");
   if (consultCard) {
@@ -935,6 +1153,13 @@ function bindInteractions() {
         window.location.href = getTextHref();
       }
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeQuickReplyDialog();
+      closeRiskWarningDialog();
+    }
   });
 }
 
