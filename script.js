@@ -234,11 +234,11 @@ function renderChatInput({ className = "" } = {}) {
   return `
     <div class="jh-chat-input${className ? ` ${className}` : ""}">
       <div class="jh-chat-input__top">
-        ${renderButton({ text: "快捷回复", tone: "outline-primary", className: "jh-chat-input__quick" })}
+        ${renderButton({ text: "快捷回复", tone: "outline-primary" })}
         <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
       </div>
       <div class="jh-chat-input__actions">
-        ${renderButton({ text: "发送", tone: "primary", size: "md", className: "jh-chat-input__send" })}
+        ${renderButton({ text: "发送", tone: "primary", size: "md" })}
       </div>
     </div>`;
 }
@@ -248,7 +248,7 @@ function renderAiReplyOptions(options = []) {
     <div class="ai-reply__options">
       ${options
         .map((option) =>
-          renderButton({ text: option, tone: "outline-primary", size: "md", className: "ai-option-btn" })
+          renderButton({ text: option, tone: "outline-primary", size: "md", className: "jh-btn--ai-pill" })
         )
         .join("")}
     </div>`;
@@ -336,8 +336,8 @@ function renderTopbar() {
           <span>2027-01-15</span>
         </div>
         <div class="topbar__actions">
-          ${renderButton({ text: "在线客服", tone: "primary", size: "md", className: "btn btn--primary" })}
-          ${renderButton({ text: "医生招聘", tone: "outline-secondary", size: "md", className: "btn btn--outline" })}
+          ${renderButton({ text: "在线客服", tone: "primary", size: "md" })}
+          ${renderButton({ text: "医生招聘", tone: "outline-secondary", size: "md" })}
         </div>
         <div class="user-chip">
           <div class="user-chip__body">
@@ -400,7 +400,7 @@ function renderRoomTopbar() {
           <span>返回首页</span>
         </a>
         <div class="room-topbar__right">
-          ${renderButton({ text: "在线客服", tone: "primary", size: "md", className: "btn btn--primary room-service-btn" })}
+          ${renderButton({ text: "在线客服", tone: "primary", size: "md", className: "room-service-btn" })}
           <button class="room-status" type="button" aria-label="出诊状态：在线">
             ${renderStatusBadge("online", "room-status__badge")}
             <span class="room-status__chevron" aria-hidden="true">
@@ -486,7 +486,7 @@ function renderRoomMain() {
   return `
     <main class="room-main">
       <section class="room-card" aria-label="候诊室">
-        ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "btn btn--outline room-refresh" })}
+        ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "room-refresh" })}
         <div class="room-empty">
           <img class="room-empty__icon" src="${assetUrl("assets/room-empty.svg")}" alt="" aria-hidden="true" />
           <div class="room-empty__copy">
@@ -520,7 +520,7 @@ function renderTextMain() {
           </div>
           <div class="pharmacy-bar__right">
             ${renderDurationChip("icon")}
-            ${renderButton({ text: "取消问诊", tone: "danger", size: "md", className: "danger-btn" })}
+            ${renderButton({ text: "取消问诊", tone: "danger", size: "md" })}
           </div>
         </div>
         <div class="consult-workspace">
@@ -585,7 +585,7 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
         <h3>疾病信息</h3>
         <div class="diagnosis-row">
           <label><span>*</span>诊断</label>
-          ${renderSelectField({ label: "请选择诊断", size: "lg", className: "select-control" })}
+          ${renderSelectField({ label: "请选择诊断", size: "lg" })}
           <div class="diagnosis-input">
             <span>急性支气管炎</span>
             <button type="button" aria-label="移除诊断">×</button>
@@ -605,10 +605,10 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
         </div>
       </div>
       <div class="prescription-actions">
-        ${renderSelectField({ label: "请选择", size: "sm", className: "select-control" })}
+        ${renderSelectField({ label: "请选择", size: "sm" })}
         <div>
-          ${renderButton({ text: "结束问诊", tone: "soft-danger", size: "md", className: "end-btn" })}
-          ${renderButton({ text: "提交处方", tone: "primary", size: "md", className: "submit-btn" })}
+          ${renderButton({ text: "结束问诊", tone: "soft-danger", size: "md" })}
+          ${renderButton({ text: "提交处方", tone: "primary", size: "md", className: "jh-prescription-submit" })}
         </div>
       </div>
     </section>`;
@@ -662,7 +662,7 @@ function renderVideoMain() {
           </div>
           <div class="pharmacy-bar__right">
             ${renderDurationChip("icon")}
-            ${renderButton({ text: "取消问诊", tone: "danger", size: "md", className: "danger-btn" })}
+            ${renderButton({ text: "取消问诊", tone: "danger", size: "md" })}
           </div>
         </div>
         <div class="consult-workspace">
@@ -730,7 +730,7 @@ function renderNoticeCard() {
           </div>
           <p class="announcement__footer">成都双流九州通互联网医院</p>
         </article>
-        ${renderButton({ text: "查看全部公告", tone: "block-outline", size: "", className: "btn btn--outline btn--block" })}
+        ${renderButton({ text: "查看全部公告", tone: "block-outline", size: "" })}
       </div>
     </section>`;
 }
@@ -891,11 +891,13 @@ function bindInteractions() {
     });
   });
 
-  document.querySelectorAll(".btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      showToast(button.textContent.trim());
+  document
+    .querySelectorAll(".topbar__actions .jh-btn, .room-service-btn, .notice-card .jh-btn--block-outline")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        showToast(button.textContent.trim());
+      });
     });
-  });
 
   const roomRefresh = document.querySelector(".room-refresh");
   if (roomRefresh) {
