@@ -226,7 +226,7 @@ function renderSwitch({ checked = false, label = "切换开关", className = "" 
   return `<button class="jh-switch${checked ? " is-on" : ""}${className ? ` ${className}` : ""}" type="button" aria-label="${label}" aria-pressed="${checked}"></button>`;
 }
 
-function renderButton({ text, tone = "primary", size = "md", className = "", type = "button" } = {}) {
+function renderButton({ text, tone = "primary", size = "md", className = "", type = "button", disabled = false } = {}) {
   const safeTone = [
     "primary",
     "outline-primary",
@@ -240,7 +240,7 @@ function renderButton({ text, tone = "primary", size = "md", className = "", typ
     ? tone
     : "primary";
   const sizeClass = ["sm", "md", "lg"].includes(size) ? ` jh-btn--${size}` : "";
-  return `<button class="jh-btn${sizeClass} jh-btn--${safeTone}${className ? ` ${className}` : ""}" type="${type}">${text}</button>`;
+  return `<button class="jh-btn${sizeClass} jh-btn--${safeTone}${className ? ` ${className}` : ""}" type="${type}"${disabled ? " disabled" : ""}>${text}</button>`;
 }
 
 function renderDurationChip(variant = "icon") {
@@ -745,7 +745,7 @@ function renderPrescriptionPanel(includeSecondMedicine = false) {
       <div class="prescription-actions">
         ${renderSelectField({ label: "请选择", size: "sm" })}
         <div>
-          ${renderButton({ text: "结束问诊", tone: "danger", size: "md", className: "end-consult-trigger" })}
+          ${renderButton({ text: "结束问诊", tone: "soft-danger", size: "md", className: "end-consult-trigger", disabled: true })}
           ${renderButton({ text: "提交处方", tone: "primary", size: "md", className: "jh-prescription-submit" })}
         </div>
       </div>
@@ -983,6 +983,14 @@ function closeQuickReplyDialog() {
   overlay.setAttribute("aria-hidden", "true");
 }
 
+function enableEndConsultButton() {
+  document.querySelectorAll(".end-consult-trigger").forEach((button) => {
+    button.disabled = false;
+    button.classList.remove("jh-btn--soft-danger");
+    button.classList.add("jh-btn--danger");
+  });
+}
+
 function openRiskWarningDialog() {
   const overlay = document.querySelector(".risk-warning-overlay");
   if (!overlay) return;
@@ -994,8 +1002,12 @@ function openRiskWarningDialog() {
 function closeRiskWarningDialog() {
   const overlay = document.querySelector(".risk-warning-overlay");
   if (!overlay) return;
+  const wasOpen = overlay.classList.contains("is-open");
   overlay.classList.remove("is-open");
   overlay.setAttribute("aria-hidden", "true");
+  if (wasOpen) {
+    enableEndConsultButton();
+  }
 }
 
 function bindInteractions() {
@@ -1083,8 +1095,15 @@ function bindInteractions() {
   }
 
   const riskWarningOverlay = document.querySelector(".risk-warning-overlay");
-  document.querySelectorAll(".end-consult-trigger").forEach((button) => {
+  document.querySelectorAll(".jh-prescription-submit").forEach((button) => {
     button.addEventListener("click", openRiskWarningDialog);
+  });
+
+  document.querySelectorAll(".end-consult-trigger").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      showToast("结束问诊");
+    });
   });
 
   if (riskWarningOverlay) {
