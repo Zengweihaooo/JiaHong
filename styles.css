@@ -2007,8 +2007,12 @@ body.page-view-room {
 .room-topbar__right {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 24px;
-  width: 536px;
+  margin-left: auto;
+  width: auto;
+  max-width: calc(100% - 160px);
+  min-width: 0;
   height: 32px;
 }
 
@@ -2074,7 +2078,9 @@ body.page-view-room {
 .room-user {
   display: flex;
   align-items: center;
+  margin-left: auto;
   gap: 8px;
+  min-width: 0;
   color: var(--jh-text-secondary);
   font-size: 14px;
   line-height: 22px;
@@ -2313,6 +2319,7 @@ body.page-view-room {
   }
 
   .room-topbar__right {
+    max-width: calc(100% - 132px);
     gap: 12px;
   }
 }
