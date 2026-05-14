@@ -173,6 +173,7 @@
   --jh-consult-prescription-width: 728px;
   --jh-consult-card-width: 1152px;
   --jh-consult-workspace-height: 740px;
+  --jh-consult-top-gap: 24px;
 }
 
 * {
@@ -2201,14 +2202,14 @@ body.page-view-room {
   top: 56px;
   left: 240px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: calc(100% - 240px);
   height: auto;
   min-width: 0;
   min-height: 844px;
   overflow: visible;
-  padding: 24px;
+  padding: var(--jh-consult-top-gap) 24px 24px;
 }
 
 .room-card {
@@ -2439,7 +2440,7 @@ body.page-view-room {
   width: 1200px;
   height: auto;
   min-height: 844px;
-  padding: 24px;
+  padding: var(--jh-consult-top-gap) 24px 24px;
 }
 
 .room-shell.app-shell--fixed-left .room-card,
@@ -2541,13 +2542,13 @@ body.page-view-room {
   top: 56px;
   left: 240px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: calc(100% - 240px);
   height: auto;
   min-height: 844px;
   overflow: visible;
-  padding: 24px;
+  padding: var(--jh-consult-top-gap) 24px 24px;
 }
 
 .text-card {
@@ -3438,6 +3439,7 @@ body.page-view-room {
 }
 
 .diagnosis-tag__close {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3447,11 +3449,25 @@ body.page-view-room {
 }
 
 .diagnosis-tag__close img {
-  width: 8.485px;
-  height: 8.485px;
-  object-fit: contain;
-  transform: scale(1.3);
-  transform-origin: center;
+  display: none;
+}
+
+.diagnosis-tag__close::before,
+.diagnosis-tag__close::after {
+  position: absolute;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  content: "";
+}
+
+.diagnosis-tag__close::before {
+  transform: rotate(45deg);
+}
+
+.diagnosis-tag__close::after {
+  transform: rotate(-45deg);
 }
 
 .jh-search-field {
@@ -3524,13 +3540,36 @@ body.page-view-room {
 }
 
 .medicine-search .jh-search-field__icon {
-  background-color: var(--jh-search-field-icon);
-  mask: url("./assets/search-icon.png") center / 16px 16px no-repeat;
-  -webkit-mask: url("./assets/search-icon.png") center / 16px 16px no-repeat;
+  position: relative;
+  background: transparent;
 }
 
 .medicine-search .jh-search-field__icon img {
   opacity: 0;
+}
+
+.medicine-search .jh-search-field__icon::before {
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  content: "";
+}
+
+.medicine-search .jh-search-field__icon::after {
+  position: absolute;
+  right: 1px;
+  bottom: 2px;
+  width: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.7);
+  transform: rotate(45deg);
+  transform-origin: center;
+  content: "";
 }
 
 .medicine-search {
@@ -3823,7 +3862,7 @@ body.page-view-room {
   width: 1200px;
   height: auto;
   min-height: 844px;
-  padding: 24px;
+  padding: var(--jh-consult-top-gap) 24px 24px;
 }
 
 .text-shell.app-shell--fixed-left .text-card,
