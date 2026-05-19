@@ -23,40 +23,71 @@ import {
 import { findOngoingChatMessage, formatDuration, getActiveChatKey, getConsultMainElement, getDoctorStatusLabel, icons, isConsultReadonlyView, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, refreshChatThread, setConsultShellReadonly, videoMediaState } from "./render.js";
 
 const diagnosisSuggestionPool = [
-  "急性咽炎",
-  "过敏性鼻炎",
-  "慢性胃炎",
-  "急性支气管炎",
-  "原发性高血压",
-  "湿疹",
-  "咳嗽咳痰",
+  "阿尔茨海默病",
+  "白癜风",
+  "扁桃体炎",
+  "便秘",
+  "痤疮",
+  "带状疱疹",
+  "胆囊炎",
+  "低血压",
+  "癫痫",
   "反酸",
+  "腹泻",
+  "高脂血症",
+  "骨关节炎",
+  "冠心病",
+  "过敏性鼻炎",
+  "喉炎",
+  "急性扁桃体炎",
+  "急性肠胃炎",
+  "急性咽炎",
+  "急性支气管炎",
+  "甲状腺功能减退",
+  "肩周炎",
+  "结膜炎",
+  "咳嗽咳痰",
+  "口腔溃疡",
+  "慢性鼻炎",
+  "慢性胃炎",
+  "慢性咽炎",
+  "慢性支气管炎",
+  "偏头痛",
   "皮肤瘙痒",
-  "复诊续方"
+  "贫血",
+  "前列腺增生",
+  "乳腺增生",
+  "湿疹",
+  "失眠",
+  "糖尿病",
+  "痛风",
+  "头晕",
+  "胃食管反流病",
+  "细菌性阴道炎",
+  "下呼吸道感染",
+  "消化不良",
+  "哮喘",
+  "心律失常",
+  "荨麻疹",
+  "牙龈炎",
+  "腰椎间盘突出",
+  "原发性高血压",
+  "脂肪肝",
+  "中耳炎",
+  "子宫肌瘤"
 ];
 
 const medicineSuggestionPool = [
   {
-    name: "蒲地蓝消炎口服液",
+    name: "阿莫西林胶囊",
     type: "处方药",
-    spec: "10ml*10支",
+    spec: "0.25g*24粒",
     usage: "口服",
     frequency: "3次/日",
-    dose: "10ml",
+    dose: "0.5g",
     quantity: "1",
     unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "氯雷他定片",
-    type: "处方药",
-    spec: "10mg*6片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "10mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
+    risk: "中"
   },
   {
     name: "奥美拉唑肠溶胶囊",
@@ -65,17 +96,6 @@ const medicineSuggestionPool = [
     usage: "口服",
     frequency: "1次/日",
     dose: "20mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "盐酸氨溴索片",
-    type: "处方药",
-    spec: "30mg*20片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "30mg",
     quantity: "1",
     unit: "盒",
     risk: "低"
@@ -92,6 +112,94 @@ const medicineSuggestionPool = [
     risk: "中"
   },
   {
+    name: "布洛芬缓释胶囊",
+    type: "处方药",
+    spec: "0.3g*20粒",
+    usage: "口服",
+    frequency: "2次/日",
+    dose: "0.3g",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "地氯雷他定片",
+    type: "处方药",
+    spec: "5mg*6片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "5mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "对乙酰氨基酚片",
+    type: "处方药",
+    spec: "0.5g*12片",
+    usage: "口服",
+    frequency: "按需",
+    dose: "0.5g",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "多潘立酮片",
+    type: "处方药",
+    spec: "10mg*30片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "10mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "非布司他片",
+    type: "处方药",
+    spec: "40mg*14片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "40mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "复方甘草片",
+    type: "处方药",
+    spec: "100片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "3片",
+    quantity: "1",
+    unit: "瓶",
+    risk: "中"
+  },
+  {
+    name: "格列美脲片",
+    type: "处方药",
+    spec: "2mg*30片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "2mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "枸橼酸莫沙必利片",
+    type: "处方药",
+    spec: "5mg*24片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "5mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
     name: "糠酸莫米松乳膏",
     type: "处方药",
     spec: "10g:10mg",
@@ -101,8 +209,179 @@ const medicineSuggestionPool = [
     quantity: "1",
     unit: "支",
     risk: "中"
+  },
+  {
+    name: "口服补液盐散",
+    type: "处方药",
+    spec: "5.125g*6袋",
+    usage: "口服",
+    frequency: "按需",
+    dose: "1袋",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "雷贝拉唑钠肠溶片",
+    type: "处方药",
+    spec: "10mg*14片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "10mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "氯雷他定片",
+    type: "处方药",
+    spec: "10mg*6片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "10mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "洛索洛芬钠片",
+    type: "处方药",
+    spec: "60mg*20片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "60mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "蒙脱石散",
+    type: "处方药",
+    spec: "3g*10袋",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "3g",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "孟鲁司特钠片",
+    type: "处方药",
+    spec: "10mg*5片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "10mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "莫匹罗星软膏",
+    type: "处方药",
+    spec: "10g",
+    usage: "外用",
+    frequency: "3次/日",
+    dose: "薄涂患处",
+    quantity: "1",
+    unit: "支",
+    risk: "低"
+  },
+  {
+    name: "蒲地蓝消炎口服液",
+    type: "处方药",
+    spec: "10ml*10支",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "10ml",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "瑞舒伐他汀钙片",
+    type: "处方药",
+    spec: "10mg*7片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "10mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "头孢克肟胶囊",
+    type: "处方药",
+    spec: "100mg*12粒",
+    usage: "口服",
+    frequency: "2次/日",
+    dose: "100mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "维生素C片",
+    type: "非处方药",
+    spec: "100mg*100片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "100mg",
+    quantity: "1",
+    unit: "瓶",
+    risk: "低"
+  },
+  {
+    name: "硝苯地平控释片",
+    type: "处方药",
+    spec: "30mg*7片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "30mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "盐酸氨溴索片",
+    type: "处方药",
+    spec: "30mg*20片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "30mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "盐酸二甲双胍缓释片",
+    type: "处方药",
+    spec: "0.5g*30片",
+    usage: "口服",
+    frequency: "2次/日",
+    dose: "0.5g",
+    quantity: "1",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "盐酸左西替利嗪片",
+    type: "处方药",
+    spec: "5mg*7片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "5mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
   }
 ];
+
+const pinyinCollator = new Intl.Collator("zh-Hans-u-co-pinyin");
+
+function compareByPinyin(left, right) {
+  return pinyinCollator.compare(left, right);
+}
 
 function showToast(message) {
   const toast = document.querySelector(".toast");
@@ -258,21 +537,23 @@ function closeAllConsultConfirmDialogs() {
   });
 }
 
-function handleConsultConfirm(kind) {
+async function handleConsultConfirm(kind) {
   closeConsultConfirmDialog(kind);
   const recordId = getActiveOngoingRecordId();
   const record = consultationRecords.find((entry) => entry.id === recordId);
   if (kind === "cancel") {
     if (recordId) {
       sendConsultationEvent(recordId, consultationEvents.CANCEL);
-      updateConsultationRecordState(recordId, "cancelled");
+      const updatedRecord = updateConsultationRecordState(recordId, "cancelled");
       if (record?.type === "video") {
         clearActiveVideoConsultation(recordId);
       }
       updateRoomMessageList();
-      updateConsultationStatus(recordId, consultationEvents.CANCEL).catch(() => {
+      try {
+        await updateConsultationStatus(recordId, consultationEvents.CANCEL, updatedRecord);
+      } catch {
         showToast("问诊状态同步失败");
-      });
+      }
     }
     showToast("已取消问诊");
     window.location.href = getRoomHref();
@@ -280,16 +561,19 @@ function handleConsultConfirm(kind) {
   }
   if (recordId) {
     sendConsultationEvent(recordId, consultationEvents.END);
-    updateConsultationRecordState(recordId, "ended");
+    const updatedRecord = updateConsultationRecordState(recordId, "ended");
     if (record?.type === "video") {
       clearActiveVideoConsultation(recordId);
     }
     updateRoomMessageList();
-    updateConsultationStatus(recordId, consultationEvents.END).catch(() => {
+    try {
+      await updateConsultationStatus(recordId, consultationEvents.END, updatedRecord);
+    } catch {
       showToast("问诊状态同步失败");
-    });
+    }
   }
   showToast("问诊已结束");
+  window.location.href = getRoomHref();
 }
 
 function bindConsultConfirmDialogs() {
@@ -304,8 +588,14 @@ function bindConsultConfirmDialogs() {
     overlay.querySelector(".consult-confirm-dismiss")?.addEventListener("click", () => {
       closeConsultConfirmDialog(kind);
     });
-    overlay.querySelector(".consult-confirm-submit")?.addEventListener("click", () => {
+    overlay.querySelector(".consult-confirm-submit")?.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       handleConsultConfirm(kind);
+    });
+    overlay.querySelector(".consult-confirm-submit")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
     });
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) {
@@ -645,17 +935,63 @@ function normalizeRecordDiagnosis(record) {
   record.diagnosis = record.diagnosisTags[0] || "";
 }
 
-function addDiagnosisToActiveRecord() {
+function addDiagnosisToActiveRecord(diagnosisText = "") {
   const record = getActiveConsultationRecord();
   if (!record) return;
   normalizeRecordDiagnosis(record);
   const nextDiagnosis =
+    diagnosisText.trim() ||
     diagnosisSuggestionPool.find((diagnosis) => !record.diagnosisTags.includes(diagnosis)) ||
     `补充诊断${record.diagnosisTags.length + 1}`;
+  if (record.diagnosisTags.includes(nextDiagnosis)) {
+    showToast("该诊断已存在");
+    return;
+  }
   record.diagnosisTags.push(nextDiagnosis);
   normalizeRecordDiagnosis(record);
   refreshActivePrescriptionPanel(record);
   showToast(`已添加诊断：${nextDiagnosis}`);
+}
+
+function getDiagnosisOptions(keyword = "") {
+  const record = getActiveConsultationRecord();
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const existingTags = new Set(record?.diagnosisTags || []);
+  return diagnosisSuggestionPool
+    .filter((diagnosis) => !existingTags.has(diagnosis))
+    .filter((diagnosis) => !normalizedKeyword || diagnosis.toLowerCase().includes(normalizedKeyword))
+    .sort(compareByPinyin);
+}
+
+function renderDiagnosisDropdown(input) {
+  const panel = input.closest(".prescription-panel");
+  const dropdown = panel?.querySelector(".diagnosis-options");
+  if (!dropdown) return;
+  const options = getDiagnosisOptions(input.value);
+  dropdown.innerHTML = "";
+  options.forEach((diagnosis) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "diagnosis-option";
+    button.setAttribute("role", "option");
+    button.textContent = diagnosis;
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      addDiagnosisToActiveRecord(diagnosis);
+    });
+    dropdown.appendChild(button);
+  });
+  dropdown.hidden = options.length === 0;
+  input.setAttribute("aria-expanded", String(options.length > 0));
+}
+
+function closeDiagnosisDropdown(input) {
+  const panel = input.closest(".prescription-panel");
+  const dropdown = panel?.querySelector(".diagnosis-options");
+  if (!dropdown) return;
+  dropdown.hidden = true;
+  input.setAttribute("aria-expanded", "false");
 }
 
 function removeDiagnosisFromActiveRecord(tag) {
@@ -677,11 +1013,49 @@ function normalizeMedicines(record) {
 
 function findMedicineSuggestion(keyword) {
   const normalizedKeyword = keyword.trim().toLowerCase();
-  return (
-    medicineSuggestionPool.find((medicine) => medicine.name.toLowerCase().includes(normalizedKeyword)) ||
-    medicineSuggestionPool.find((medicine) => normalizedKeyword && normalizedKeyword.includes(medicine.name.toLowerCase())) ||
-    medicineSuggestionPool[0]
-  );
+  if (!normalizedKeyword) return null;
+  return medicineSuggestionPool.find((medicine) => medicine.name.toLowerCase().includes(normalizedKeyword));
+}
+
+function getMedicineOptions(keyword = "") {
+  const record = getActiveConsultationRecord();
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const existingMedicines = new Set((record?.prescriptionMedicines || []).map((medicine) => medicine.name));
+  return medicineSuggestionPool
+    .filter((medicine) => !existingMedicines.has(medicine.name))
+    .filter((medicine) => !normalizedKeyword || medicine.name.toLowerCase().includes(normalizedKeyword))
+    .sort((left, right) => compareByPinyin(left.name, right.name));
+}
+
+function renderMedicineDropdown(input) {
+  const panel = input.closest(".prescription-panel");
+  const dropdown = panel?.querySelector(".medicine-options");
+  if (!dropdown) return;
+  const options = getMedicineOptions(input.value);
+  dropdown.innerHTML = "";
+  options.forEach((medicine) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "medicine-option";
+    button.setAttribute("role", "option");
+    button.innerHTML = `<span>${medicine.name}</span><small>${medicine.spec}</small>`;
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      addMedicineToActiveRecord(medicine.name);
+    });
+    dropdown.appendChild(button);
+  });
+  dropdown.hidden = options.length === 0;
+  input.setAttribute("aria-expanded", String(options.length > 0));
+}
+
+function closeMedicineDropdown(input) {
+  const panel = input.closest(".prescription-panel");
+  const dropdown = panel?.querySelector(".medicine-options");
+  if (!dropdown) return;
+  dropdown.hidden = true;
+  input.setAttribute("aria-expanded", "false");
 }
 
 function addMedicineToActiveRecord(keyword = "") {
@@ -689,6 +1063,10 @@ function addMedicineToActiveRecord(keyword = "") {
   if (!record) return;
   record.prescriptionMedicines = record.prescriptionMedicines || [];
   const suggestion = findMedicineSuggestion(keyword);
+  if (!suggestion) {
+    showToast("未找到匹配药品");
+    return;
+  }
   if (record.prescriptionMedicines.some((medicine) => medicine.name === suggestion.name)) {
     showToast("该药品已在处方中");
     return;
@@ -711,25 +1089,96 @@ function removeMedicineFromActiveRecord(name) {
   showToast("药品已删除");
 }
 
+function updateMedicineFieldInActiveRecord(index, field, value) {
+  const record = getActiveConsultationRecord();
+  if (!record || !index || !field) return;
+  const medicine = (record.prescriptionMedicines || []).find((item) => Number(item.index) === Number(index));
+  if (!medicine) return;
+  medicine[field] = value.trim();
+}
+
 function bindPrescriptionEditor() {
   const panel = document.querySelector(".prescription-panel:not(.prescription-panel--readonly)");
   if (!panel || panel.dataset.editorBound === "true") return;
   panel.dataset.editorBound = "true";
 
-  panel.querySelector(".diagnosis-select")?.addEventListener("click", addDiagnosisToActiveRecord);
-  panel.querySelectorAll(".diagnosis-tag[data-diagnosis-tag]").forEach((tag) => {
-    tag.addEventListener("click", () => removeDiagnosisFromActiveRecord(tag.dataset.diagnosisTag));
+  panel.querySelectorAll(".diagnosis-tag__close-btn[data-diagnosis-tag]").forEach((button) => {
+    const removeDiagnosis = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      removeDiagnosisFromActiveRecord(button.dataset.diagnosisTag);
+    };
+    button.addEventListener("pointerdown", removeDiagnosis);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
   });
+  const diagnosisInput = panel.querySelector(".diagnosis-select-input");
+  diagnosisInput?.addEventListener("focus", () => {
+    renderDiagnosisDropdown(diagnosisInput);
+  });
+  diagnosisInput?.addEventListener("input", () => {
+    renderDiagnosisDropdown(diagnosisInput);
+  });
+  diagnosisInput?.addEventListener("blur", () => {
+    window.setTimeout(() => closeDiagnosisDropdown(diagnosisInput), 0);
+  });
+  diagnosisInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    const diagnosisText = event.currentTarget.value.trim();
+    if (!diagnosisText) return;
+    addDiagnosisToActiveRecord(diagnosisText);
+  });
+  const medicineInput = panel.querySelector(".medicine-search input");
+  medicineInput?.setAttribute("aria-expanded", "false");
+  medicineInput?.addEventListener("focus", () => {
+    renderMedicineDropdown(medicineInput);
+  });
+  medicineInput?.addEventListener("input", () => {
+    renderMedicineDropdown(medicineInput);
+  });
+  medicineInput?.addEventListener("blur", () => {
+    window.setTimeout(() => closeMedicineDropdown(medicineInput), 0);
+  });
+  medicineInput?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || event.isComposing) return;
+    event.preventDefault();
+    addMedicineToActiveRecord(event.currentTarget.value);
+  });
+  if (!bindPrescriptionEditor.dropdownDismissBound) {
+    bindPrescriptionEditor.dropdownDismissBound = true;
+    document.addEventListener("pointerdown", (event) => {
+      if (!event.target.closest(".diagnosis-combobox")) {
+        document.querySelectorAll(".diagnosis-select-input").forEach((input) => closeDiagnosisDropdown(input));
+      }
+      if (!event.target.closest(".medicine-search-combobox")) {
+        document.querySelectorAll(".medicine-search input").forEach((input) => closeMedicineDropdown(input));
+      }
+    });
+  }
   panel.querySelectorAll(".medicine-delete-btn").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       const row = button.closest("[data-medicine-name]");
       removeMedicineFromActiveRecord(row?.dataset.medicineName);
     });
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
   });
-  panel.querySelector(".medicine-search input")?.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    addMedicineToActiveRecord(event.currentTarget.value);
+  panel.querySelectorAll(".medicine-edit-field[data-medicine-field]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const row = input.closest("[data-medicine-index]");
+      updateMedicineFieldInActiveRecord(row?.dataset.medicineIndex, input.dataset.medicineField, input.value);
+    });
+    input.addEventListener("change", () => {
+      const row = input.closest("[data-medicine-index]");
+      updateMedicineFieldInActiveRecord(row?.dataset.medicineIndex, input.dataset.medicineField, input.value);
+    });
   });
 }
 
@@ -810,7 +1259,15 @@ function bindConsultWorkspace() {
   document.querySelectorAll(".jh-prescription-submit").forEach((button) => {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
-    button.addEventListener("click", openRiskWarningDialog);
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openRiskWarningDialog();
+    });
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
   });
 
   document.querySelectorAll(".cancel-consult-trigger").forEach((button) => {
@@ -824,9 +1281,15 @@ function bindConsultWorkspace() {
   document.querySelectorAll(".end-consult-trigger").forEach((button) => {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
-    button.addEventListener("click", () => {
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       if (button.disabled) return;
       openConsultConfirmDialog("end");
+    });
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
     });
   });
 

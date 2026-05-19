@@ -277,6 +277,14 @@ export function renderSearchField({ className = "", placeholder = "请输入药�
     </label>`;
 }
 
+export function renderMedicineSearchCombobox() {
+  return `
+    <div class="medicine-search-combobox">
+      ${renderSearchField({ className: "medicine-search" })}
+      <div class="medicine-options" role="listbox" hidden></div>
+    </div>`;
+}
+
 export function renderSelectField({ label = "请选择", size = "sm", className = "", showChevron = true } = {}) {
   const safeSize = size === "lg" ? "lg" : "sm";
   return `
@@ -912,17 +920,23 @@ export function renderPatientInfoGrid(patientDetail = defaultPatientDetail) {
 }
 
 export function renderMedicineTableRow(row, readonly = false) {
+  const renderEditableBox = (field, label) => {
+    const value = row[field] ?? "";
+    if (readonly) return `<span class="table-input">${escapeHtml(value)}</span>`;
+    return `<input class="table-input medicine-edit-field" type="text" value="${escapeHtml(value)}" aria-label="${label}" data-medicine-field="${field}" />`;
+  };
+
   return `
-    <div class="medicine-table__row" data-medicine-index="${row.index}" data-medicine-name="${row.name}">
+    <div class="medicine-table__row" data-medicine-index="${row.index}" data-medicine-name="${escapeHtml(row.name)}">
       <span>${row.index}</span>
-      <span>${row.name}</span>
-      <span>${row.type}</span>
-      <span class="table-input">${row.spec}</span>
-      <span class="table-input">${row.usage}</span>
-      <span class="table-input">${row.frequency}</span>
-      <span class="table-input">${row.dose}</span>
-      <span>${row.quantity}</span>
-      <span class="table-input">${row.unit}</span>
+      <span>${escapeHtml(row.name)}</span>
+      <span>${escapeHtml(row.type)}</span>
+      ${renderEditableBox("spec", "规格")}
+      ${renderEditableBox("usage", "用法")}
+      ${renderEditableBox("frequency", "服用频次")}
+      ${renderEditableBox("dose", "用量")}
+      <span>${escapeHtml(row.quantity)}</span>
+      ${renderEditableBox("unit", "单位")}
       ${renderRiskTag({ text: row.risk, size: "sm", className: "risk-small" })}
       ${
         readonly
@@ -932,26 +946,50 @@ export function renderMedicineTableRow(row, readonly = false) {
     </div>`;
 }
 
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export function renderDiagnosisTags(tags, readonly = false) {
   return tags
-    .map(
-      (tag) => `
+    .map((tag) => {
+      const safeTag = escapeHtml(tag);
+      return `
         ${
           readonly
             ? `<span class="diagnosis-tag diagnosis-tag--readonly">`
-            : `<button class="diagnosis-tag" type="button" data-diagnosis-tag="${tag}" aria-label="移除诊断：${tag}">`
+            : `<span class="diagnosis-tag" data-diagnosis-tag="${safeTag}">`
         }
-          <span>${tag}</span>
+          <span>${safeTag}</span>
           ${
             readonly
               ? ""
-              : `<span class="diagnosis-tag__close" aria-hidden="true">
+              : `<button class="diagnosis-tag__close diagnosis-tag__close-btn" type="button" data-diagnosis-tag="${safeTag}" aria-label="移除诊断：${safeTag}">
                   <img src="${assetUrl("assets/diagnosis-tag-close.svg")}" alt="" />
-                </span>`
+                </button>`
           }
-        ${readonly ? "</span>" : "</button>"}`
-    )
+        </span>`;
+    })
     .join("");
+}
+
+export function renderDiagnosisSelectInput() {
+  return `
+    <div class="diagnosis-combobox">
+      <input
+        class="jh-input-field jh-input-field--lg diagnosis-select diagnosis-select-input"
+        type="text"
+        aria-label="请选择诊断"
+        aria-expanded="false"
+        autocomplete="off"
+        placeholder="请选择诊断"
+      />
+      <div class="diagnosis-options" role="listbox" hidden></div>
+    </div>`;
 }
 
 export function renderPrescriptionPanel(options = {}) {
@@ -992,16 +1030,18 @@ export function renderPrescriptionPanel(options = {}) {
           ${
             readonly
               ? `<span class="jh-input-field jh-input-field--lg diagnosis-select diagnosis-select--readonly" aria-disabled="true">${diagnosisTags[0] || ""}</span>`
-              : renderSelectField({ label: "请选择诊断", size: "lg", className: "diagnosis-select", showChevron: false })
+              : renderDiagnosisSelectInput()
           }
-          <div class="diagnosis-input">${renderDiagnosisTags(diagnosisTags, readonly)}</div>
+          <div class="diagnosis-input">
+            ${renderDiagnosisTags(diagnosisTags, readonly)}
+          </div>
         </div>
       </div>
       <div class="section-divider"></div>
       <div class="medicine-section">
         <h3>所需药品</h3>
         <div class="medicine-scroll-area">
-          ${readonly ? "" : renderSearchField({ className: "medicine-search" })}
+          ${readonly ? "" : renderMedicineSearchCombobox()}
           <div class="medicine-table">
             <div class="medicine-table__row medicine-table__head">
               <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>

@@ -3,7 +3,7 @@ import { fetchJson } from "./httpClient.js";
 const mockLatencyMs = 80;
 let realtimeTick = 0;
 const runtimeStorageKey = "jh.mockRuntimeState";
-const runtimeSchemaVersion = 5;
+const runtimeSchemaVersion = 6;
 const maxRuntimeConsultations = 6;
 const baseWaitingQueue = {
   total: 2,
@@ -64,6 +64,20 @@ function writeRuntimeConsultation(record, chat) {
   return { records: nextRecords, chats: nextChats };
 }
 
+function formatRuntimeEndedAt(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function findConsultationRecord(recordId, payload, runtimeRecords) {
+  return (
+    runtimeRecords.find((record) => record.id === recordId) ||
+    payload.consultations?.records?.find((record) => record.id === recordId) ||
+    payload.consultations?.realtimePool?.records?.find((record) => record.id === recordId) ||
+    null
+  );
+}
+
 function pickRandomAvailableConsultation(poolRecords, runtimeRecords) {
   const usedIds = new Set(runtimeRecords.map((record) => record.id));
   const availableRecords = poolRecords.filter((record) => !usedIds.has(record.id));
@@ -80,8 +94,9 @@ function insertAtRandomPosition(record, records) {
 }
 
 function buildWaitingQueue(runtimeRecords) {
-  const addedText = runtimeRecords.filter((record) => record.type === "text").length;
-  const addedVideo = runtimeRecords.filter((record) => record.type === "video").length;
+  const ongoingRuntimeRecords = runtimeRecords.filter((record) => record.state === "ongoing");
+  const addedText = ongoingRuntimeRecords.filter((record) => record.type === "text").length;
+  const addedVideo = ongoingRuntimeRecords.filter((record) => record.type === "video").length;
   const text = Math.min(baseWaitingQueue.byType.text + addedText, 3);
   const video = Math.min(baseWaitingQueue.byType.video + addedVideo, 3);
   const consult = baseWaitingQueue.byType.consult;
@@ -157,7 +172,9 @@ export async function getRealtimeSnapshot() {
   let currentConsultations = getRuntimeConsultations();
   let newConsultation = null;
 
-  const currentTotal = baseWaitingQueue.total + currentConsultations.records.length;
+  const currentTotal =
+    baseWaitingQueue.total +
+    currentConsultations.records.filter((record) => record.state === "ongoing").length;
   if (currentTotal < maxRuntimeConsultations) {
     const record = pickRandomAvailableConsultation(poolRecords, currentConsultations.records);
     if (record) {
@@ -179,7 +196,29 @@ export async function getRealtimeSnapshot() {
   };
 }
 
-export async function updateConsultationStatus(recordId, event) {
+export async function updateConsultationStatus(recordId, event, recordPatch = null) {
   await delay(40);
+  if (event === "END" || event === "CANCEL") {
+    const payload = await fetchJson(bootstrapUrl);
+    const runtimeState = readRuntimeState();
+    const runtimeRecords = runtimeState.consultationRecords || [];
+    const sourceRecord = recordPatch || findConsultationRecord(recordId, payload, runtimeRecords);
+    if (sourceRecord) {
+      const nextState = event === "END" ? "ended" : "cancelled";
+      const nextRecord = {
+        ...sourceRecord,
+        state: nextState,
+        badge: 0,
+        unreadCount: 0
+      };
+      if (nextState === "ended" && !nextRecord.endedAt) {
+        nextRecord.endedAt = formatRuntimeEndedAt();
+      }
+      const nextRecords = runtimeRecords.some((record) => record.id === recordId)
+        ? runtimeRecords.map((record) => (record.id === recordId ? nextRecord : record))
+        : [nextRecord, ...runtimeRecords];
+      writeRuntimeState({ consultationRecords: nextRecords });
+    }
+  }
   return { recordId, event, updatedAt: new Date().toISOString() };
 }

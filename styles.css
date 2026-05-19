@@ -2197,11 +2197,6 @@ body.page-view-room {
   cursor: not-allowed;
 }
 
-.message-item.is-video-locked .message-item__body,
-.message-item.is-video-locked .message-item__badge {
-  opacity: 0.56;
-}
-
 .message-item__stripe {
   width: 6px;
   height: 92px;
@@ -3883,13 +3878,64 @@ body.page-view-room {
   line-height: 24px;
 }
 
-.diagnosis-select {
+.diagnosis-combobox {
+  position: relative;
+  flex: 0 0 160px;
+  width: 160px;
+}
+
+.diagnosis-select-input {
+  width: 100%;
+  color: var(--jh-input-field-text);
+}
+
+.diagnosis-select-input::placeholder {
   color: rgba(0, 0, 0, 0.4);
+}
+
+.diagnosis-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--jh-input-field-border);
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.diagnosis-options[hidden] {
+  display: none;
+}
+
+.diagnosis-option {
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--jh-text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
+}
+
+.diagnosis-option:hover,
+.diagnosis-option:focus-visible {
+  background: var(--jh-btn-outline-hover-bg);
 }
 
 .diagnosis-input {
   display: flex;
   align-items: center;
+  gap: 8px;
   flex: 1 1 514px;
   max-width: 514px;
   min-width: 0;
@@ -3905,12 +3951,13 @@ body.page-view-room {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
   height: 30px;
   padding: 5px 12px;
   border: 0;
   border-radius: 4px;
   background-color: var(--jh-tag-bg);
-  cursor: pointer;
+  cursor: default;
   color: var(--jh-tag-text);
   font-size: 14px;
   font-weight: 400;
@@ -3935,12 +3982,17 @@ body.page-view-room {
 
 .diagnosis-tag__close {
   position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 16px;
   width: 16px;
   height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .diagnosis-tag__close img {
@@ -4071,6 +4123,63 @@ body.page-view-room {
   flex: 0 0 auto;
 }
 
+.medicine-search-combobox {
+  position: relative;
+  flex: 0 0 auto;
+  width: max(100%, var(--jh-table-width));
+  min-width: var(--jh-table-width);
+}
+
+.medicine-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--jh-input-field-border);
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.medicine-options[hidden] {
+  display: none;
+}
+
+.medicine-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--jh-text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
+}
+
+.medicine-option small {
+  flex: 0 0 auto;
+  color: var(--jh-text-tertiary);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.medicine-option:hover,
+.medicine-option:focus-visible {
+  background: var(--jh-btn-outline-hover-bg);
+}
+
 .medicine-scroll-area {
   display: flex;
   flex-direction: column;
@@ -4082,7 +4191,7 @@ body.page-view-room {
   scrollbar-gutter: stable;
 }
 
-.medicine-scroll-area > .jh-search-field,
+.medicine-scroll-area > .medicine-search-combobox,
 .medicine-scroll-area > .medicine-table {
   width: max(100%, var(--jh-table-width));
   min-width: var(--jh-table-width);
@@ -4110,7 +4219,7 @@ body.page-view-room {
 }
 
 .jh-input-field.diagnosis-select {
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--jh-input-field-text);
 }
 
 .jh-input-field__chevron {
@@ -4278,7 +4387,8 @@ body.page-view-room {
 }
 
 .medicine-table__row > span,
-.medicine-table__row > button {
+.medicine-table__row > button,
+.medicine-table__row > input {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4306,6 +4416,13 @@ body.page-view-room {
   border-radius: 6px;
   color: var(--jh-table-cell-text);
   white-space: nowrap;
+}
+
+.medicine-edit-field {
+  background: #ffffff;
+  font: inherit;
+  line-height: 22px;
+  outline: 0;
 }
 
 .risk-small {
