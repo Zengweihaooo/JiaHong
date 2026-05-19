@@ -9,7 +9,7 @@ import {
   quickReplyCategories,
   quickReplyMessages,
   services
-} from "./data.js";
+} from "../application/state/dataStore.js";
 import {
   activeVideoConsultationState,
   dismissedMessageBadges,
@@ -17,7 +17,7 @@ import {
   getMessageBadgeKey,
   serviceState,
   waitingQueueState
-} from "./state.js";
+} from "../application/state/runtimeState.js";
 
 export const renderData = {
   get announcements() {

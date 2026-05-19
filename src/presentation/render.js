@@ -1,5 +1,5 @@
-import { assetUrl, appView, getHomeHref, getRoomHref, getTextHref, getVideoHref, getHistoryHref, getRecordParam } from "./core.js";
-import { getMessageListRecords } from "./domain/consultationQueue.js";
+import { assetUrl, appView, getHomeHref, getRoomHref, getTextHref, getVideoHref, getHistoryHref, getRecordParam } from "../shared/core.js";
+import { getMessageListRecords } from "../domain/consultationQueue.js";
 import { icons } from "./ui/icons.js";
 import { renderData, renderRuntime } from "./renderContext.js";
 

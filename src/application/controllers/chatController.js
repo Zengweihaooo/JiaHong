@@ -1,4 +1,5 @@
-import { ongoingChatState } from "../data.js";
+import { ongoingChatState } from "../state/dataStore.js";
+import { rememberDismissedMessageBadge } from "../state/runtimeState.js";
 
 export function getOngoingChatMessage(chatKey, messageId) {
   return ongoingChatState[chatKey]?.messages.find((message) => message.id === messageId) || null;
@@ -9,6 +10,10 @@ export function recallOngoingChatMessage(chatKey, messageId) {
   if (!message || message.recalled) return null;
   message.recalled = true;
   return message;
+}
+
+export function rememberMessageBadgeDismissed(badgeKey) {
+  rememberDismissedMessageBadge(badgeKey);
 }
 
 export function appendDoctorChatMessage(chatKey, text, date = new Date()) {

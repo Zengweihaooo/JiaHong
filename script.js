@@ -1,8 +1,8 @@
-import { initAppStore } from "./src/store/appStore.js";
-import { appView } from "./src/core.js";
-import { renderAppMarkup } from "./src/render.js";
-import { bindInteractions, startOngoingTimers, startRealtimeMockUpdates } from "./src/interactions.js";
-import { mountApp, mountAppError } from "./src/ui/dom.js";
+import { initAppStore } from "./src/application/store/appStore.js";
+import { appView } from "./src/shared/core.js";
+import { renderAppMarkup } from "./src/presentation/render.js";
+import { bindInteractions, startOngoingTimers, startRealtimeMockUpdates } from "./src/presentation/interactions.js";
+import { mountApp, mountAppError } from "./src/presentation/ui/dom.js";
 
 try {
   await initAppStore();

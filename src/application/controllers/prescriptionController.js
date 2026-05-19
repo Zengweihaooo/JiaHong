@@ -1,4 +1,4 @@
-import { compareByPinyin, diagnosisSuggestionPool, medicineSuggestionPool } from "../domain/prescriptionCatalog.js";
+import { compareByPinyin, diagnosisSuggestionPool, medicineSuggestionPool } from "../../domain/prescriptionCatalog.js";
 import { getActiveConsultationRecord } from "./consultationController.js";
 
 export function getDiagnosisOptions(keyword = "") {

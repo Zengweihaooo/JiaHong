@@ -1,4 +1,4 @@
-import { assetUrl } from "../core.js";
+import { assetUrl } from "../../shared/core.js";
 
 export const icons = {
   logo: `

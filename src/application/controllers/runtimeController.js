@@ -1,12 +1,14 @@
 import {
   updateDoctorStatus,
   updateServiceAvailability
-} from "../api/appApi.js";
+} from "../../infrastructure/api/appApi.js";
 import {
   doctorStatusState,
   serviceState,
-  setDoctorStatus
-} from "../state.js";
+  setDoctorStatus,
+  subscribeRuntimeState,
+  waitingQueueState
+} from "../state/runtimeState.js";
 
 const doctorStatusOrder = ["online", "busy", "offline"];
 
@@ -34,6 +36,14 @@ export function getServiceAvailability(serviceKey) {
 
 export function getServiceAvailabilityEntries() {
   return Object.entries(serviceState);
+}
+
+export function getWaitingQueueState() {
+  return waitingQueueState;
+}
+
+export function subscribeToRuntimeState(listener) {
+  return subscribeRuntimeState(listener);
 }
 
 export function setServiceAvailabilityState(serviceKey, enabled, { sync = true } = {}) {

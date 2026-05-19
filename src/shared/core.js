@@ -1,5 +1,5 @@
-export const assetUrl = (path) => new URL(`../${path}`, import.meta.url).href;
-export const siteBasePath = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+export const assetUrl = (path) => new URL(`../../${path}`, import.meta.url).href;
+export const siteBasePath = new URL("../..", import.meta.url).pathname.replace(/\/$/, "");
 export const validAppViews = new Set(["home", "room", "text", "video", "history"]);
 
 export function getCurrentRoutePath() {

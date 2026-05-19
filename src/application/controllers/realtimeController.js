@@ -1,6 +1,6 @@
-import { getRealtimeSnapshot } from "../api/appApi.js";
-import { addConsultationRecord } from "../data.js";
-import { registerConsultationMachine } from "../state.js";
+import { getRealtimeSnapshot } from "../../infrastructure/api/appApi.js";
+import { addConsultationRecord } from "../state/dataStore.js";
+import { registerConsultationMachine } from "../state/runtimeState.js";
 import { setDoctorStatusState } from "./runtimeController.js";
 import { syncWaitingQueueToMessages } from "./consultationController.js";
 

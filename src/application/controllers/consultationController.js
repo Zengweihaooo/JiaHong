@@ -1,13 +1,14 @@
-import { updateConsultationStatus } from "../api/appApi.js";
-import { appView, getRecordParam, getRoomHref } from "../core.js";
-import { consultationRecords, updateConsultationRecordState } from "../data.js";
-import { consultationEvents } from "../domain/consultationStateMachine.js";
-import { buildWaitingQueueFromRecords } from "../domain/consultationQueue.js";
+import { updateConsultationStatus } from "../../infrastructure/api/appApi.js";
+import { appView, getRecordParam, getRoomHref } from "../../shared/core.js";
+import { consultationRecords, updateConsultationRecordState } from "../state/dataStore.js";
+import { consultationEvents } from "../../domain/consultationStateMachine.js";
+import { buildWaitingQueueFromRecords } from "../../domain/consultationQueue.js";
 import {
   clearActiveVideoConsultation,
   sendConsultationEvent,
+  setActiveVideoConsultation,
   setWaitingQueue
-} from "../state.js";
+} from "../state/runtimeState.js";
 
 const terminalConsultationEvents = {
   cancel: {
@@ -43,6 +44,10 @@ export function getFirstEndedConsultationRecord({ type = "all" } = {}) {
   return consultationRecords.find(
     (record) => (type === "all" || record.type === type) && record.state === "ended"
   ) || null;
+}
+
+export function activateVideoConsultation(recordId) {
+  setActiveVideoConsultation(recordId);
 }
 
 export function syncWaitingQueueToMessages({ silent = false } = {}) {

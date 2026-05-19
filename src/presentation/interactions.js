@@ -1,7 +1,8 @@
-import { appView, getHistoryHref, getRoomHref, getTextHref, getVideoHref } from "./core.js";
+import { appView, getHistoryHref, getRoomHref, getTextHref, getVideoHref } from "../shared/core.js";
 import {
   getActiveConsultationRecord,
   getActiveOngoingRecordId,
+  activateVideoConsultation,
   getConsultationRecordById,
   getFirstEndedConsultationRecord,
   openRiskReviewForActiveConsultation,
@@ -9,23 +10,26 @@ import {
   submitPrescriptionForActiveConsultation,
   syncActiveElapsedSeconds,
   syncWaitingQueueToMessages
-} from "./controllers/consultationController.js";
+} from "../application/controllers/consultationController.js";
 import {
   appendDoctorChatMessage,
   getOngoingChatMessage,
+  rememberMessageBadgeDismissed,
   recallOngoingChatMessage
-} from "./controllers/chatController.js";
-import { getAnnouncementById, getQuickEntryOption } from "./controllers/contentController.js";
-import { refreshRealtimeState } from "./controllers/realtimeController.js";
+} from "../application/controllers/chatController.js";
+import { getAnnouncementById, getQuickEntryOption } from "../application/controllers/contentController.js";
+import { refreshRealtimeState } from "../application/controllers/realtimeController.js";
 import {
   getDoctorStatus,
   getNextDoctorStatus,
   getServiceAvailability,
   getServiceAvailabilityEntries,
   getToggledDoctorStatus,
+  getWaitingQueueState,
   setDoctorStatusState,
-  setServiceAvailabilityState
-} from "./controllers/runtimeController.js";
+  setServiceAvailabilityState,
+  subscribeToRuntimeState
+} from "../application/controllers/runtimeController.js";
 import {
   addDiagnosisToActiveRecord,
   addMedicineToActiveRecord,
@@ -34,15 +38,9 @@ import {
   removeDiagnosisFromActiveRecord,
   removeMedicineFromActiveRecord,
   updateMedicineFieldInActiveRecord
-} from "./controllers/prescriptionController.js";
+} from "../application/controllers/prescriptionController.js";
 import { getConsultMainElement, isConsultReadonlyView, refreshChatThread, setConsultShellReadonly } from "./ui/dom.js";
 import { icons } from "./ui/icons.js";
-import {
-  rememberDismissedMessageBadge,
-  setActiveVideoConsultation,
-  subscribeRuntimeState,
-  waitingQueueState
-} from "./state.js";
 import { formatDuration, getActiveChatKey, getDoctorStatusLabel, renderChatThread, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, videoMediaState } from "./render.js";
 
 function showToast(message) {
@@ -94,11 +92,12 @@ function applyRuntimeStateToDom() {
     button.setAttribute("aria-pressed", String(enabled));
   });
 
+  const waitingQueue = getWaitingQueueState();
   document.querySelectorAll("[data-waiting-total]").forEach((node) => {
-    node.textContent = String(waitingQueueState.total);
+    node.textContent = String(waitingQueue.total);
   });
   document.querySelectorAll("[data-waiting-type]").forEach((node) => {
-    node.textContent = String(waitingQueueState.byType[node.dataset.waitingType] ?? 0);
+    node.textContent = String(waitingQueue.byType[node.dataset.waitingType] ?? 0);
   });
 
   getServiceAvailabilityEntries().forEach(([serviceKey, enabled]) => {
@@ -361,7 +360,7 @@ function handleMessageItemClick(item) {
     return;
   }
   if (item.dataset.badgeKey) {
-    rememberDismissedMessageBadge(item.dataset.badgeKey);
+    rememberMessageBadgeDismissed(item.dataset.badgeKey);
   }
   item.querySelector(".message-item__badge")?.remove();
   const messageList = item.closest(".message-list");
@@ -387,7 +386,7 @@ function handleMessageItemClick(item) {
 
   if (item.dataset.targetView === "video") {
     if (record?.id) {
-      setActiveVideoConsultation(record.id);
+      activateVideoConsultation(record.id);
     }
     window.location.href = getVideoHref(record?.id);
   } else if (item.dataset.targetView === "text") {
@@ -930,7 +929,7 @@ export function startRealtimeMockUpdates() {
 }
 
 export function bindInteractions() {
-  subscribeRuntimeState(applyRuntimeStateToDom);
+  subscribeToRuntimeState(applyRuntimeStateToDom);
   applyRuntimeStateToDom();
   bindDragScrollContainers();
 

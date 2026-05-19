@@ -1,8 +1,8 @@
 import {
   createStateMachine,
   mapRecordStateToMachineState
-} from "./domain/consultationStateMachine.js";
-import { buildWaitingQueueFromRecords } from "./domain/consultationQueue.js";
+} from "../../domain/consultationStateMachine.js";
+import { buildWaitingQueueFromRecords } from "../../domain/consultationQueue.js";
 
 export const serviceState = {};
 export const consultationMachines = {};
