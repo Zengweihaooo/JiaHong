@@ -192,7 +192,8 @@ const consultationRecords = [
     preview: "您好！请问那个药怎么服用？",
     time: "16:38",
     badge: 1,
-    targetView: "text"
+    targetView: "text",
+    elapsedSeconds: 0
   },
   {
     id: "active-video",
@@ -205,7 +206,8 @@ const consultationRecords = [
     preview: "患者正在等待视频接诊",
     time: "16:34",
     badge: 1,
-    targetView: "video"
+    targetView: "video",
+    elapsedSeconds: 0
   },
   {
     id: "ended-text",
@@ -218,8 +220,52 @@ const consultationRecords = [
     preview: "已完成复诊开方，处方已流转药师审核",
     time: "15:22",
     diagnosis: "急性上呼吸道感染",
+    diagnosisTags: ["急性上呼吸道感染"],
+    patientGender: "女",
+    patientDetail: {
+      weight: "52",
+      pregnancy: "否",
+      phone: "138****5621",
+      liverAbnormal: "否",
+      idCard: "4201**********5621",
+      kidneyAbnormal: "否",
+      allergies: "无"
+    },
     prescriptionNo: "RX202605190152",
     endedAt: "2026-05-19 15:22",
+    targetView: "text",
+    prescriptionMedicines: [
+      {
+        index: 1,
+        name: "阿奇霉素分散片",
+        type: "处方药",
+        spec: "0.125g*6片",
+        usage: "口服",
+        frequency: "1次/日",
+        dose: "0.25毫克",
+        quantity: "1",
+        unit: "盒",
+        risk: "高"
+      },
+      {
+        index: 2,
+        name: "复方氨酚烷胺胶囊",
+        type: "处方药",
+        spec: "12粒",
+        usage: "口服",
+        frequency: "2次/日",
+        dose: "1粒",
+        quantity: "1",
+        unit: "盒",
+        risk: "低"
+      }
+    ],
+    transcript: [
+      { from: "doctor", time: "2026-05-19 15:10:18", text: "您好，请问有什么不适？" },
+      { from: "patient", time: "2026-05-19 15:10:42", text: "咳嗽三天了，有点发热。" },
+      { from: "doctor", time: "2026-05-19 15:11:06", text: "体温多少？有没有胸闷气短？" },
+      { from: "patient", time: "2026-05-19 15:11:35", text: "37.8 度左右，没有胸闷。" }
+    ],
     trace: [
       { label: "问诊结束", time: "15:18", detail: "医生完成图文问诊记录确认" },
       { label: "处方提交", time: "15:20", detail: "阿奇霉素分散片等 2 项药品提交审核" },
@@ -237,8 +283,52 @@ const consultationRecords = [
     preview: "视频复诊结束，处方已完成电子签名",
     time: "14:08",
     diagnosis: "慢性支气管炎复诊",
+    diagnosisTags: ["慢性支气管炎复诊"],
+    patientGender: "男",
+    patientDetail: {
+      weight: "68",
+      pregnancy: "否",
+      phone: "139****1088",
+      liverAbnormal: "否",
+      idCard: "4201**********1088",
+      kidneyAbnormal: "否",
+      allergies: "青霉素"
+    },
     prescriptionNo: "RX202605190108",
     endedAt: "2026-05-19 14:08",
+    targetView: "video",
+    prescriptionMedicines: [
+      {
+        index: 1,
+        name: "氨溴索口服液",
+        type: "处方药",
+        spec: "100ml",
+        usage: "口服",
+        frequency: "3次/日",
+        dose: "10ml",
+        quantity: "2",
+        unit: "瓶",
+        risk: "低"
+      },
+      {
+        index: 2,
+        name: "布地奈德吸入剂",
+        type: "处方药",
+        spec: "1支",
+        usage: "吸入",
+        frequency: "2次/日",
+        dose: "200μg",
+        quantity: "1",
+        unit: "支",
+        risk: "中"
+      }
+    ],
+    transcript: [
+      { from: "doctor", time: "2026-05-19 13:55:12", text: "您好，视频已接通，请描述一下近期症状。" },
+      { from: "patient", time: "2026-05-19 13:55:48", text: "老毛病犯了，咳嗽有痰，晚上更明显。" },
+      { from: "doctor", time: "2026-05-19 13:56:21", text: "近期是否按时服药？有无发热？" },
+      { from: "patient", time: "2026-05-19 13:56:57", text: "有按时吃，没有发热。" }
+    ],
     trace: [
       { label: "视频接诊", time: "13:55", detail: "医生完成视频问诊和身份核验" },
       { label: "处方签署", time: "14:05", detail: "电子签名完成，处方进入审核" },
@@ -334,7 +424,7 @@ function renderButton({ text, tone = "primary", size = "md", className = "", typ
   return `<button class="jh-btn${sizeClass} jh-btn--${safeTone}${className ? ` ${className}` : ""}" type="${type}"${disabled ? " disabled" : ""}>${text}</button>`;
 }
 
-function renderDurationChip(variant = "icon", elapsedSeconds = 55) {
+function renderDurationChip(variant = "icon", elapsedSeconds = 0) {
   const safeVariant = ["icon", "pill", "plain"].includes(variant) ? variant : "icon";
   return `
     <span class="jh-duration-chip jh-duration-chip--${safeVariant}" data-duration-timer data-elapsed="${elapsedSeconds}">
@@ -762,9 +852,26 @@ function renderRoomMain() {
     </main>`;
 }
 
+function getConsultMainClass() {
+  return appView === "text" || appView === "video" ? "text-main" : "room-main";
+}
+
+function getConsultMainElement() {
+  return document.querySelector(".room-main, .text-main");
+}
+
+function isConsultReadonlyView() {
+  return Boolean(document.querySelector(".text-card--readonly"));
+}
+
+function setConsultShellReadonly(readonly) {
+  document.querySelector(".room-shell, .text-shell, .video-shell")?.classList.toggle("consult-shell--readonly", readonly);
+}
+
 function renderPrescriptionTraceMain(record = consultationRecords.find((item) => item.state === "ended")) {
+  const mainClass = getConsultMainClass();
   return `
-    <main class="room-main">
+    <main class="${mainClass}">
       <section class="text-card text-card--readonly" aria-label="历史问诊回看">
         <div class="pharmacy-bar">
           <div class="pharmacy-bar__left">
@@ -785,13 +892,14 @@ function renderPrescriptionTraceMain(record = consultationRecords.find((item) =>
 }
 
 function renderArchivedConsultationPanel(record) {
+  const transcript = record.transcript || [];
   const chatList = `
     <div class="archived-chat__list">
-      ${record.transcript
+      ${transcript
         .map(
           (item) => `
             <div class="archived-chat__item archived-chat__item--${item.from}">
-              <strong>${item.name}</strong>
+              <time class="archived-chat__time" datetime="${item.time || ""}">${item.time || item.name || ""}</time>
               <p>${item.text}</p>
             </div>`
         )
@@ -815,61 +923,19 @@ function renderArchivedConsultationPanel(record) {
         <span>只读回看</span>
       </div>
       ${chatList}
-      <div class="archived-consult-panel__disabled-input">问诊已结束，无法继续回复</div>
+      <div class="archived-consult-panel__disabled-input">问诊已封存，仅支持回看</div>
     </section>`;
 }
 
 function renderReadonlyPrescriptionPanel(record) {
-  return `
-    <section class="prescription-panel prescription-panel--readonly" aria-label="只读处方信息">
-      <div class="patient-info">
-        <div class="patient-info__name">${record.patient}&nbsp;&nbsp;${record.age}</div>
-        <div class="patient-info__grid">
-          <span>问诊类型：${record.typeLabel}问诊</span>
-          <span>处方编号：${record.prescriptionNo}</span>
-          <span>结束时间：${record.endedAt}</span>
-          <span>状态：已封存</span>
-        </div>
-      </div>
-      <div class="section-divider"></div>
-      <div class="diagnosis-section">
-        <h3>疾病信息</h3>
-        <div class="readonly-field">
-          <span>诊断</span>
-          <strong>${record.diagnosis}</strong>
-        </div>
-      </div>
-      <div class="section-divider"></div>
-      <div class="medicine-section">
-        <h3>处方药品</h3>
-        <div class="archived-medicine-list">
-          ${record.medicines.map((medicine) => `<div>${medicine}</div>`).join("")}
-        </div>
-      </div>
-      <div class="section-divider"></div>
-      <div class="readonly-trace-section">
-        <h3>开方留痕</h3>
-        <div class="trace-timeline">
-          ${record.trace
-            .map(
-              (item) => `
-                <span class="trace-timeline__item">
-                  <span class="trace-timeline__dot" aria-hidden="true"></span>
-                  <span>
-                    <strong>${item.label}<em>${item.time}</em></strong>
-                    <small>${item.detail}</small>
-                  </span>
-                </span>`
-            )
-            .join("")}
-        </div>
-      </div>
-      <div class="prescription-actions prescription-actions--readonly">
-        <span>已封存，仅支持查看</span>
-        ${renderButton({ text: "查看开方历史", tone: "primary", size: "md", className: "prescription-history-open" })}
-      </div>
-    </section>`;
+  const medicineCount = record.prescriptionMedicines?.length || 1;
+  return renderPrescriptionPanel({
+    readonly: true,
+    record,
+    includeSecondMedicine: medicineCount > 1
+  });
 }
+
 
 function renderPrescriptionTraceCard(record) {
   return `
@@ -982,7 +1048,7 @@ function renderTextMain() {
             ${renderLabelTag({ text: "中药", tone: "focus", size: "lg", className: "risk-tag--medicine medicine-type-tag" })}
           </div>
           <div class="pharmacy-bar__right">
-            ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-text")?.elapsedSeconds || 55)}
+            ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-text")?.elapsedSeconds ?? 0)}
             ${renderButton({ text: "取消问诊", tone: "danger", size: "md" })}
           </div>
         </div>
@@ -1021,65 +1087,164 @@ function renderChatPanel() {
     </section>`;
 }
 
-function renderPrescriptionPanel(includeSecondMedicine = false) {
-  const medicineRow = `
-          <div class="medicine-table__row">
-            <span>1</span><span>阿奇霉素分散片</span><span>处方药</span><span class="table-input">0.125g*6片</span><span class="table-input">口服</span><span class="table-input">1次/日</span><span class="table-input">0.25毫克</span><span>1</span><span class="table-input">盒</span>${renderRiskTag({ text: "高", size: "sm", className: "risk-small" })}${renderButton({ text: "删除", tone: "text", size: "", className: "medicine-delete-btn" })}
-          </div>`;
+const defaultPrescriptionMedicines = [
+  {
+    index: 1,
+    name: "阿奇霉素分散片",
+    type: "处方药",
+    spec: "0.125g*6片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "0.25毫克",
+    quantity: "1",
+    unit: "盒",
+    risk: "高"
+  }
+];
+
+const defaultPatientDetail = {
+  weight: "XX",
+  pregnancy: "否",
+  phone: "XXXXXXXXXXX",
+  liverAbnormal: "否",
+  idCard: "XXXXXXXXXXXXXXXXXX",
+  kidneyAbnormal: "否",
+  allergies: "无"
+};
+
+function renderPatientInfoGrid(patientDetail = defaultPatientDetail) {
+  return `
+    <span>体重 /KG：${patientDetail.weight}</span>
+    <span>*妊娠哺乳：　${patientDetail.pregnancy}</span>
+    <span>手机号：${patientDetail.phone}</span>
+    <span>*肝功能异常：　${patientDetail.liverAbnormal}</span>
+    <span>证件号：${patientDetail.idCard}</span>
+    <span>*肾功能异常：　${patientDetail.kidneyAbnormal}</span>
+    <span>过敏史：${patientDetail.allergies}</span>`;
+}
+
+function renderMedicineTableRow(row, readonly = false) {
+  return `
+    <div class="medicine-table__row">
+      <span>${row.index}</span>
+      <span>${row.name}</span>
+      <span>${row.type}</span>
+      <span class="table-input">${row.spec}</span>
+      <span class="table-input">${row.usage}</span>
+      <span class="table-input">${row.frequency}</span>
+      <span class="table-input">${row.dose}</span>
+      <span>${row.quantity}</span>
+      <span class="table-input">${row.unit}</span>
+      ${renderRiskTag({ text: row.risk, size: "sm", className: "risk-small" })}
+      ${
+        readonly
+          ? ""
+          : renderButton({ text: "删除", tone: "text", size: "", className: "medicine-delete-btn" })
+      }
+    </div>`;
+}
+
+function renderDiagnosisTags(tags, readonly = false) {
+  return tags
+    .map(
+      (tag) => `
+        ${
+          readonly
+            ? `<span class="diagnosis-tag diagnosis-tag--readonly">`
+            : `<button class="diagnosis-tag" type="button" aria-label="移除诊断：${tag}">`
+        }
+          <span>${tag}</span>
+          ${
+            readonly
+              ? ""
+              : `<span class="diagnosis-tag__close" aria-hidden="true">
+                  <img src="${assetUrl("assets/diagnosis-tag-close.svg")}" alt="" />
+                </span>`
+          }
+        ${readonly ? "</span>" : "</button>"}`
+    )
+    .join("");
+}
+
+function renderPrescriptionPanel(options = {}) {
+  const normalized = typeof options === "boolean" ? { includeSecondMedicine: options } : options;
+  const { includeSecondMedicine = false, readonly = false, record = null } = normalized;
+
+  const patientName =
+    readonly && record
+      ? `${record.patient}&nbsp;&nbsp;${record.patientGender || ""}&nbsp;&nbsp;${record.age}`
+      : "柯思达&nbsp;&nbsp;男&nbsp;&nbsp;30岁";
+  const patientDetail = readonly && record?.patientDetail ? record.patientDetail : defaultPatientDetail;
+  const diagnosisTags =
+    readonly && record
+      ? record.diagnosisTags || [record.diagnosis].filter(Boolean)
+      : ["支气管肺炎"];
+  const medicines =
+    readonly && record?.prescriptionMedicines?.length
+      ? record.prescriptionMedicines
+      : defaultPrescriptionMedicines;
+  let medicineRows = medicines;
+  if (!readonly && includeSecondMedicine && medicines.length === 1) {
+    medicineRows = [...medicines, { ...medicines[0], index: 2 }];
+  }
+
+  const panelLabel = readonly ? "只读处方信息" : "处方信息";
 
   return `
-    <section class="prescription-panel" aria-label="处方信息">
+    <section class="prescription-panel${readonly ? " prescription-panel--readonly" : ""}" aria-label="${panelLabel}">
       <div class="patient-info">
-        <div class="patient-info__name">柯思达&nbsp;&nbsp;男&nbsp;&nbsp;30岁</div>
-        <div class="patient-info__grid">
-          <span>体重 /KG：XX</span>
-          <span>*妊娠哺乳：　否</span>
-          <span>手机号：XXXXXXXXXXX</span>
-          <span>*肝功能异常：　否</span>
-          <span>证件号：XXXXXXXXXXXXXXXXXX</span>
-          <span>*肾功能异常：　否</span>
-          <span>过敏史：无</span>
-        </div>
+        <div class="patient-info__name">${patientName}</div>
+        <div class="patient-info__grid">${renderPatientInfoGrid(patientDetail)}</div>
       </div>
       <div class="section-divider"></div>
       <div class="diagnosis-section">
         <h3>疾病信息</h3>
         <div class="diagnosis-row">
           <label><span>*</span>诊断</label>
-          ${renderSelectField({ label: "请选择诊断", size: "lg", className: "diagnosis-select", showChevron: false })}
-          <div class="diagnosis-input">
-            <button class="diagnosis-tag" type="button" aria-label="移除诊断：支气管肺炎">
-              <span>支气管肺炎</span>
-              <span class="diagnosis-tag__close" aria-hidden="true">
-                <img src="${assetUrl("assets/diagnosis-tag-close.svg")}" alt="" />
-              </span>
-            </button>
-          </div>
+          ${
+            readonly
+              ? `<span class="jh-input-field jh-input-field--lg diagnosis-select diagnosis-select--readonly" aria-disabled="true">${diagnosisTags[0] || ""}</span>`
+              : renderSelectField({ label: "请选择诊断", size: "lg", className: "diagnosis-select", showChevron: false })
+          }
+          <div class="diagnosis-input">${renderDiagnosisTags(diagnosisTags, readonly)}</div>
         </div>
       </div>
       <div class="section-divider"></div>
       <div class="medicine-section">
         <h3>所需药品</h3>
         <div class="medicine-scroll-area">
-          ${renderSearchField({ className: "medicine-search" })}
+          ${readonly ? "" : renderSearchField({ className: "medicine-search" })}
           <div class="medicine-table">
             <div class="medicine-table__row medicine-table__head">
               <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
             </div>
-            ${medicineRow}
-            ${includeSecondMedicine ? medicineRow : ""}
+            ${medicineRows.map((row) => renderMedicineTableRow(row, readonly)).join("")}
           </div>
         </div>
       </div>
-      <div class="prescription-actions">
-        ${renderSelectField({ label: "请选择", size: "sm" })}
+      <div class="prescription-actions${readonly ? " prescription-actions--readonly" : ""}">
+        ${
+          readonly
+            ? `<span class="prescription-actions__hint">已封存，仅支持查看</span>`
+            : renderSelectField({ label: "请选择", size: "sm" })
+        }
         <div>
-          ${renderButton({ text: "结束问诊", tone: "soft-danger", size: "md", className: "end-consult-trigger", disabled: true })}
-          ${renderButton({ text: "提交处方", tone: "primary", size: "md", className: "jh-prescription-submit" })}
+          ${
+            readonly
+              ? renderButton({
+                  text: "查看开方历史",
+                  tone: "primary",
+                  size: "md",
+                  className: "prescription-history-open"
+                })
+              : `${renderButton({ text: "结束问诊", tone: "soft-danger", size: "md", className: "end-consult-trigger", disabled: true })}
+          ${renderButton({ text: "提交处方", tone: "primary", size: "md", className: "jh-prescription-submit" })}`
+          }
         </div>
       </div>
     </section>`;
 }
+
 
 function renderTextPage() {
   return `
@@ -1128,7 +1293,7 @@ function renderVideoMain() {
             ${renderLabelTag({ text: "中药", tone: "focus", size: "lg", className: "risk-tag--medicine medicine-type-tag" })}
           </div>
           <div class="pharmacy-bar__right">
-            ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-video")?.elapsedSeconds || 55)}
+            ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-video")?.elapsedSeconds ?? 0)}
             ${renderButton({ text: "取消问诊", tone: "danger", size: "md" })}
           </div>
         </div>
@@ -1517,10 +1682,25 @@ function updateRoomMessageList() {
   bindMessageItems();
 }
 
+function restoreOngoingMain() {
+  const main = getConsultMainElement();
+  if (!main) return;
+  if (appView === "text") {
+    main.outerHTML = renderTextMain();
+  } else if (appView === "video") {
+    main.outerHTML = renderVideoMain();
+  } else {
+    main.outerHTML = renderRoomMain();
+  }
+}
+
 function showPrescriptionTrace(record) {
-  const roomMain = document.querySelector(".room-main");
-  if (!roomMain) return;
-  roomMain.outerHTML = renderPrescriptionTraceMain(record);
+  const main = getConsultMainElement();
+  if (!main) return;
+  window.clearInterval(startOngoingTimers.timer);
+  main.outerHTML = renderPrescriptionTraceMain(record);
+  setConsultShellReadonly(true);
+  bindPrescriptionTraceCards();
 }
 
 function handleMessageItemClick(item) {
@@ -1534,9 +1714,21 @@ function handleMessageItemClick(item) {
   const record = consultationRecords.find((entry) => entry.id === item.dataset.recordId);
   if (record?.state === "ended") {
     showPrescriptionTrace(record);
-    bindPrescriptionTraceCards();
     return;
   }
+
+  setConsultShellReadonly(false);
+
+  if (isConsultReadonlyView() && (appView === "text" || appView === "video")) {
+    const activeId = appView === "text" ? "active-text" : "active-video";
+    if (record?.id === activeId) {
+      restoreOngoingMain();
+      bindConsultWorkspace();
+      startOngoingTimers();
+      return;
+    }
+  }
+
   if (item.dataset.targetView === "video") {
     window.location.href = getVideoHref();
   } else if (item.dataset.targetView === "text") {
@@ -1554,6 +1746,8 @@ function bindMessageItems() {
 
 function bindPrescriptionTraceCards() {
   document.querySelectorAll(".prescription-history-open").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
     button.addEventListener("click", () => {
       const recordId = document.querySelector(".message-item.is-active")?.dataset.recordId;
       window.location.href = getHistoryHref(recordId);
@@ -1561,12 +1755,66 @@ function bindPrescriptionTraceCards() {
   });
 }
 
+function getActiveOngoingRecordId() {
+  if (appView === "text") return "active-text";
+  if (appView === "video") return "active-video";
+  return null;
+}
+
+function syncActiveElapsedSeconds(seconds) {
+  const recordId = getActiveOngoingRecordId();
+  if (!recordId) return;
+  const record = consultationRecords.find((entry) => entry.id === recordId);
+  if (record) record.elapsedSeconds = seconds;
+}
+
+function bindConsultWorkspace() {
+  document.querySelectorAll(".ai-reply__options button").forEach((option) => {
+    if (option.dataset.bound === "true") return;
+    option.dataset.bound = "true";
+    option.addEventListener("click", () => {
+      const input = document.querySelector(".jh-chat-input textarea");
+      if (input) {
+        input.value = option.textContent.trim();
+        input.focus();
+      }
+    });
+  });
+
+  document.querySelectorAll(".quick-reply-trigger").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", openQuickReplyDialog);
+  });
+
+  document.querySelectorAll(".jh-prescription-submit").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", openRiskWarningDialog);
+  });
+
+  document.querySelectorAll(".end-consult-trigger").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      showToast("结束问诊");
+    });
+  });
+}
+
 function startOngoingTimers() {
   window.clearInterval(startOngoingTimers.timer);
+  if (isConsultReadonlyView() || !document.querySelector("[data-duration-timer]")) {
+    return;
+  }
   const tick = () => {
     document.querySelectorAll("[data-ongoing-timer], [data-duration-timer]").forEach((node) => {
       const nextSeconds = Number(node.dataset.elapsed || 0) + 1;
       node.dataset.elapsed = String(nextSeconds);
+      if (node.matches("[data-duration-timer]")) {
+        syncActiveElapsedSeconds(nextSeconds);
+      }
       const text = formatDuration(nextSeconds);
       if (node.matches("[data-duration-timer]")) {
         const label = node.querySelector("strong");
@@ -1619,20 +1867,9 @@ function bindInteractions() {
     });
   }
 
-  document.querySelectorAll(".ai-reply__options button").forEach((option) => {
-    option.addEventListener("click", () => {
-      const input = document.querySelector(".jh-chat-input textarea");
-      if (input) {
-        input.value = option.textContent.trim();
-        input.focus();
-      }
-    });
-  });
+  bindConsultWorkspace();
 
   const quickReplyOverlay = document.querySelector(".quick-reply-overlay");
-  document.querySelectorAll(".quick-reply-trigger").forEach((button) => {
-    button.addEventListener("click", openQuickReplyDialog);
-  });
 
   if (quickReplyOverlay) {
     quickReplyOverlay.querySelector(".quick-reply-dialog__close")?.addEventListener("click", closeQuickReplyDialog);
@@ -1664,16 +1901,6 @@ function bindInteractions() {
   }
 
   const riskWarningOverlay = document.querySelector(".risk-warning-overlay");
-  document.querySelectorAll(".jh-prescription-submit").forEach((button) => {
-    button.addEventListener("click", openRiskWarningDialog);
-  });
-
-  document.querySelectorAll(".end-consult-trigger").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (button.disabled) return;
-      showToast("结束问诊");
-    });
-  });
 
   if (riskWarningOverlay) {
     riskWarningOverlay.querySelector(".risk-warning-dialog__close")?.addEventListener("click", closeRiskWarningDialog);
@@ -1832,7 +2059,13 @@ function bindInteractions() {
           if (firstEnded) {
             showPrescriptionTrace(firstEnded);
             document.querySelector(`.message-item[data-record-id="${firstEnded.id}"]`)?.classList.add("is-active");
-            bindPrescriptionTraceCards();
+          }
+        } else if (filters.state === "ongoing") {
+          setConsultShellReadonly(false);
+          if (isConsultReadonlyView()) {
+            restoreOngoingMain();
+            bindConsultWorkspace();
+            startOngoingTimers();
           }
         }
       }

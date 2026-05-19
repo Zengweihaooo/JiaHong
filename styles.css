@@ -2362,6 +2362,11 @@ body.page-view-room {
   line-height: 20px;
 }
 
+.consult-shell--readonly .quick-reply-overlay,
+.consult-shell--readonly .risk-warning-overlay {
+  display: none !important;
+}
+
 .text-card--readonly {
   overflow: hidden;
 }
@@ -2434,12 +2439,13 @@ body.page-view-room {
   background: #ebf3ff;
 }
 
-.archived-chat__item strong {
+.archived-chat__time {
   display: block;
   margin-bottom: 4px;
   color: var(--jh-text-tertiary);
   font-size: 12px;
   line-height: 20px;
+  font-variant-numeric: tabular-nums;
 }
 
 .archived-chat__item p,
@@ -2466,6 +2472,50 @@ body.page-view-room {
 
 .prescription-panel--readonly {
   overflow: auto;
+}
+
+.prescription-panel--readonly .diagnosis-select--readonly {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  max-width: 200px;
+  height: var(--jh-input-field-height-lg);
+  padding: var(--jh-input-field-padding-lg);
+  border: 1px solid var(--jh-input-field-border);
+  border-radius: var(--jh-input-field-radius);
+  background: #ffffff;
+  color: var(--jh-text-primary);
+  pointer-events: none;
+}
+
+.prescription-panel--readonly .diagnosis-tag--readonly {
+  border: none;
+  background: transparent;
+  pointer-events: none;
+  cursor: default;
+}
+
+.prescription-panel--readonly .table-input {
+  background: #ffffff;
+  pointer-events: none;
+}
+
+.prescription-panel--readonly .medicine-table__row > :last-child:empty {
+  display: none;
+}
+
+.prescription-actions--readonly {
+  align-items: center;
+  color: var(--jh-text-tertiary);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.prescription-actions__hint {
+  color: var(--jh-text-tertiary);
+  font-size: 14px;
+  line-height: 22px;
+  white-space: nowrap;
 }
 
 .readonly-field {
@@ -2501,12 +2551,6 @@ body.page-view-room {
   color: var(--jh-text-primary);
   font-size: 16px;
   line-height: 24px;
-}
-
-.prescription-actions--readonly {
-  color: var(--jh-text-tertiary);
-  font-size: 14px;
-  line-height: 22px;
 }
 
 .prescription-history {
