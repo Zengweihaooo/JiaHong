@@ -1412,29 +1412,29 @@ function renderVideoMediaIcon(type, enabled) {
       </svg>`;
 }
 
-function renderVideoWindowControls() {
+function renderVideoToolbar() {
   const { cameraOn, micOn } = videoMediaState;
   return `
-    <div class="video-window-controls" role="toolbar" aria-label="视频通话控制">
+    <div class="video-toolbar" role="toolbar" aria-label="视频通话控制">
       <button
         type="button"
-        class="video-window-controls__btn${cameraOn ? "" : " is-off"}"
+        class="video-toolbar__btn${cameraOn ? "" : " is-off"}"
         data-video-action="toggle-camera"
         aria-pressed="${cameraOn}"
+        title="${cameraOn ? "关闭摄像头" : "开启摄像头"}"
         aria-label="${cameraOn ? "关闭摄像头" : "开启摄像头"}"
       >
         ${renderVideoMediaIcon("camera", cameraOn)}
-        <span>${cameraOn ? "关闭摄像头" : "开启摄像头"}</span>
       </button>
       <button
         type="button"
-        class="video-window-controls__btn${micOn ? "" : " is-off"}"
+        class="video-toolbar__btn${micOn ? "" : " is-off"}"
         data-video-action="toggle-mic"
         aria-pressed="${micOn}"
-        aria-label="${micOn ? "关闭语音" : "开启语音"}"
+        title="${micOn ? "关闭麦克风" : "开启麦克风"}"
+        aria-label="${micOn ? "关闭麦克风" : "开启麦克风"}"
       >
         ${renderVideoMediaIcon("mic", micOn)}
-        <span>${micOn ? "关闭语音" : "开启语音"}</span>
       </button>
     </div>`;
 }
@@ -1449,7 +1449,7 @@ function renderVideoChatPanel() {
           <img src="${assetUrl("assets/video-doctor.png")}" alt="医生摄像头画面" />
           <div class="video-window__pip-off" aria-hidden="${cameraOn}">摄像头已关闭</div>
         </div>
-        ${renderVideoWindowControls()}
+        ${renderVideoToolbar()}
       </div>
       ${renderChatThread("active-video", { threadClass: "video-chat-thread" })}
       <div class="video-input-wrap">
@@ -2167,13 +2167,18 @@ function syncVideoWindowControls(videoWindow) {
   videoWindow.querySelectorAll("[data-video-action]").forEach((button) => {
     const isCamera = button.dataset.videoAction === "toggle-camera";
     const enabled = isCamera ? cameraOn : micOn;
-    const label = isCamera ? (enabled ? "关闭摄像头" : "开启摄像头") : enabled ? "关闭语音" : "开启语音";
+    const label = isCamera
+      ? enabled
+        ? "关闭摄像头"
+        : "开启摄像头"
+      : enabled
+        ? "关闭麦克风"
+        : "开启麦克风";
 
     button.classList.toggle("is-off", !enabled);
     button.setAttribute("aria-pressed", String(enabled));
     button.setAttribute("aria-label", label);
-    const labelNode = button.querySelector("span");
-    if (labelNode) labelNode.textContent = label;
+    button.setAttribute("title", label);
     const icon = button.querySelector(".video-control-icon");
     if (icon) {
       icon.outerHTML = renderVideoMediaIcon(isCamera ? "camera" : "mic", enabled);
@@ -2194,7 +2199,7 @@ function bindVideoControls() {
           showToast(videoMediaState.cameraOn ? "摄像头已开启" : "摄像头已关闭");
         } else if (button.dataset.videoAction === "toggle-mic") {
           videoMediaState.micOn = !videoMediaState.micOn;
-          showToast(videoMediaState.micOn ? "语音已开启" : "语音已关闭");
+          showToast(videoMediaState.micOn ? "麦克风已开启" : "麦克风已关闭");
         }
         syncVideoWindowControls(videoWindow);
       });

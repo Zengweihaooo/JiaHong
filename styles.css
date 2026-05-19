@@ -4336,59 +4336,65 @@ body.page-view-room {
   background: #d8dde1;
 }
 
-.video-window[data-video-controls].is-media-off .video-window-controls,
-.video-window[data-video-controls]:hover .video-window-controls,
-.video-window[data-video-controls]:focus-within .video-window-controls {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, 0);
-  pointer-events: auto;
-}
-
-.video-window-controls {
+.video-toolbar {
   position: absolute;
-  bottom: 16px;
+  bottom: 14px;
   left: 50%;
   z-index: 3;
   display: flex;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 24px;
-  background: rgba(16, 24, 32, 0.78);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  visibility: hidden;
-  transform: translate(-50%, 8px);
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 28px;
+  background: rgba(16, 24, 32, 0.5);
+  transform: translateX(-50%);
   transition:
-    opacity 0.2s ease,
-    visibility 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
     transform 0.2s ease;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
-.video-window-controls__btn {
+.video-window[data-video-controls]:hover .video-toolbar,
+.video-window[data-video-controls]:focus-within .video-toolbar,
+.video-window[data-video-controls].is-media-off .video-toolbar {
+  background: rgba(16, 24, 32, 0.82);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.video-toolbar__btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 0;
-  border-radius: 20px;
-  background: transparent;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  font-size: 13px;
-  line-height: 20px;
-  white-space: nowrap;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
 }
 
-.video-window-controls__btn:hover,
-.video-window-controls__btn:focus-visible {
-  background: rgba(255, 255, 255, 0.14);
+.video-toolbar__btn:hover,
+.video-toolbar__btn:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
   outline: none;
+  transform: scale(1.05);
 }
 
-.video-window-controls__btn.is-off {
+.video-toolbar__btn.is-off {
+  background: rgba(120, 32, 32, 0.55);
   color: #ffb4b4;
+}
+
+.video-toolbar__btn.is-off:hover,
+.video-toolbar__btn.is-off:focus-visible {
+  background: rgba(140, 40, 40, 0.72);
 }
 
 .video-control-icon {
