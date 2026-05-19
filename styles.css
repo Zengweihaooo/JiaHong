@@ -2461,76 +2461,61 @@ body.page-view-room {
 }
 
 .archived-consult-panel {
-  justify-content: flex-start;
-  gap: 16px;
-  padding: 16px;
-  overflow: auto;
-}
-
-.archived-consult-panel__head {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.archived-consult-panel__head h3 {
+.archived-consult-panel__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.archived-consult-panel .chat-thread--archived {
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  padding: 24px 0 16px;
+}
+
+.archived-consult-panel .chat-thread--archived .chat-date {
+  width: 100%;
   margin: 0;
-  color: var(--jh-text-primary);
-  font-size: 16px;
-  line-height: 24px;
+  font-variant-numeric: tabular-nums;
 }
 
-.archived-consult-panel__head span,
-.archived-consult-panel__disabled-input {
-  color: var(--jh-text-tertiary);
-  font-size: 12px;
-  line-height: 20px;
+.archived-consult-panel .chat-thread--archived .chat-bubble {
+  max-width: min(var(--jh-chat-bubble-max-width), calc(100% - 24px));
 }
 
 .archived-consult-panel__disabled-input {
-  margin-top: auto;
+  flex: 0 0 auto;
+  margin: 0 12px 12px;
   padding: 12px 14px;
   border: 1px dashed var(--jh-line-strong);
   border-radius: 6px;
   background: #ffffff;
+  color: var(--jh-text-tertiary);
+  font-size: 12px;
+  line-height: 20px;
   text-align: center;
 }
 
 .archived-video-window {
   flex: 0 0 auto;
+  margin: 12px 12px 0;
   border-radius: 8px;
 }
 
-.archived-chat__list,
 .archived-medicine-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.archived-chat__item {
-  max-width: 86%;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.archived-chat__item--doctor {
-  align-self: flex-end;
-  background: #ebf3ff;
-}
-
-.archived-chat__time {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--jh-text-tertiary);
-  font-size: 12px;
-  line-height: 20px;
-  font-variant-numeric: tabular-nums;
-}
-
-.archived-chat__item p,
 .archived-medicine-list div {
   margin: 0;
   color: var(--jh-text-secondary);

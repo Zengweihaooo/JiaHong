@@ -1,0 +1,439 @@
+{
+  "schemaVersion": 1,
+  "doctor": {
+    "id": "doctor-zhang",
+    "name": "张医生",
+    "status": "online"
+  },
+  "waitingQueue": {
+    "total": 2,
+    "byType": {
+      "text": 1,
+      "video": 1,
+      "consult": 0
+    },
+    "updatedAt": "2026-05-19T14:00:00+08:00"
+  },
+  "navigation": {
+    "menuGroups": [
+      {
+        "title": "工作台",
+        "items": [
+          {
+            "label": "首页",
+            "icon": "home",
+            "active": true
+          },
+          {
+            "label": "数据看板",
+            "icon": "dashboard"
+          }
+        ]
+      },
+      {
+        "title": "问诊管理",
+        "items": [
+          {
+            "label": "三方问诊",
+            "icon": "circle"
+          },
+          {
+            "label": "问诊记录",
+            "icon": "clipboard"
+          },
+          {
+            "label": "驳回处方",
+            "icon": "checkSquare"
+          }
+        ]
+      },
+      {
+        "title": "运营相关",
+        "items": [
+          {
+            "label": "出诊管理",
+            "icon": "briefcase"
+          },
+          {
+            "label": "值班打卡",
+            "icon": "calendar"
+          }
+        ]
+      },
+      {
+        "title": "账户",
+        "items": [
+          {
+            "label": "个人中心",
+            "icon": "user"
+          },
+          {
+            "label": "医生佣金",
+            "icon": "shield"
+          }
+        ]
+      }
+    ]
+  },
+  "home": {
+    "quickActions": [
+      {
+        "title": "排班管理",
+        "desc": "查看值班安排",
+        "icon": "quickCalendar"
+      },
+      {
+        "title": "医生佣金条",
+        "desc": "查看当月佣金明细",
+        "icon": "document"
+      },
+      {
+        "title": "历史问诊",
+        "desc": "历史病历查询",
+        "icon": "clock"
+      },
+      {
+        "title": "",
+        "desc": "添加快捷入口",
+        "icon": "plus",
+        "isAdd": true
+      }
+    ],
+    "quickEntryOptions": [
+      {
+        "title": "患者随访",
+        "desc": "查看待随访患者",
+        "icon": "user"
+      },
+      {
+        "title": "风险提醒",
+        "desc": "查看用药风险项",
+        "icon": "shield"
+      },
+      {
+        "title": "处方模板",
+        "desc": "管理常用处方",
+        "icon": "clipboard"
+      }
+    ],
+    "announcements": [
+      {
+        "id": "doctor-release",
+        "date": "2026-04-08",
+        "title": "嘉虹健康医生端新功能发布",
+        "publisher": "成都双流九州通互联网医院",
+        "unread": true,
+        "content": "一、图文问诊未回复弹框确认机制：图文问诊未回复弹框确认持续3秒。若顾客未回复，禁止开具处方。\n二、处方驳回流程调整：取消医生端驳回处方修改功能。药师端驳回处方的同时即作废该处方。医生开方前需谨慎核对，处方一旦错误将无驳回修改机会。\n三、风险检测提醒优化：提交处方前将展示患者用药风险检测结果，请根据检测信息完成处方核对。\n四、快捷用语分类更新：新增续方、安全用药、异常情况、售后服务等常用话术分类，便于医生快速响应患者咨询。"
+      },
+      {
+        "id": "holiday-schedule",
+        "date": "2026-04-01",
+        "title": "清明节期间排班提醒",
+        "publisher": "嘉虹健康运营中心",
+        "unread": false,
+        "content": "一、请各位医生在假期前完成排班确认，避免患者问诊等待时间过长。\n二、假期期间在线客服将保持值班，遇到系统异常可优先联系在线客服。\n三、如需临时调整出诊状态，请至少提前30分钟在医生端完成切换。"
+      },
+      {
+        "id": "security-reminder",
+        "date": "2026-03-25",
+        "title": "医生账号安全提醒",
+        "publisher": "嘉虹健康技术支持",
+        "unread": false,
+        "content": "一、请勿将医生账号、短信验证码或电子签名授权信息提供给他人使用。\n二、建议定期检查登录设备，如发现异常登录记录，请及时联系平台处理。\n三、处方相关操作需由医生本人完成，平台将持续加强账号安全校验。"
+      }
+    ]
+  },
+  "services": [
+    {
+      "key": "text",
+      "label": "图文问诊",
+      "enabled": true
+    },
+    {
+      "key": "video",
+      "label": "视频问诊",
+      "enabled": true
+    },
+    {
+      "key": "consult",
+      "label": "图文咨询",
+      "enabled": true
+    }
+  ],
+  "consultations": {
+    "records": [
+      {
+        "id": "active-text",
+        "type": "text",
+        "typeLabel": "图文",
+        "state": "ongoing",
+        "title": "武汉市好药师大药房",
+        "patient": "李女士",
+        "age": "36岁",
+        "preview": "您好！请问那个药怎么服用？",
+        "time": "16:38",
+        "badge": 1,
+        "targetView": "text",
+        "elapsedSeconds": 0
+      },
+      {
+        "id": "active-video",
+        "type": "video",
+        "typeLabel": "视频",
+        "state": "ongoing",
+        "title": "成都双流九州通互联网医院",
+        "patient": "周先生",
+        "age": "42岁",
+        "preview": "患者正在等待视频接诊",
+        "time": "16:34",
+        "badge": 1,
+        "targetView": "video",
+        "elapsedSeconds": 0
+      },
+      {
+        "id": "ended-text",
+        "type": "text",
+        "typeLabel": "图文",
+        "state": "ended",
+        "title": "武汉市好药师大药房南岸店",
+        "patient": "王女士",
+        "age": "29岁",
+        "preview": "已完成复诊开方，处方已流转药师审核",
+        "time": "15:22",
+        "diagnosis": "急性上呼吸道感染",
+        "diagnosisTags": [
+          "急性上呼吸道感染"
+        ],
+        "patientGender": "女",
+        "patientDetail": {
+          "weight": "52",
+          "pregnancy": "否",
+          "phone": "138****5621",
+          "liverAbnormal": "否",
+          "idCard": "4201**********5621",
+          "kidneyAbnormal": "否",
+          "allergies": "无"
+        },
+        "prescriptionNo": "RX202605190152",
+        "endedAt": "2026-05-19 15:22",
+        "targetView": "text",
+        "prescriptionMedicines": [
+          {
+            "index": 1,
+            "name": "阿奇霉素分散片",
+            "type": "处方药",
+            "spec": "0.125g*6片",
+            "usage": "口服",
+            "frequency": "1次/日",
+            "dose": "0.25毫克",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "高"
+          },
+          {
+            "index": 2,
+            "name": "复方氨酚烷胺胶囊",
+            "type": "处方药",
+            "spec": "12粒",
+            "usage": "口服",
+            "frequency": "2次/日",
+            "dose": "1粒",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "低"
+          }
+        ],
+        "transcript": [
+          {
+            "from": "doctor",
+            "time": "2026-05-19 15:10:18",
+            "text": "您好，请问有什么不适？"
+          },
+          {
+            "from": "patient",
+            "time": "2026-05-19 15:10:42",
+            "text": "咳嗽三天了，有点发热。"
+          },
+          {
+            "from": "doctor",
+            "time": "2026-05-19 15:11:06",
+            "text": "体温多少？有没有胸闷气短？"
+          },
+          {
+            "from": "patient",
+            "time": "2026-05-19 15:11:35",
+            "text": "37.8 度左右，没有胸闷。"
+          }
+        ],
+        "trace": [
+          {
+            "label": "问诊结束",
+            "time": "15:18",
+            "detail": "医生完成图文问诊记录确认"
+          },
+          {
+            "label": "处方提交",
+            "time": "15:20",
+            "detail": "阿奇霉素分散片等 2 项药品提交审核"
+          },
+          {
+            "label": "药师审核",
+            "time": "15:22",
+            "detail": "处方审核通过，留痕记录已归档"
+          }
+        ]
+      },
+      {
+        "id": "ended-video",
+        "type": "video",
+        "typeLabel": "视频",
+        "state": "ended",
+        "title": "嘉虹健康视频问诊",
+        "patient": "陈先生",
+        "age": "51岁",
+        "preview": "视频复诊结束，处方已完成电子签名",
+        "time": "14:08",
+        "diagnosis": "慢性支气管炎复诊",
+        "diagnosisTags": [
+          "慢性支气管炎复诊"
+        ],
+        "patientGender": "男",
+        "patientDetail": {
+          "weight": "68",
+          "pregnancy": "否",
+          "phone": "139****1088",
+          "liverAbnormal": "否",
+          "idCard": "4201**********1088",
+          "kidneyAbnormal": "否",
+          "allergies": "青霉素"
+        },
+        "prescriptionNo": "RX202605190108",
+        "endedAt": "2026-05-19 14:08",
+        "targetView": "video",
+        "prescriptionMedicines": [
+          {
+            "index": 1,
+            "name": "氨溴索口服液",
+            "type": "处方药",
+            "spec": "100ml",
+            "usage": "口服",
+            "frequency": "3次/日",
+            "dose": "10ml",
+            "quantity": "2",
+            "unit": "瓶",
+            "risk": "低"
+          },
+          {
+            "index": 2,
+            "name": "布地奈德吸入剂",
+            "type": "处方药",
+            "spec": "1支",
+            "usage": "吸入",
+            "frequency": "2次/日",
+            "dose": "200μg",
+            "quantity": "1",
+            "unit": "支",
+            "risk": "中"
+          }
+        ],
+        "transcript": [
+          {
+            "from": "doctor",
+            "time": "2026-05-19 13:55:12",
+            "text": "您好，视频已接通，请描述一下近期症状。"
+          },
+          {
+            "from": "patient",
+            "time": "2026-05-19 13:55:48",
+            "text": "老毛病犯了，咳嗽有痰，晚上更明显。"
+          },
+          {
+            "from": "doctor",
+            "time": "2026-05-19 13:56:21",
+            "text": "近期是否按时服药？有无发热？"
+          },
+          {
+            "from": "patient",
+            "time": "2026-05-19 13:56:57",
+            "text": "有按时吃，没有发热。"
+          }
+        ],
+        "trace": [
+          {
+            "label": "视频接诊",
+            "time": "13:55",
+            "detail": "医生完成视频问诊和身份核验"
+          },
+          {
+            "label": "处方签署",
+            "time": "14:05",
+            "detail": "电子签名完成，处方进入审核"
+          },
+          {
+            "label": "审核归档",
+            "time": "14:08",
+            "detail": "药师审核通过，开方留痕可追溯"
+          }
+        ]
+      }
+    ],
+    "ongoingChats": {
+      "active-text": {
+        "sessionDate": "2026-01-13 16:38:21",
+        "messages": [
+          {
+            "id": "active-text-msg-1",
+            "from": "doctor",
+            "text": "您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？",
+            "recalled": false
+          },
+          {
+            "id": "active-text-msg-2",
+            "from": "patient",
+            "text": "还有发烧",
+            "recalled": false
+          }
+        ]
+      },
+      "active-video": {
+        "sessionDate": "2026-01-13 16:34:08",
+        "messages": [
+          {
+            "id": "active-video-msg-1",
+            "from": "doctor",
+            "text": "您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？",
+            "recalled": false
+          },
+          {
+            "id": "active-video-msg-2",
+            "from": "patient",
+            "text": "还有发烧",
+            "recalled": false
+          }
+        ]
+      }
+    }
+  },
+  "quickReplies": {
+    "categories": [
+      "续方-必发两项",
+      "续方-询问病史",
+      "续方-风险评估",
+      "续方-安全用药",
+      "续方-异常情况",
+      "续方-售后服务",
+      "续方-凭证不符",
+      "续方-处方备注"
+    ],
+    "messages": [
+      "稍后给您开方，请您按处方使用并认真阅读药品说明书。注意忌饮酒，辛辣食物，注意休息。如出现病情变化或其它不适症状，请立即停药并及时当地医院就医。",
+      "请问您是否线下就诊并已明确诊断?",
+      "请问确定是医生推荐使用该药品的吗?",
+      "请问您确定非处于孕期/哺乳期/备孕期吗?",
+      "请问确定不存在肝肾功能异常?",
+      "请问您是否线下就诊并已明确诊断?",
+      "请您按时用药，定期复查，不适随诊。",
+      "如您在用药3-5天后，症状没有缓解或者病情加重，请及时医院就诊，以免延误病情。"
+    ]
+  }
+}
