@@ -1,7 +1,7 @@
 import {
   updateDoctorStatus,
   updateServiceAvailability
-} from "../api/mockApi.js";
+} from "../api/appApi.js";
 import {
   doctorStatusState,
   serviceState,

@@ -1,15 +1,22 @@
 import { appView, getHistoryHref, getRoomHref, getTextHref, getVideoHref } from "./core.js";
-import { getRealtimeSnapshot } from "./api/mockApi.js";
-import { addConsultationRecord, announcements, consultationRecords, latestAnnouncement, ongoingChatState, quickEntryOptions } from "./data.js";
 import {
   getActiveConsultationRecord,
   getActiveOngoingRecordId,
+  getConsultationRecordById,
+  getFirstEndedConsultationRecord,
   openRiskReviewForActiveConsultation,
   resolveActiveConsultation,
   submitPrescriptionForActiveConsultation,
   syncActiveElapsedSeconds,
   syncWaitingQueueToMessages
 } from "./controllers/consultationController.js";
+import {
+  appendDoctorChatMessage,
+  getOngoingChatMessage,
+  recallOngoingChatMessage
+} from "./controllers/chatController.js";
+import { getAnnouncementById, getQuickEntryOption } from "./controllers/contentController.js";
+import { refreshRealtimeState } from "./controllers/realtimeController.js";
 import {
   getDoctorStatus,
   getNextDoctorStatus,
@@ -19,17 +26,24 @@ import {
   setDoctorStatusState,
   setServiceAvailabilityState
 } from "./controllers/runtimeController.js";
-import { compareByPinyin, diagnosisSuggestionPool, medicineSuggestionPool } from "./domain/prescriptionCatalog.js";
+import {
+  addDiagnosisToActiveRecord,
+  addMedicineToActiveRecord,
+  getDiagnosisOptions,
+  getMedicineOptions,
+  removeDiagnosisFromActiveRecord,
+  removeMedicineFromActiveRecord,
+  updateMedicineFieldInActiveRecord
+} from "./controllers/prescriptionController.js";
 import { getConsultMainElement, isConsultReadonlyView, refreshChatThread, setConsultShellReadonly } from "./ui/dom.js";
 import { icons } from "./ui/icons.js";
 import {
   rememberDismissedMessageBadge,
-  registerConsultationMachine,
   setActiveVideoConsultation,
   subscribeRuntimeState,
   waitingQueueState
 } from "./state.js";
-import { findOngoingChatMessage, formatDuration, getActiveChatKey, getDoctorStatusLabel, renderChatThread, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, videoMediaState } from "./render.js";
+import { formatDuration, getActiveChatKey, getDoctorStatusLabel, renderChatThread, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, videoMediaState } from "./render.js";
 
 function showToast(message) {
   const toast = document.querySelector(".toast");
@@ -220,7 +234,7 @@ function openAnnouncementDialog(event) {
   if (!overlay) return;
   const announcementId =
     event?.currentTarget?.dataset?.announcementId || event?.target?.closest("[data-announcement-id]")?.dataset?.announcementId;
-  const announcement = announcements.find((item) => item.id === announcementId) || latestAnnouncement;
+  const announcement = getAnnouncementById(announcementId);
   overlay.querySelector(".announcement-dialog__meta h3").textContent = announcement.title;
   overlay.querySelector(".announcement-dialog__meta span").textContent = announcement.date;
   overlay.querySelector(".announcement-dialog__body p").textContent = announcement.content;
@@ -353,7 +367,7 @@ function handleMessageItemClick(item) {
   const messageList = item.closest(".message-list");
   messageList?.querySelectorAll(".message-item").forEach((node) => node.classList.remove("is-active"));
   item.classList.add("is-active");
-  const record = consultationRecords.find((entry) => entry.id === item.dataset.recordId);
+  const record = getConsultationRecordById(item.dataset.recordId);
   if (record?.state === "ended") {
     showPrescriptionTrace(record);
     return;
@@ -452,14 +466,14 @@ function handleChatMessageMenuAction(action) {
   if (!menu) return;
   const chatKey = menu.dataset.chatKey;
   const messageId = menu.dataset.messageId;
-  const message = findOngoingChatMessage(chatKey, messageId);
+  const message = getOngoingChatMessage(chatKey, messageId);
   if (!message || message.recalled) {
     closeChatMessageMenu();
     return;
   }
 
   if (action === "recall") {
-    message.recalled = true;
+    recallOngoingChatMessage(chatKey, messageId);
     refreshChatThread(renderChatThread, chatKey);
     showToast("消息已撤回");
   } else if (action === "copy") {
@@ -477,17 +491,10 @@ function handleChatMessageMenuAction(action) {
   closeChatMessageMenu();
 }
 
-function appendDoctorChatMessage(text) {
+function appendActiveDoctorChatMessage(text) {
   const chatKey = getActiveChatKey();
-  if (!chatKey || !ongoingChatState[chatKey]) return false;
-  const chat = ongoingChatState[chatKey];
-  const message = {
-    id: `${chatKey}-doctor-${Date.now()}`,
-    from: "doctor",
-    text,
-    recalled: false
-  };
-  chat.messages = [...(chat.messages || []), message];
+  const message = appendDoctorChatMessage(chatKey, text);
+  if (!message) return false;
   refreshChatThread(renderChatThread, chatKey);
   bindChatMessageMenu();
   bindDragScrollContainers();
@@ -500,7 +507,7 @@ function sendChatInputMessage(input) {
   if (isConsultReadonlyView()) return;
   const text = input?.value.trim();
   if (!text) return;
-  if (!appendDoctorChatMessage(text)) {
+  if (!appendActiveDoctorChatMessage(text)) {
     showToast("当前会话不可发送");
     return;
   }
@@ -545,41 +552,6 @@ function refreshActivePrescriptionPanel(record = getActiveConsultationRecord()) 
   bindConsultWorkspace();
 }
 
-function normalizeRecordDiagnosis(record) {
-  const tags = Array.isArray(record.diagnosisTags) ? record.diagnosisTags.filter(Boolean) : [];
-  if (!tags.length && record.diagnosis) tags.push(record.diagnosis);
-  record.diagnosisTags = Array.from(new Set(tags));
-  record.diagnosis = record.diagnosisTags[0] || "";
-}
-
-function addDiagnosisToActiveRecord(diagnosisText = "") {
-  const record = getActiveConsultationRecord();
-  if (!record) return;
-  normalizeRecordDiagnosis(record);
-  const nextDiagnosis =
-    diagnosisText.trim() ||
-    diagnosisSuggestionPool.find((diagnosis) => !record.diagnosisTags.includes(diagnosis)) ||
-    `补充诊断${record.diagnosisTags.length + 1}`;
-  if (record.diagnosisTags.includes(nextDiagnosis)) {
-    showToast("该诊断已存在");
-    return;
-  }
-  record.diagnosisTags.push(nextDiagnosis);
-  normalizeRecordDiagnosis(record);
-  refreshActivePrescriptionPanel(record);
-  showToast(`已添加诊断：${nextDiagnosis}`);
-}
-
-function getDiagnosisOptions(keyword = "") {
-  const record = getActiveConsultationRecord();
-  const normalizedKeyword = keyword.trim().toLowerCase();
-  const existingTags = new Set(record?.diagnosisTags || []);
-  return diagnosisSuggestionPool
-    .filter((diagnosis) => !existingTags.has(diagnosis))
-    .filter((diagnosis) => !normalizedKeyword || diagnosis.toLowerCase().includes(normalizedKeyword))
-    .sort(compareByPinyin);
-}
-
 function renderDiagnosisDropdown(input) {
   const panel = input.closest(".prescription-panel");
   const dropdown = panel?.querySelector(".diagnosis-options");
@@ -595,7 +567,7 @@ function renderDiagnosisDropdown(input) {
     button.addEventListener("pointerdown", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      addDiagnosisToActiveRecord(diagnosis);
+      handlePrescriptionResult(addDiagnosisToActiveRecord(diagnosis));
     });
     dropdown.appendChild(button);
   });
@@ -609,39 +581,6 @@ function closeDiagnosisDropdown(input) {
   if (!dropdown) return;
   dropdown.hidden = true;
   input.setAttribute("aria-expanded", "false");
-}
-
-function removeDiagnosisFromActiveRecord(tag) {
-  const record = getActiveConsultationRecord();
-  if (!record || !tag) return;
-  normalizeRecordDiagnosis(record);
-  record.diagnosisTags = record.diagnosisTags.filter((item) => item !== tag);
-  normalizeRecordDiagnosis(record);
-  refreshActivePrescriptionPanel(record);
-  showToast("诊断已更新");
-}
-
-function normalizeMedicines(record) {
-  record.prescriptionMedicines = (record.prescriptionMedicines || []).map((medicine, index) => ({
-    ...medicine,
-    index: index + 1
-  }));
-}
-
-function findMedicineSuggestion(keyword) {
-  const normalizedKeyword = keyword.trim().toLowerCase();
-  if (!normalizedKeyword) return null;
-  return medicineSuggestionPool.find((medicine) => medicine.name.toLowerCase().includes(normalizedKeyword));
-}
-
-function getMedicineOptions(keyword = "") {
-  const record = getActiveConsultationRecord();
-  const normalizedKeyword = keyword.trim().toLowerCase();
-  const existingMedicines = new Set((record?.prescriptionMedicines || []).map((medicine) => medicine.name));
-  return medicineSuggestionPool
-    .filter((medicine) => !existingMedicines.has(medicine.name))
-    .filter((medicine) => !normalizedKeyword || medicine.name.toLowerCase().includes(normalizedKeyword))
-    .sort((left, right) => compareByPinyin(left.name, right.name));
 }
 
 function renderMedicineDropdown(input) {
@@ -659,7 +598,7 @@ function renderMedicineDropdown(input) {
     button.addEventListener("pointerdown", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      addMedicineToActiveRecord(medicine.name);
+      handlePrescriptionResult(addMedicineToActiveRecord(medicine.name));
     });
     dropdown.appendChild(button);
   });
@@ -675,43 +614,13 @@ function closeMedicineDropdown(input) {
   input.setAttribute("aria-expanded", "false");
 }
 
-function addMedicineToActiveRecord(keyword = "") {
-  const record = getActiveConsultationRecord();
-  if (!record) return;
-  record.prescriptionMedicines = record.prescriptionMedicines || [];
-  const suggestion = findMedicineSuggestion(keyword);
-  if (!suggestion) {
-    showToast("未找到匹配药品");
-    return;
+function handlePrescriptionResult(result) {
+  if (result?.record) {
+    refreshActivePrescriptionPanel(result.record);
   }
-  if (record.prescriptionMedicines.some((medicine) => medicine.name === suggestion.name)) {
-    showToast("该药品已在处方中");
-    return;
+  if (result?.message) {
+    showToast(result.message);
   }
-  record.prescriptionMedicines.push({
-    index: record.prescriptionMedicines.length + 1,
-    ...suggestion
-  });
-  normalizeMedicines(record);
-  refreshActivePrescriptionPanel(record);
-  showToast(`已添加药品：${suggestion.name}`);
-}
-
-function removeMedicineFromActiveRecord(name) {
-  const record = getActiveConsultationRecord();
-  if (!record || !name) return;
-  record.prescriptionMedicines = (record.prescriptionMedicines || []).filter((medicine) => medicine.name !== name);
-  normalizeMedicines(record);
-  refreshActivePrescriptionPanel(record);
-  showToast("药品已删除");
-}
-
-function updateMedicineFieldInActiveRecord(index, field, value) {
-  const record = getActiveConsultationRecord();
-  if (!record || !index || !field) return;
-  const medicine = (record.prescriptionMedicines || []).find((item) => Number(item.index) === Number(index));
-  if (!medicine) return;
-  medicine[field] = value.trim();
 }
 
 function bindPrescriptionEditor() {
@@ -723,7 +632,7 @@ function bindPrescriptionEditor() {
     const removeDiagnosis = (event) => {
       event.preventDefault();
       event.stopPropagation();
-      removeDiagnosisFromActiveRecord(button.dataset.diagnosisTag);
+      handlePrescriptionResult(removeDiagnosisFromActiveRecord(button.dataset.diagnosisTag));
     };
     button.addEventListener("pointerdown", removeDiagnosis);
     button.addEventListener("click", (event) => {
@@ -746,7 +655,7 @@ function bindPrescriptionEditor() {
     event.preventDefault();
     const diagnosisText = event.currentTarget.value.trim();
     if (!diagnosisText) return;
-    addDiagnosisToActiveRecord(diagnosisText);
+    handlePrescriptionResult(addDiagnosisToActiveRecord(diagnosisText));
   });
   const medicineInput = panel.querySelector(".medicine-search input");
   medicineInput?.setAttribute("aria-expanded", "false");
@@ -762,7 +671,7 @@ function bindPrescriptionEditor() {
   medicineInput?.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || event.isComposing) return;
     event.preventDefault();
-    addMedicineToActiveRecord(event.currentTarget.value);
+    handlePrescriptionResult(addMedicineToActiveRecord(event.currentTarget.value));
   });
   if (!bindPrescriptionEditor.dropdownDismissBound) {
     bindPrescriptionEditor.dropdownDismissBound = true;
@@ -780,7 +689,7 @@ function bindPrescriptionEditor() {
       event.preventDefault();
       event.stopPropagation();
       const row = button.closest("[data-medicine-name]");
-      removeMedicineFromActiveRecord(row?.dataset.medicineName);
+      handlePrescriptionResult(removeMedicineFromActiveRecord(row?.dataset.medicineName));
     });
     button.addEventListener("click", (event) => {
       event.preventDefault();
@@ -1008,18 +917,10 @@ export function startRealtimeMockUpdates() {
   window.clearInterval(startRealtimeMockUpdates.timer);
   const refresh = async () => {
     try {
-      const snapshot = await getRealtimeSnapshot();
-      if (snapshot.newConsultation) {
-        const added = addConsultationRecord(snapshot.newConsultation.record, snapshot.newConsultation.chat);
-        if (added) {
-          registerConsultationMachine(snapshot.newConsultation.record);
-          updateRoomMessageList();
-          showToast(`新增${snapshot.newConsultation.record.typeLabel}问诊`);
-        }
-      }
-      syncWaitingQueueToMessages();
-      if (snapshot.doctorStatus) {
-        setDoctorStatusState(snapshot.doctorStatus, { sync: false });
+      const snapshot = await refreshRealtimeState();
+      if (snapshot.addedConsultation) {
+        updateRoomMessageList();
+        showToast(`新增${snapshot.addedConsultation.record.typeLabel}问诊`);
       }
     } catch {
       showToast("实时状态更新失败");
@@ -1175,7 +1076,7 @@ export function bindInteractions() {
     });
     quickEntryOverlay.querySelectorAll(".quick-entry-option").forEach((optionButton) => {
       optionButton.addEventListener("click", (event) => {
-        const option = quickEntryOptions[Number(optionButton.dataset.optionIndex)];
+        const option = getQuickEntryOption(optionButton.dataset.optionIndex);
         if (!option) return;
         const addCard = document.querySelector(".quick-card--add");
         if (addCard) {
@@ -1259,9 +1160,7 @@ export function bindInteractions() {
         updateRoomMessageList();
         const filters = getRoomFilters();
         if (filters.state === "ended") {
-          const firstEnded = consultationRecords.find(
-            (record) => (filters.type === "all" || record.type === filters.type) && record.state === "ended"
-          );
+          const firstEnded = getFirstEndedConsultationRecord({ type: filters.type });
           if (firstEnded) {
             showPrescriptionTrace(firstEnded);
             document.querySelector(`.message-item[data-record-id="${firstEnded.id}"]`)?.classList.add("is-active");

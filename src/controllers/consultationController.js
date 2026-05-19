@@ -1,4 +1,4 @@
-import { updateConsultationStatus } from "../api/mockApi.js";
+import { updateConsultationStatus } from "../api/appApi.js";
 import { appView, getRecordParam, getRoomHref } from "../core.js";
 import { consultationRecords, updateConsultationRecordState } from "../data.js";
 import { consultationEvents } from "../domain/consultationStateMachine.js";
@@ -33,6 +33,16 @@ export function getActiveOngoingRecordId(view = appView) {
 export function getActiveConsultationRecord() {
   const recordId = getActiveOngoingRecordId();
   return consultationRecords.find((entry) => entry.id === recordId && entry.state === "ongoing");
+}
+
+export function getConsultationRecordById(recordId) {
+  return consultationRecords.find((entry) => entry.id === recordId) || null;
+}
+
+export function getFirstEndedConsultationRecord({ type = "all" } = {}) {
+  return consultationRecords.find(
+    (record) => (type === "all" || record.type === type) && record.state === "ended"
+  ) || null;
 }
 
 export function syncWaitingQueueToMessages({ silent = false } = {}) {

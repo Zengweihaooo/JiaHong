@@ -1,4 +1,4 @@
-import { getAppBootstrap } from "../api/mockApi.js";
+import { getAppBootstrap } from "../api/appApi.js";
 import { consultationRecords, doctor, hydrateAppData, services } from "../data.js";
 import { initRuntimeState } from "../state.js";
 
