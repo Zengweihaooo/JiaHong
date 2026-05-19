@@ -337,6 +337,33 @@ const consultationRecords = [
   }
 ];
 
+const ongoingChatState = {
+  "active-text": {
+    sessionDate: "2026-01-13 16:38:21",
+    messages: [
+      {
+        id: "active-text-msg-1",
+        from: "doctor",
+        text: "您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？",
+        recalled: false
+      },
+      { id: "active-text-msg-2", from: "patient", text: "还有发烧", recalled: false }
+    ]
+  },
+  "active-video": {
+    sessionDate: "2026-01-13 16:34:08",
+    messages: [
+      {
+        id: "active-video-msg-1",
+        from: "doctor",
+        text: "您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？",
+        recalled: false
+      },
+      { id: "active-video-msg-2", from: "patient", text: "还有发烧", recalled: false }
+    ]
+  }
+};
+
 const quickReplyCategories = [
   "续方-必发两项",
   "续方-询问病史",
@@ -1060,18 +1087,68 @@ function renderTextMain() {
     </main>`;
 }
 
+
+function getActiveChatKey() {
+  if (appView === "video") return "active-video";
+  if (appView === "text") return "active-text";
+  return null;
+}
+
+function findOngoingChatMessage(chatKey, messageId) {
+  return ongoingChatState[chatKey]?.messages.find((message) => message.id === messageId);
+}
+
+function renderChatBubble(message) {
+  if (message.from === "doctor" && message.recalled) {
+    return `
+      <div class="chat-bubble chat-bubble--doctor chat-bubble--recalled" data-message-id="${message.id}">
+        <p class="chat-bubble__recalled">您撤回了一条消息</p>
+      </div>`;
+  }
+
+  const isDoctor = message.from === "doctor";
+  return `
+    <div
+      class="chat-bubble chat-bubble--${message.from}${isDoctor ? " chat-bubble--actionable" : ""}"
+      data-message-id="${message.id}"
+      ${isDoctor ? 'data-chat-context="doctor"' : ""}
+    >
+      <p>${message.text}</p>
+    </div>`;
+}
+
+function renderChatThread(chatKey = getActiveChatKey(), { threadClass = "chat-thread" } = {}) {
+  const chat = ongoingChatState[chatKey];
+  if (!chat) return "";
+
+  return `
+    <div class="${threadClass}" data-chat-key="${chatKey}">
+      <p class="chat-date">${chat.sessionDate}</p>
+      ${chat.messages.map((message) => renderChatBubble(message)).join("")}
+    </div>`;
+}
+
+function refreshChatThread(chatKey = getActiveChatKey()) {
+  if (!chatKey) return;
+  const existing = document.querySelector(`[data-chat-key="${chatKey}"]`);
+  if (!existing) return;
+  const threadClass = existing.classList.contains("video-chat-thread") ? "video-chat-thread" : "chat-thread";
+  existing.outerHTML = renderChatThread(chatKey, { threadClass });
+}
+
+function renderChatMessageMenu() {
+  return `
+    <div class="chat-message-menu" role="menu" aria-hidden="true" hidden>
+      <button type="button" class="chat-message-menu__item" role="menuitem" data-action="recall">撤回</button>
+      <button type="button" class="chat-message-menu__item" role="menuitem" data-action="copy">复制</button>
+      <button type="button" class="chat-message-menu__item" role="menuitem" data-action="quote">引用</button>
+    </div>`;
+}
+
 function renderChatPanel() {
   return `
     <section class="chat-panel" aria-label="聊天区域">
-      <div class="chat-thread">
-        <p class="chat-date">2026-01-13 16:38:21</p>
-        <div class="chat-bubble chat-bubble--doctor">
-          <p>您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？</p>
-        </div>
-        <div class="chat-bubble chat-bubble--patient">
-          <p>还有发烧</p>
-        </div>
-      </div>
+      ${renderChatThread("active-text")}
       <div class="ai-reply">
         <div class="ai-reply__head">
           <span class="ai-spark" aria-hidden="true"></span>
@@ -1254,6 +1331,7 @@ function renderTextPage() {
       ${renderTextMain()}
       ${renderQuickReplyDialog()}
       ${renderRiskWarningDialog()}
+      ${renderChatMessageMenu()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
 }
@@ -1267,15 +1345,7 @@ function renderVideoChatPanel() {
           <img src="${assetUrl("assets/video-doctor.png")}" alt="" />
         </div>
       </div>
-      <div class="video-chat-thread">
-        <p class="chat-date">2026-01-13 16:38:21</p>
-        <div class="chat-bubble chat-bubble--doctor">
-          <p>您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？</p>
-        </div>
-        <div class="chat-bubble chat-bubble--patient">
-          <p>还有发烧</p>
-        </div>
-      </div>
+      ${renderChatThread("active-video", { threadClass: "video-chat-thread" })}
       <div class="video-input-wrap">
         ${renderChatInput()}
       </div>
@@ -1313,6 +1383,7 @@ function renderVideoPage() {
       ${renderVideoMain()}
       ${renderQuickReplyDialog()}
       ${renderRiskWarningDialog()}
+      ${renderChatMessageMenu()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
 }
@@ -1768,6 +1839,113 @@ function syncActiveElapsedSeconds(seconds) {
   if (record) record.elapsedSeconds = seconds;
 }
 
+function closeChatMessageMenu() {
+  const menu = document.querySelector(".chat-message-menu");
+  if (!menu) return;
+  menu.hidden = true;
+  menu.classList.remove("is-open");
+  menu.setAttribute("aria-hidden", "true");
+  menu.style.left = "";
+  menu.style.top = "";
+  delete menu.dataset.messageId;
+  delete menu.dataset.chatKey;
+}
+
+function openChatMessageMenu(bubble, event) {
+  if (isConsultReadonlyView()) return;
+  event.preventDefault();
+  const menu = document.querySelector(".chat-message-menu");
+  if (!menu) return;
+
+  const chatKey = bubble.closest("[data-chat-key]")?.dataset.chatKey || getActiveChatKey() || "";
+  menu.dataset.messageId = bubble.dataset.messageId || "";
+  menu.dataset.chatKey = chatKey;
+  menu.hidden = false;
+  menu.classList.add("is-open");
+  menu.setAttribute("aria-hidden", "false");
+
+  const offset = 4;
+  menu.style.left = `${event.clientX + offset}px`;
+  menu.style.top = `${event.clientY + offset}px`;
+
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+    const left = Math.min(event.clientX + offset, window.innerWidth - rect.width - 8);
+    const top = Math.min(event.clientY + offset, window.innerHeight - rect.height - 8);
+    menu.style.left = `${Math.max(8, left)}px`;
+    menu.style.top = `${Math.max(8, top)}px`;
+  });
+}
+
+async function copyChatMessageText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("已复制");
+  } catch {
+    showToast("复制失败");
+  }
+}
+
+function handleChatMessageMenuAction(action) {
+  const menu = document.querySelector(".chat-message-menu");
+  if (!menu) return;
+  const chatKey = menu.dataset.chatKey;
+  const messageId = menu.dataset.messageId;
+  const message = findOngoingChatMessage(chatKey, messageId);
+  if (!message || message.recalled) {
+    closeChatMessageMenu();
+    return;
+  }
+
+  if (action === "recall") {
+    message.recalled = true;
+    refreshChatThread(chatKey);
+    showToast("消息已撤回");
+  } else if (action === "copy") {
+    copyChatMessageText(message.text);
+  } else if (action === "quote") {
+    const input = document.querySelector(".jh-chat-input textarea");
+    if (input) {
+      const quoteLine = `引用：${message.text}`;
+      input.value = input.value.trim() ? `${input.value.trim()}\n${quoteLine}` : quoteLine;
+      input.focus();
+    }
+    showToast("已引用到输入框");
+  }
+
+  closeChatMessageMenu();
+}
+
+function bindChatMessageMenu() {
+  const menu = document.querySelector(".chat-message-menu");
+  if (!menu || menu.dataset.bound === "true") return;
+  menu.dataset.bound = "true";
+
+  document.addEventListener("contextmenu", (event) => {
+    if (!document.querySelector(".text-card:not(.text-card--readonly)")) return;
+    const bubble = event.target.closest(
+      '.chat-bubble--doctor[data-chat-context="doctor"]:not(.chat-bubble--recalled)'
+    );
+    if (!bubble) return;
+    openChatMessageMenu(bubble, event);
+  });
+
+  menu.querySelectorAll(".chat-message-menu__item").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      event.stopPropagation();
+      handleChatMessageMenuAction(item.dataset.action);
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!menu.classList.contains("is-open")) return;
+    if (menu.contains(event.target)) return;
+    closeChatMessageMenu();
+  });
+
+  document.addEventListener("scroll", closeChatMessageMenu, true);
+}
+
 function bindConsultWorkspace() {
   document.querySelectorAll(".ai-reply__options button").forEach((option) => {
     if (option.dataset.bound === "true") return;
@@ -1868,6 +2046,7 @@ function bindInteractions() {
   }
 
   bindConsultWorkspace();
+  bindChatMessageMenu();
 
   const quickReplyOverlay = document.querySelector(".quick-reply-overlay");
 
@@ -2099,6 +2278,7 @@ function bindInteractions() {
       closeAnnouncementListDialog(event);
       closeQuickEntryDialog(event);
       closeUserMenus();
+      closeChatMessageMenu();
     }
   });
 }
