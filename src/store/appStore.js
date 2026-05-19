@@ -1,5 +1,5 @@
 import { getAppBootstrap } from "../api/mockApi.js";
-import { consultationRecords, doctor, hydrateAppData, services, waitingQueue } from "../data.js";
+import { consultationRecords, doctor, hydrateAppData, services } from "../data.js";
 import { initRuntimeState } from "../state.js";
 
 export const appStore = {
@@ -11,7 +11,7 @@ export async function initAppStore() {
   try {
     const bootstrap = await getAppBootstrap();
     hydrateAppData(bootstrap);
-    initRuntimeState({ services, consultationRecords, doctor, waitingQueue });
+    initRuntimeState({ services, consultationRecords, doctor });
     appStore.ready = true;
     appStore.error = null;
   } catch (error) {

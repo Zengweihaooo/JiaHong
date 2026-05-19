@@ -7,15 +7,22 @@
 ## 模块分层
 
 - `script.js`：应用启动入口，负责初始化数据、渲染页面、绑定交互。
-- `src/core.js`：路由识别、页面跳转 URL、静态资源 URL。
+- `src/core.js`：路由识别、查询参数读取、页面跳转 URL、静态资源 URL。
 - `src/api/httpClient.js`：统一 JSON 请求封装，未来替换真实接口时优先改这里。
 - `src/api/mockApi.js`：Mock API 门面，模拟真实接口延迟和返回结构。
+- `src/controllers/consultationController.js`：问诊流程控制器，封装状态机事件、问诊结束/取消、处方状态同步和待接诊同步。
+- `src/controllers/runtimeController.js`：运行态控制器，封装医生状态和服务开关的本地状态与 API 同步。
 - `src/mocks/app-bootstrap.json`：页面启动所需 Mock 数据源。
 - `src/data.js`：内存数据仓库，只保存 API hydrate 后的数据，不写业务样例。
 - `src/state.js`：运行态状态，例如服务开关、消息徽标、问诊状态机实例。
+- `src/renderContext.js`：渲染上下文适配层，集中把全局数据仓库和运行态暴露给渲染层。
 - `src/domain/consultationStateMachine.js`：问诊领域状态机，集中约束流程流转。
-- `src/render.js`：纯渲染函数，输入来自数据仓库和状态，不直接发请求。
-- `src/interactions.js`：事件绑定和用户动作处理，通过 API/状态机更新运行态。
+- `src/domain/consultationQueue.js`：会话列表和待接诊队列的统一计算口径。
+- `src/domain/prescriptionCatalog.js`：处方编辑候选诊断、药品和拼音排序规则。
+- `src/ui/icons.js`：应用图标 HTML 模板，供渲染层和少量交互更新复用。
+- `src/ui/dom.js`：DOM 查询、局部替换和应用挂载等浏览器适配操作。
+- `src/render.js`：HTML 渲染函数，输入来自渲染上下文，不直接发请求或操作 DOM。
+- `src/interactions.js`：事件绑定和 DOM 响应，只把用户动作转交给 controllers/render/ui 模块。
 
 ## 实时 Mock 状态
 
@@ -29,7 +36,7 @@
 - `updateDoctorStatus(status)` 写入 Mock 运行态存储，首页和问诊页读取同一个接诊状态。
 - `updateServiceAvailability(serviceKey, enabled)` 写入 Mock 运行态存储，首页服务开关和问诊页顶部服务开关保持一致。
 
-页面只通过 `state.js` 的 `doctorStatusState`、`waitingQueueState`、`serviceState` 读取运行态，不直接读取或修改 DOM 中的数字作为业务状态。
+页面只通过 `state.js` 的 `doctorStatusState`、`waitingQueueState`、`serviceState` 读取运行态，不直接读取或修改 DOM 中的数字作为业务状态。`waitingQueueState` 必须由 `consultationQueue.js` 基于当前会话列表推导，确保首页和问诊室待接诊数字与进行中消息条数一致。
 
 消息列表和问诊详情同样由 Mock API 驱动：
 

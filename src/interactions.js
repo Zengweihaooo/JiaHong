@@ -1,387 +1,35 @@
 import { appView, getHistoryHref, getRoomHref, getTextHref, getVideoHref } from "./core.js";
+import { getRealtimeSnapshot } from "./api/mockApi.js";
+import { addConsultationRecord, announcements, consultationRecords, latestAnnouncement, ongoingChatState, quickEntryOptions } from "./data.js";
 import {
-  getRealtimeSnapshot,
-  updateConsultationStatus,
-  updateDoctorStatus,
-  updateServiceAvailability
-} from "./api/mockApi.js";
-import { addConsultationRecord, announcements, consultationRecords, latestAnnouncement, quickEntryOptions, updateConsultationRecordState } from "./data.js";
-import { consultationEvents } from "./domain/consultationStateMachine.js";
+  getActiveConsultationRecord,
+  getActiveOngoingRecordId,
+  openRiskReviewForActiveConsultation,
+  resolveActiveConsultation,
+  submitPrescriptionForActiveConsultation,
+  syncActiveElapsedSeconds,
+  syncWaitingQueueToMessages
+} from "./controllers/consultationController.js";
 import {
-  doctorStatusState,
-  clearActiveVideoConsultation,
+  getDoctorStatus,
+  getNextDoctorStatus,
+  getServiceAvailability,
+  getServiceAvailabilityEntries,
+  getToggledDoctorStatus,
+  setDoctorStatusState,
+  setServiceAvailabilityState
+} from "./controllers/runtimeController.js";
+import { compareByPinyin, diagnosisSuggestionPool, medicineSuggestionPool } from "./domain/prescriptionCatalog.js";
+import { getConsultMainElement, isConsultReadonlyView, refreshChatThread, setConsultShellReadonly } from "./ui/dom.js";
+import { icons } from "./ui/icons.js";
+import {
   rememberDismissedMessageBadge,
   registerConsultationMachine,
-  sendConsultationEvent,
-  serviceState,
   setActiveVideoConsultation,
-  setDoctorStatus,
-  setWaitingQueue,
   subscribeRuntimeState,
   waitingQueueState
 } from "./state.js";
-import { findOngoingChatMessage, formatDuration, getActiveChatKey, getConsultMainElement, getDoctorStatusLabel, icons, isConsultReadonlyView, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, refreshChatThread, setConsultShellReadonly, videoMediaState } from "./render.js";
-
-const diagnosisSuggestionPool = [
-  "阿尔茨海默病",
-  "白癜风",
-  "扁桃体炎",
-  "便秘",
-  "痤疮",
-  "带状疱疹",
-  "胆囊炎",
-  "低血压",
-  "癫痫",
-  "反酸",
-  "腹泻",
-  "高脂血症",
-  "骨关节炎",
-  "冠心病",
-  "过敏性鼻炎",
-  "喉炎",
-  "急性扁桃体炎",
-  "急性肠胃炎",
-  "急性咽炎",
-  "急性支气管炎",
-  "甲状腺功能减退",
-  "肩周炎",
-  "结膜炎",
-  "咳嗽咳痰",
-  "口腔溃疡",
-  "慢性鼻炎",
-  "慢性胃炎",
-  "慢性咽炎",
-  "慢性支气管炎",
-  "偏头痛",
-  "皮肤瘙痒",
-  "贫血",
-  "前列腺增生",
-  "乳腺增生",
-  "湿疹",
-  "失眠",
-  "糖尿病",
-  "痛风",
-  "头晕",
-  "胃食管反流病",
-  "细菌性阴道炎",
-  "下呼吸道感染",
-  "消化不良",
-  "哮喘",
-  "心律失常",
-  "荨麻疹",
-  "牙龈炎",
-  "腰椎间盘突出",
-  "原发性高血压",
-  "脂肪肝",
-  "中耳炎",
-  "子宫肌瘤"
-];
-
-const medicineSuggestionPool = [
-  {
-    name: "阿莫西林胶囊",
-    type: "处方药",
-    spec: "0.25g*24粒",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "0.5g",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "奥美拉唑肠溶胶囊",
-    type: "处方药",
-    spec: "20mg*14粒",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "20mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "苯磺酸氨氯地平片",
-    type: "处方药",
-    spec: "5mg*14片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "5mg",
-    quantity: "2",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "布洛芬缓释胶囊",
-    type: "处方药",
-    spec: "0.3g*20粒",
-    usage: "口服",
-    frequency: "2次/日",
-    dose: "0.3g",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "地氯雷他定片",
-    type: "处方药",
-    spec: "5mg*6片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "5mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "对乙酰氨基酚片",
-    type: "处方药",
-    spec: "0.5g*12片",
-    usage: "口服",
-    frequency: "按需",
-    dose: "0.5g",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "多潘立酮片",
-    type: "处方药",
-    spec: "10mg*30片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "10mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "非布司他片",
-    type: "处方药",
-    spec: "40mg*14片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "40mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "复方甘草片",
-    type: "处方药",
-    spec: "100片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "3片",
-    quantity: "1",
-    unit: "瓶",
-    risk: "中"
-  },
-  {
-    name: "格列美脲片",
-    type: "处方药",
-    spec: "2mg*30片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "2mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "枸橼酸莫沙必利片",
-    type: "处方药",
-    spec: "5mg*24片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "5mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "糠酸莫米松乳膏",
-    type: "处方药",
-    spec: "10g:10mg",
-    usage: "外用",
-    frequency: "1次/日",
-    dose: "薄涂患处",
-    quantity: "1",
-    unit: "支",
-    risk: "中"
-  },
-  {
-    name: "口服补液盐散",
-    type: "处方药",
-    spec: "5.125g*6袋",
-    usage: "口服",
-    frequency: "按需",
-    dose: "1袋",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "雷贝拉唑钠肠溶片",
-    type: "处方药",
-    spec: "10mg*14片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "10mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "氯雷他定片",
-    type: "处方药",
-    spec: "10mg*6片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "10mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "洛索洛芬钠片",
-    type: "处方药",
-    spec: "60mg*20片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "60mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "蒙脱石散",
-    type: "处方药",
-    spec: "3g*10袋",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "3g",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "孟鲁司特钠片",
-    type: "处方药",
-    spec: "10mg*5片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "10mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "莫匹罗星软膏",
-    type: "处方药",
-    spec: "10g",
-    usage: "外用",
-    frequency: "3次/日",
-    dose: "薄涂患处",
-    quantity: "1",
-    unit: "支",
-    risk: "低"
-  },
-  {
-    name: "蒲地蓝消炎口服液",
-    type: "处方药",
-    spec: "10ml*10支",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "10ml",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "瑞舒伐他汀钙片",
-    type: "处方药",
-    spec: "10mg*7片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "10mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "头孢克肟胶囊",
-    type: "处方药",
-    spec: "100mg*12粒",
-    usage: "口服",
-    frequency: "2次/日",
-    dose: "100mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "维生素C片",
-    type: "非处方药",
-    spec: "100mg*100片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "100mg",
-    quantity: "1",
-    unit: "瓶",
-    risk: "低"
-  },
-  {
-    name: "硝苯地平控释片",
-    type: "处方药",
-    spec: "30mg*7片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "30mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "盐酸氨溴索片",
-    type: "处方药",
-    spec: "30mg*20片",
-    usage: "口服",
-    frequency: "3次/日",
-    dose: "30mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  },
-  {
-    name: "盐酸二甲双胍缓释片",
-    type: "处方药",
-    spec: "0.5g*30片",
-    usage: "口服",
-    frequency: "2次/日",
-    dose: "0.5g",
-    quantity: "1",
-    unit: "盒",
-    risk: "中"
-  },
-  {
-    name: "盐酸左西替利嗪片",
-    type: "处方药",
-    spec: "5mg*7片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "5mg",
-    quantity: "1",
-    unit: "盒",
-    risk: "低"
-  }
-];
-
-const pinyinCollator = new Intl.Collator("zh-Hans-u-co-pinyin");
-
-function compareByPinyin(left, right) {
-  return pinyinCollator.compare(left, right);
-}
+import { findOngoingChatMessage, formatDuration, getActiveChatKey, getDoctorStatusLabel, renderChatThread, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, videoMediaState } from "./render.js";
 
 function showToast(message) {
   const toast = document.querySelector(".toast");
@@ -396,8 +44,7 @@ function showToast(message) {
 function setServiceTileState(tile, enabled, { sync = true } = {}) {
   const serviceKey = tile.dataset.serviceKey;
   if (serviceKey) {
-    serviceState[serviceKey] = enabled;
-    if (sync) updateServiceAvailability(serviceKey, enabled).catch(() => {
+    setServiceAvailabilityState(serviceKey, enabled, { sync }).catch(() => {
       showToast("服务状态同步失败");
     });
   }
@@ -414,7 +61,7 @@ function applyServiceStateToDom(serviceKey, enabled) {
 }
 
 function applyRuntimeStateToDom() {
-  const status = doctorStatusState.status;
+  const status = getDoctorStatus();
   const statusLabel = getDoctorStatusLabel(status);
 
   document.querySelectorAll("[data-status-text]").forEach((node) => {
@@ -440,24 +87,15 @@ function applyRuntimeStateToDom() {
     node.textContent = String(waitingQueueState.byType[node.dataset.waitingType] ?? 0);
   });
 
-  Object.entries(serviceState).forEach(([serviceKey, enabled]) => {
+  getServiceAvailabilityEntries().forEach(([serviceKey, enabled]) => {
     applyServiceStateToDom(serviceKey, enabled);
   });
 }
 
 function changeDoctorStatus(nextStatus, { sync = true } = {}) {
-  setDoctorStatus(nextStatus);
-  if (sync) {
-    updateDoctorStatus(nextStatus).catch(() => {
-      showToast("出诊状态同步失败");
-    });
-  }
-}
-
-function cycleDoctorStatus() {
-  const order = ["online", "busy", "offline"];
-  const currentIndex = Math.max(0, order.indexOf(doctorStatusState.status));
-  return order[(currentIndex + 1) % order.length];
+  setDoctorStatusState(nextStatus, { sync }).catch(() => {
+    showToast("出诊状态同步失败");
+  });
 }
 
 function openQuickReplyDialog() {
@@ -486,13 +124,9 @@ function enableEndConsultButton() {
 function openRiskWarningDialog() {
   const overlay = document.querySelector(".risk-warning-overlay");
   if (!overlay) return;
-  const recordId = getActiveOngoingRecordId();
-  if (recordId) {
-    sendConsultationEvent(recordId, consultationEvents.OPEN_RISK_REVIEW);
-    updateConsultationStatus(recordId, consultationEvents.OPEN_RISK_REVIEW).catch(() => {
-      showToast("问诊状态同步失败");
-    });
-  }
+  openRiskReviewForActiveConsultation()?.catch(() => {
+    showToast("问诊状态同步失败");
+  });
   overlay.classList.add("is-open");
   overlay.setAttribute("aria-hidden", "false");
   overlay.querySelector(".risk-warning-dialog__close")?.focus();
@@ -505,13 +139,9 @@ function closeRiskWarningDialog() {
   overlay.classList.remove("is-open");
   overlay.setAttribute("aria-hidden", "true");
   if (wasOpen) {
-    const recordId = getActiveOngoingRecordId();
-    if (recordId) {
-      sendConsultationEvent(recordId, consultationEvents.SUBMIT_PRESCRIPTION);
-      updateConsultationStatus(recordId, consultationEvents.SUBMIT_PRESCRIPTION).catch(() => {
-        showToast("处方状态同步失败");
-      });
-    }
+    submitPrescriptionForActiveConsultation()?.catch(() => {
+      showToast("处方状态同步失败");
+    });
     enableEndConsultButton();
   }
 }
@@ -539,41 +169,16 @@ function closeAllConsultConfirmDialogs() {
 
 async function handleConsultConfirm(kind) {
   closeConsultConfirmDialog(kind);
-  const recordId = getActiveOngoingRecordId();
-  const record = consultationRecords.find((entry) => entry.id === recordId);
-  if (kind === "cancel") {
-    if (recordId) {
-      sendConsultationEvent(recordId, consultationEvents.CANCEL);
-      const updatedRecord = updateConsultationRecordState(recordId, "cancelled");
-      if (record?.type === "video") {
-        clearActiveVideoConsultation(recordId);
-      }
-      updateRoomMessageList();
-      try {
-        await updateConsultationStatus(recordId, consultationEvents.CANCEL, updatedRecord);
-      } catch {
-        showToast("问诊状态同步失败");
-      }
-    }
-    showToast("已取消问诊");
-    window.location.href = getRoomHref();
-    return;
+  let result = null;
+  try {
+    result = await resolveActiveConsultation(kind);
+  } catch {
+    showToast("问诊状态同步失败");
+    result = { message: kind === "cancel" ? "已取消问诊" : "问诊已结束", redirectHref: getRoomHref() };
   }
-  if (recordId) {
-    sendConsultationEvent(recordId, consultationEvents.END);
-    const updatedRecord = updateConsultationRecordState(recordId, "ended");
-    if (record?.type === "video") {
-      clearActiveVideoConsultation(recordId);
-    }
-    updateRoomMessageList();
-    try {
-      await updateConsultationStatus(recordId, consultationEvents.END, updatedRecord);
-    } catch {
-      showToast("问诊状态同步失败");
-    }
-  }
-  showToast("问诊已结束");
-  window.location.href = getRoomHref();
+  updateRoomMessageList();
+  showToast(result?.message || "问诊状态已更新");
+  window.location.href = result?.redirectHref || getRoomHref();
 }
 
 function bindConsultConfirmDialogs() {
@@ -707,6 +312,7 @@ function getRoomFilters() {
 
 function updateRoomMessageList() {
   const messageList = document.querySelector(".message-list");
+  syncWaitingQueueToMessages();
   if (!messageList) return;
   const filters = getRoomFilters();
   const activeId = document.querySelector(".message-item.is-active")?.dataset.recordId || "";
@@ -794,21 +400,6 @@ function bindPrescriptionTraceCards() {
   });
 }
 
-function getActiveOngoingRecordId() {
-  const recordId = new URLSearchParams(location.search).get("record");
-  if (recordId) return recordId;
-  if (appView === "text") return "active-text";
-  if (appView === "video") return "active-video";
-  return null;
-}
-
-function syncActiveElapsedSeconds(seconds) {
-  const recordId = getActiveOngoingRecordId();
-  if (!recordId) return;
-  const record = consultationRecords.find((entry) => entry.id === recordId);
-  if (record) record.elapsedSeconds = seconds;
-}
-
 function closeChatMessageMenu() {
   const menu = document.querySelector(".chat-message-menu");
   if (!menu) return;
@@ -869,7 +460,7 @@ function handleChatMessageMenuAction(action) {
 
   if (action === "recall") {
     message.recalled = true;
-    refreshChatThread(chatKey);
+    refreshChatThread(renderChatThread, chatKey);
     showToast("消息已撤回");
   } else if (action === "copy") {
     copyChatMessageText(message.text);
@@ -884,6 +475,37 @@ function handleChatMessageMenuAction(action) {
   }
 
   closeChatMessageMenu();
+}
+
+function appendDoctorChatMessage(text) {
+  const chatKey = getActiveChatKey();
+  if (!chatKey || !ongoingChatState[chatKey]) return false;
+  const chat = ongoingChatState[chatKey];
+  const message = {
+    id: `${chatKey}-doctor-${Date.now()}`,
+    from: "doctor",
+    text,
+    recalled: false
+  };
+  chat.messages = [...(chat.messages || []), message];
+  refreshChatThread(renderChatThread, chatKey);
+  bindChatMessageMenu();
+  bindDragScrollContainers();
+  const thread = document.querySelector(`[data-chat-key="${chatKey}"]`);
+  if (thread) thread.scrollTop = thread.scrollHeight;
+  return true;
+}
+
+function sendChatInputMessage(input) {
+  if (isConsultReadonlyView()) return;
+  const text = input?.value.trim();
+  if (!text) return;
+  if (!appendDoctorChatMessage(text)) {
+    showToast("当前会话不可发送");
+    return;
+  }
+  input.value = "";
+  input.focus();
 }
 
 function bindChatMessageMenu() {
@@ -914,11 +536,6 @@ function bindChatMessageMenu() {
   });
 
   document.addEventListener("scroll", closeChatMessageMenu, true);
-}
-
-function getActiveConsultationRecord() {
-  const recordId = getActiveOngoingRecordId();
-  return consultationRecords.find((entry) => entry.id === recordId && entry.state === "ongoing");
 }
 
 function refreshActivePrescriptionPanel(record = getActiveConsultationRecord()) {
@@ -1256,6 +873,21 @@ function bindConsultWorkspace() {
     button.addEventListener("click", openQuickReplyDialog);
   });
 
+  document.querySelectorAll(".jh-chat-input").forEach((chatInput) => {
+    if (chatInput.dataset.sendBound === "true") return;
+    chatInput.dataset.sendBound = "true";
+    const textarea = chatInput.querySelector("textarea");
+    const sendButton = chatInput.querySelector(".jh-chat-input__actions .jh-btn--primary");
+    sendButton?.addEventListener("click", () => {
+      sendChatInputMessage(textarea);
+    });
+    textarea?.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" || (!event.ctrlKey && !event.metaKey) || event.isComposing) return;
+      event.preventDefault();
+      sendChatInputMessage(textarea);
+    });
+  });
+
   document.querySelectorAll(".jh-prescription-submit").forEach((button) => {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
@@ -1385,9 +1017,9 @@ export function startRealtimeMockUpdates() {
           showToast(`新增${snapshot.newConsultation.record.typeLabel}问诊`);
         }
       }
-      setWaitingQueue(snapshot.waitingQueue);
+      syncWaitingQueueToMessages();
       if (snapshot.doctorStatus) {
-        setDoctorStatus(snapshot.doctorStatus);
+        setDoctorStatusState(snapshot.doctorStatus, { sync: false });
       }
     } catch {
       showToast("实时状态更新失败");
@@ -1412,14 +1044,13 @@ export function bindInteractions() {
 
   document.querySelectorAll(".jh-switch").forEach((switchButton) => {
     switchButton.addEventListener("click", () => {
-      const nextStatus = doctorStatusState.status === "offline" ? "online" : "offline";
-      changeDoctorStatus(nextStatus);
+      changeDoctorStatus(getToggledDoctorStatus());
     });
   });
 
   document.querySelectorAll(".room-status").forEach((button) => {
     button.addEventListener("click", () => {
-      changeDoctorStatus(cycleDoctorStatus());
+      changeDoctorStatus(getNextDoctorStatus());
     });
   });
 
@@ -1427,7 +1058,7 @@ export function bindInteractions() {
   if (serviceList) {
     serviceList.querySelectorAll(".service-tile").forEach((tile) => {
       const serviceKey = tile.dataset.serviceKey;
-      setServiceTileState(tile, Boolean(serviceState[serviceKey]), { sync: false });
+      setServiceTileState(tile, getServiceAvailability(serviceKey), { sync: false });
     });
 
     serviceList.addEventListener("click", (event) => {
@@ -1436,7 +1067,7 @@ export function bindInteractions() {
       event.preventDefault();
       event.stopPropagation();
       const serviceKey = currentTile.dataset.serviceKey;
-      setServiceTileState(currentTile, !serviceState[serviceKey]);
+      setServiceTileState(currentTile, !getServiceAvailability(serviceKey));
     });
   }
 

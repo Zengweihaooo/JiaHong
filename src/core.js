@@ -12,6 +12,14 @@ export function getCurrentRoutePath() {
   return normalized;
 }
 
+export function getQueryParam(name, fallback = "") {
+  return new URLSearchParams(location.search).get(name) || fallback;
+}
+
+export function getRecordParam(fallback = "") {
+  return getQueryParam("record", fallback);
+}
+
 export function inferAppView() {
   const currentPath = getCurrentRoutePath();
   if (currentPath.includes("/video")) return "video";

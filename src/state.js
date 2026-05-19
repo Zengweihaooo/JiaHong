@@ -2,6 +2,7 @@ import {
   createStateMachine,
   mapRecordStateToMachineState
 } from "./domain/consultationStateMachine.js";
+import { buildWaitingQueueFromRecords } from "./domain/consultationQueue.js";
 
 export const serviceState = {};
 export const consultationMachines = {};
@@ -38,7 +39,7 @@ function emitRuntimeStateChange() {
   runtimeStateListeners.forEach((listener) => listener());
 }
 
-export function initRuntimeState({ services = [], consultationRecords = [], doctor = null, waitingQueue = null } = {}) {
+export function initRuntimeState({ services = [], consultationRecords = [], doctor = null } = {}) {
   Object.keys(serviceState).forEach((key) => {
     delete serviceState[key];
   });
@@ -68,18 +69,7 @@ export function initRuntimeState({ services = [], consultationRecords = [], doct
   }
 
   doctorStatusState.status = doctor?.status || "offline";
-  setWaitingQueue(
-    waitingQueue || {
-      total: consultationRecords.filter((record) => record.state === "ongoing").length,
-      byType: {
-        text: consultationRecords.filter((record) => record.state === "ongoing" && record.type === "text").length,
-        video: consultationRecords.filter((record) => record.state === "ongoing" && record.type === "video").length,
-        consult: consultationRecords.filter((record) => record.state === "ongoing" && record.type === "consult").length
-      },
-      updatedAt: new Date().toISOString()
-    },
-    { silent: true }
-  );
+  setWaitingQueue(buildWaitingQueueFromRecords(consultationRecords), { silent: true });
   emitRuntimeStateChange();
 }
 

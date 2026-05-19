@@ -1,47 +1,7 @@
-import { assetUrl, appView, getHomeHref, getRoomHref, getTextHref, getVideoHref, getHistoryHref } from "./core.js";
-import { announcements, consultationRecords, latestAnnouncement, menuGroups, ongoingChatState, quickActions, quickEntryOptions, quickReplyCategories, quickReplyMessages, services } from "./data.js";
-import { activeVideoConsultationState, dismissedMessageBadges, doctorStatusState, getMessageBadgeKey, serviceState, waitingQueueState } from "./state.js";
-
-export const icons = {
-  logo: `
-    <img class="brand-mark" src="${assetUrl("assets/figma-home/logo.png")}" alt="嘉虹健康" />`,
-  home: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/home.svg")}" alt="" aria-hidden="true" />`,
-  dashboard: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/trello.svg")}" alt="" aria-hidden="true" />`,
-  circle: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/disc.svg")}" alt="" aria-hidden="true" />`,
-  clipboard: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/clipboard.svg")}" alt="" aria-hidden="true" />`,
-  checkSquare: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/check-square.svg")}" alt="" aria-hidden="true" />`,
-  briefcase: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/briefcase.svg")}" alt="" aria-hidden="true" />`,
-  calendar: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/calendar.svg")}" alt="" aria-hidden="true" />`,
-  user: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/user.svg")}" alt="" aria-hidden="true" />`,
-  shield: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/pocket.svg")}" alt="" aria-hidden="true" />`,
-  menu: `
-    <img class="menu-icon" src="${assetUrl("assets/figma-home/menu-icon.svg")}" alt="" aria-hidden="true" />`,
-  stethoscope: `
-    <img class="consult-card__icon-img" src="${assetUrl("assets/figma-home/consult-icon.svg")}" alt="" aria-hidden="true" />`,
-  quickCalendar: `
-    <span class="quick-icon quick-icon--schedule" aria-hidden="true">
-      <img class="quick-icon__base" src="${assetUrl("assets/figma-home/quick-schedule-box.svg")}" alt="" />
-      <img class="quick-icon__mark" src="${assetUrl("assets/figma-home/quick-schedule-mark.svg")}" alt="" />
-    </span>`,
-  document: `
-    <img class="quick-icon quick-icon--document" src="${assetUrl("assets/figma-home/quick-doc.svg")}" alt="" aria-hidden="true" />`,
-  clock: `
-    <span class="quick-icon quick-icon--clock" aria-hidden="true">
-      <img class="quick-icon__base" src="${assetUrl("assets/figma-home/quick-clock-circle.svg")}" alt="" />
-      <img class="quick-icon__hand" src="${assetUrl("assets/figma-home/quick-clock-hand.svg")}" alt="" />
-    </span>`,
-  plus: `
-    <img class="quick-icon quick-icon--plus" src="${assetUrl("assets/figma-home/quick-plus.svg")}" alt="" aria-hidden="true" />`
-};
+import { assetUrl, appView, getHomeHref, getRoomHref, getTextHref, getVideoHref, getHistoryHref, getRecordParam } from "./core.js";
+import { getMessageListRecords } from "./domain/consultationQueue.js";
+import { icons } from "./ui/icons.js";
+import { renderData, renderRuntime } from "./renderContext.js";
 
 export function renderCheckboxMark() {
   return `<img class="jh-checkbox__mark" src="${assetUrl("assets/figma-home/checkmark.svg")}" alt="" aria-hidden="true" />`;
@@ -118,7 +78,7 @@ export function renderQuickReplyDialog() {
         </header>
         <div class="quick-reply-dialog__body">
           <nav class="quick-reply-categories" aria-label="快捷回复分类">
-            ${quickReplyCategories
+            ${renderData.quickReplyCategories
               .map(
                 (category, index) => `
                   <button class="quick-reply-category${index === 0 ? " is-active" : ""}" type="button">
@@ -128,7 +88,7 @@ export function renderQuickReplyDialog() {
               .join("")}
           </nav>
           <div class="quick-reply-list" role="list">
-            ${quickReplyMessages
+            ${renderData.quickReplyMessages
               .map(
                 (message) => `
                   <button class="quick-reply-message" type="button" role="listitem">
@@ -317,7 +277,7 @@ export function renderStatusBadge(status = "online", className = "") {
   return `<span class="jh-status-badge jh-status-badge--${safeStatus}${className ? ` ${className}` : ""}" data-status-text>${statusMap[safeStatus]}</span>`;
 }
 
-export function getDoctorStatusLabel(status = doctorStatusState.status) {
+export function getDoctorStatusLabel(status = renderRuntime.doctorStatus) {
   const labels = {
     online: "在线",
     busy: "忙碌",
@@ -338,7 +298,7 @@ export function renderRiskTag({ text = "高", size = "sm", className = "" } = {}
 }
 
 export function renderMenu() {
-  return menuGroups
+  return renderData.menuGroups
     .map(
       (group) => `
         <div class="menu-section">${group.title}</div>
@@ -409,17 +369,17 @@ export function renderWaitingCard() {
           <h1 class="card__title">当前候诊状态</h1>
           <p class="waiting-card__label">当前候诊人数</p>
         </div>
-        <p class="waiting-card__number" data-waiting-total>${waitingQueueState.total}</p>
+        <p class="waiting-card__number" data-waiting-total>${renderRuntime.waitingQueue.total}</p>
         <p class="waiting-card__hint">请及时接诊患者</p>
       </div>
       <div class="waiting-card__right">
         <div class="queue-chip">
           <span class="queue-chip__name">图文问诊</span>
-          <span class="queue-chip__value" data-waiting-type="text">${waitingQueueState.byType.text}</span>
+          <span class="queue-chip__value" data-waiting-type="text">${renderRuntime.waitingQueue.byType.text}</span>
         </div>
         <div class="queue-chip">
           <span class="queue-chip__name">视频问诊</span>
-          <span class="queue-chip__value" data-waiting-type="video">${waitingQueueState.byType.video}</span>
+          <span class="queue-chip__value" data-waiting-type="video">${renderRuntime.waitingQueue.byType.video}</span>
         </div>
       </div>
     </section>`;
@@ -457,16 +417,16 @@ export function renderRoomTopbar() {
         <div class="room-topbar__right">
           ${renderButton({ text: "在线客服", tone: "primary", size: "md", className: "room-service-btn" })}
           <button class="room-status" type="button" aria-label="出诊状态：${getDoctorStatusLabel()}">
-            ${renderStatusBadge(doctorStatusState.status, "room-status__badge")}
+            ${renderStatusBadge(renderRuntime.doctorStatus, "room-status__badge")}
             <span class="room-status__chevron" aria-hidden="true">
               <img src="${assetUrl("assets/figma-consult/chevron-down.svg")}" alt="" />
             </span>
           </button>
           <div class="room-service-switches" aria-label="服务类型">
-            <button class="room-service-check${serviceState.video ? " is-selected" : ""}" type="button" role="checkbox" aria-checked="${Boolean(serviceState.video)}" data-service-key="video">
+            <button class="room-service-check${renderRuntime.serviceState.video ? " is-selected" : ""}" type="button" role="checkbox" aria-checked="${Boolean(renderRuntime.serviceState.video)}" data-service-key="video">
               ${renderRoomCheckbox("视频问诊")}
             </button>
-            <button class="room-service-check${serviceState.text ? " is-selected" : ""}" type="button" role="checkbox" aria-checked="${Boolean(serviceState.text)}" data-service-key="text">
+            <button class="room-service-check${renderRuntime.serviceState.text ? " is-selected" : ""}" type="button" role="checkbox" aria-checked="${Boolean(renderRuntime.serviceState.text)}" data-service-key="text">
               ${renderRoomCheckbox("图文问诊")}
             </button>
           </div>
@@ -490,11 +450,11 @@ export function renderRoomTopbar() {
 export function renderRoomSidebar() {
   const activeRecord =
     appView === "video"
-      ? new URLSearchParams(location.search).get("record") || "active-video"
+      ? getRecordParam("active-video")
       : appView === "text"
-        ? new URLSearchParams(location.search).get("record") || "active-text"
+        ? getRecordParam("active-text")
         : appView === "history"
-          ? new URLSearchParams(location.search).get("record") || "ended-text"
+          ? getRecordParam("ended-text")
           : "";
   const initialState = appView === "history" ? "ended" : "ongoing";
   return `
@@ -504,7 +464,7 @@ export function renderRoomSidebar() {
           <h1>问诊室</h1>
           <div class="room-waiting">
             <span>待接诊</span>
-            <strong data-waiting-total>${waitingQueueState.total}</strong>
+            <strong data-waiting-total>${renderRuntime.waitingQueue.total}</strong>
           </div>
         </div>
       </div>
@@ -527,33 +487,31 @@ export function renderRoomSidebar() {
 
 export function renderMessageList({ type = "all", state = "ongoing", activeRecord = "" } = {}) {
   const activeVideoRecordId = getActiveVideoConsultationRecordId(activeRecord);
-  return consultationRecords
-    .filter((record) => (type === "all" || record.type === type) && record.state === state)
-    .slice(0, state === "ongoing" ? 6 : undefined)
+  return getMessageListRecords(renderData.consultationRecords, { type, state })
     .map((record, index) => renderMessageItem(record, record.id === activeRecord, index, activeVideoRecordId))
     .join("");
 }
 
 export function getActiveVideoConsultationRecordId(activeRecord = "") {
-  const urlRecordId = new URLSearchParams(location.search).get("record");
+  const urlRecordId = getRecordParam();
   const candidates = [
     activeRecord,
     appView === "video" ? urlRecordId : "",
-    activeVideoConsultationState.recordId
+    renderRuntime.activeVideoConsultationId
   ].filter(Boolean);
   return (
     candidates
       .map((recordId) =>
-        consultationRecords.find((record) => record.id === recordId && record.type === "video" && record.state === "ongoing")
+        renderData.consultationRecords.find((record) => record.id === recordId && record.type === "video" && record.state === "ongoing")
       )
       .find(Boolean)?.id || ""
   );
 }
 
 export function renderMessageItem(record, active, index = 0, activeVideoRecordId = "") {
-  const badgeKey = getMessageBadgeKey(record.id);
+  const badgeKey = renderRuntime.getMessageBadgeKey(record.id);
   const unreadCount = Number(record.unreadCount ?? record.badge ?? 0);
-  const showBadge = unreadCount > 0 && !dismissedMessageBadges.has(badgeKey);
+  const showBadge = unreadCount > 0 && !renderRuntime.isMessageBadgeDismissed(record.id);
   const videoLocked =
     !active && record.type === "video" && record.state === "ongoing" && activeVideoRecordId && record.id !== activeVideoRecordId;
   const lockedAttrs = videoLocked
@@ -575,12 +533,12 @@ export function renderMessageItem(record, active, index = 0, activeVideoRecordId
 }
 
 export function getActiveConsultationRecord(type = appView) {
-  const recordId = new URLSearchParams(location.search).get("record");
+  const recordId = getRecordParam();
   const fallbackId = type === "video" ? "active-video" : "active-text";
   return (
-    consultationRecords.find((record) => record.id === recordId && record.state === "ongoing") ||
-    consultationRecords.find((record) => record.id === fallbackId) ||
-    consultationRecords.find((record) => record.state === "ongoing" && record.type === type)
+    renderData.consultationRecords.find((record) => record.id === recordId && record.state === "ongoing") ||
+    renderData.consultationRecords.find((record) => record.id === fallbackId) ||
+    renderData.consultationRecords.find((record) => record.state === "ongoing" && record.type === type)
   );
 }
 
@@ -604,19 +562,7 @@ export function getConsultMainClass() {
   return appView === "text" || appView === "video" ? "text-main" : "room-main";
 }
 
-export function getConsultMainElement() {
-  return document.querySelector(".room-main, .text-main");
-}
-
-export function isConsultReadonlyView() {
-  return Boolean(document.querySelector(".text-card--readonly"));
-}
-
-export function setConsultShellReadonly(readonly) {
-  document.querySelector(".room-shell, .text-shell, .video-shell")?.classList.toggle("consult-shell--readonly", readonly);
-}
-
-export function renderPrescriptionTraceMain(record = consultationRecords.find((item) => item.state === "ended")) {
+export function renderPrescriptionTraceMain(record = renderData.consultationRecords.find((item) => item.state === "ended")) {
   const mainClass = getConsultMainClass();
   return `
     <main class="${mainClass}">
@@ -725,10 +671,10 @@ export function renderPrescriptionTraceCard(record) {
 }
 
 export function renderHistoryPage() {
-  const recordId = new URLSearchParams(location.search).get("record") || "ended-text";
+  const recordId = getRecordParam("ended-text");
   const record =
-    consultationRecords.find((item) => item.id === recordId && item.state === "ended") ||
-    consultationRecords.find((item) => item.id === "ended-text");
+    renderData.consultationRecords.find((item) => item.id === recordId && item.state === "ended") ||
+    renderData.consultationRecords.find((item) => item.id === "ended-text");
   return `
     <div class="app-shell room-shell history-shell app-shell--responsive">
       ${renderRoomTopbar()}
@@ -819,15 +765,15 @@ export function renderTextMain() {
 
 
 export function getActiveChatKey() {
-  const recordId = new URLSearchParams(location.search).get("record");
-  if (recordId && ongoingChatState[recordId]) return recordId;
+  const recordId = getRecordParam();
+  if (recordId && renderData.ongoingChatState[recordId]) return recordId;
   if (appView === "video") return "active-video";
   if (appView === "text") return "active-text";
   return null;
 }
 
 export function findOngoingChatMessage(chatKey, messageId) {
-  return ongoingChatState[chatKey]?.messages.find((message) => message.id === messageId);
+  return renderData.ongoingChatState[chatKey]?.messages.find((message) => message.id === messageId);
 }
 
 export function renderChatBubble(message) {
@@ -845,12 +791,12 @@ export function renderChatBubble(message) {
       data-message-id="${message.id}"
       ${isDoctor ? 'data-chat-context="doctor"' : ""}
     >
-      <p>${message.text}</p>
+      <p>${escapeHtml(message.text)}</p>
     </div>`;
 }
 
 export function renderChatThread(chatKey = getActiveChatKey(), { threadClass = "chat-thread" } = {}) {
-  const chat = ongoingChatState[chatKey];
+  const chat = renderData.ongoingChatState[chatKey];
   if (!chat) return "";
 
   return `
@@ -858,14 +804,6 @@ export function renderChatThread(chatKey = getActiveChatKey(), { threadClass = "
       <p class="chat-date">${chat.sessionDate}</p>
       ${chat.messages.map((message) => renderChatBubble(message)).join("")}
     </div>`;
-}
-
-export function refreshChatThread(chatKey = getActiveChatKey()) {
-  if (!chatKey) return;
-  const existing = document.querySelector(`[data-chat-key="${chatKey}"]`);
-  if (!existing) return;
-  const threadClass = existing.classList.contains("video-chat-thread") ? "video-chat-thread" : "chat-thread";
-  existing.outerHTML = renderChatThread(chatKey, { threadClass });
 }
 
 export function renderChatMessageMenu() {
@@ -1211,15 +1149,15 @@ export function renderServiceCard() {
         <div class="status-row">
           <div class="status-row__left">
             <span>出诊状态</span>
-          ${renderStatusBadge(doctorStatusState.status)}
+          ${renderStatusBadge(renderRuntime.doctorStatus)}
         </div>
-        ${renderSwitch({ checked: doctorStatusState.status !== "offline", label: "切换出诊状态" })}
+        ${renderSwitch({ checked: renderRuntime.doctorStatus !== "offline", label: "切换出诊状态" })}
       </div>
       <div class="service-list">
-        ${services
+        ${renderData.services
           .map(
             (service) => `
-              <button class="service-tile" type="button" role="checkbox" aria-checked="${serviceState[service.key]}" data-service-key="${service.key}">
+              <button class="service-tile" type="button" role="checkbox" aria-checked="${renderRuntime.serviceState[service.key]}" data-service-key="${service.key}">
                 ${renderCheckbox({ label: service.label })}
               </button>`
           )
@@ -1235,20 +1173,20 @@ export function renderNoticeCard() {
         <div class="notice-card__head">
           <div class="notice-card__title-row">
             <h2 class="card__title">最新公告</h2>
-            <span class="notice-card__date">${latestAnnouncement.date}</span>
+            <span class="notice-card__date">${renderData.latestAnnouncement.date}</span>
           </div>
           <div class="divider"></div>
         </div>
         <article class="announcement">
           <div class="announcement__top">
             <div class="announcement__title-row">
-              <h3 class="announcement__title">${latestAnnouncement.title}</h3>
+              <h3 class="announcement__title">${renderData.latestAnnouncement.title}</h3>
               ${renderReadTag("unread", "announcement-tag")}
             </div>
-            <div class="announcement__body">${latestAnnouncement.content.split("\n").slice(0, 2).join("\n")}
-<button class="announcement__detail-trigger" type="button" data-announcement-id="${latestAnnouncement.id}">……展开详情</button></div>
+            <div class="announcement__body">${renderData.latestAnnouncement.content.split("\n").slice(0, 2).join("\n")}
+<button class="announcement__detail-trigger" type="button" data-announcement-id="${renderData.latestAnnouncement.id}">……展开详情</button></div>
           </div>
-          <p class="announcement__footer">${latestAnnouncement.publisher}</p>
+          <p class="announcement__footer">${renderData.latestAnnouncement.publisher}</p>
         </article>
         ${renderButton({ text: "查看全部公告", tone: "block-outline", size: "", className: "announcement-list-trigger" })}
       </div>
@@ -1267,11 +1205,11 @@ export function renderAnnouncementDialog() {
         </header>
         <div class="announcement-dialog__body">
           <div class="announcement-dialog__meta">
-            <h3>${latestAnnouncement.title}</h3>
-            <span>${latestAnnouncement.date}</span>
+            <h3>${renderData.latestAnnouncement.title}</h3>
+            <span>${renderData.latestAnnouncement.date}</span>
           </div>
-          <p>${latestAnnouncement.content}</p>
-          <div class="announcement-dialog__publisher">${latestAnnouncement.publisher}</div>
+          <p>${renderData.latestAnnouncement.content}</p>
+          <div class="announcement-dialog__publisher">${renderData.latestAnnouncement.publisher}</div>
         </div>
       </section>
     </div>`;
@@ -1288,7 +1226,7 @@ export function renderAnnouncementListDialog() {
           </button>
         </header>
         <div class="announcement-list-dialog__body">
-          ${announcements
+          ${renderData.announcements
             .map(
               (announcement) => `
                 <button class="announcement-list-item" type="button" data-announcement-id="${announcement.id}">
@@ -1319,7 +1257,7 @@ export function renderQuickEntryDialog() {
           </button>
         </header>
         <div class="quick-entry-dialog__body">
-          ${quickEntryOptions
+          ${renderData.quickEntryOptions
             .map(
               (option, index) => `
                 <button class="quick-entry-option" type="button" data-option-index="${index}">
@@ -1341,7 +1279,7 @@ export function renderQuickActions() {
     <section class="card quick-entry-card" aria-label="高频操作入口">
       <h2 class="card__title">高频操作入口</h2>
       <div class="quick-grid">
-        ${quickActions
+        ${renderData.quickActions
           .map(
             (action) => `
               <button class="quick-card${action.isAdd ? " quick-card--add" : ""}" type="button" data-action="${action.desc}">
@@ -1379,18 +1317,16 @@ export function renderMain() {
     </main>`;
 }
 
-export function renderApp() {
-  document.body.classList.add("page-mode-responsive", `page-view-${appView}`);
-  document.getElementById("app").innerHTML =
-    appView === "room"
-      ? renderRoom()
-      : appView === "text"
-        ? renderTextPage()
-        : appView === "video"
-          ? renderVideoPage()
-          : appView === "history"
-            ? renderHistoryPage()
-      : `
+export function renderAppMarkup() {
+  return appView === "room"
+    ? renderRoom()
+    : appView === "text"
+      ? renderTextPage()
+      : appView === "video"
+        ? renderVideoPage()
+        : appView === "history"
+          ? renderHistoryPage()
+    : `
     <div class="app-shell app-shell--responsive">
       ${renderTopbar()}
       ${renderSidebar()}
