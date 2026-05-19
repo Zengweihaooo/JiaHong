@@ -1,6 +1,6 @@
 import { assetUrl, appView, getHomeHref, getRoomHref, getTextHref, getVideoHref, getHistoryHref } from "./core.js";
 import { announcements, consultationRecords, latestAnnouncement, menuGroups, ongoingChatState, quickActions, quickEntryOptions, quickReplyCategories, quickReplyMessages, services } from "./data.js";
-import { dismissedMessageBadges, doctorStatusState, getMessageBadgeKey, serviceState, waitingQueueState } from "./state.js";
+import { activeVideoConsultationState, dismissedMessageBadges, doctorStatusState, getMessageBadgeKey, serviceState, waitingQueueState } from "./state.js";
 
 export const icons = {
   logo: `
@@ -189,6 +189,8 @@ export function renderConsultConfirmDialogs() {
 }
 
 export function renderRiskWarningDialog() {
+  const record = getActiveConsultationRecord();
+  const medicines = record?.prescriptionMedicines?.length ? record.prescriptionMedicines : [];
   const headers = [
     "药品名称",
     "患者条件",
@@ -202,10 +204,10 @@ export function renderRiskWarningDialog() {
     "孕产",
     "其他"
   ];
-  const rows = [
-    { name: "阿奇霉素分散片", warnings: { 2: "must", 5: "severe" } },
-    { name: "头孢", warnings: { 4: "general" } }
-  ];
+  const rows = medicines.map((medicine, index) => ({
+    name: medicine.name,
+    warnings: index === 0 ? { 2: "must", 5: medicine.risk === "低" ? "general" : "severe" } : { 4: "general" }
+  }));
 
   return `
     <div class="risk-warning-overlay" aria-hidden="true">
@@ -221,7 +223,7 @@ export function renderRiskWarningDialog() {
             <div class="risk-warning-row risk-warning-row--head" role="row">
               ${headers.map((header) => `<div class="risk-warning-cell" role="columnheader">${header}</div>`).join("")}
             </div>
-            ${rows
+            ${(rows.length ? rows : [{ name: "暂无用药数据", warnings: {} }])
               .map(
                 (row) => `
                   <div class="risk-warning-row" role="row">
@@ -243,8 +245,8 @@ export function renderRiskWarningDialog() {
         <div class="risk-warning-dialog__divider"></div>
         <div class="risk-warning-dialog__message-wrap">
           <div class="risk-warning-message">
-            <p>[警示信息-孕产]孕妇禁用</p>
-            <p>[建议信息]本品为高危药品</p>
+            <p>[警示信息]${rows[0]?.name || "当前药品"}需完成风险核对</p>
+            <p>[建议信息]请结合患者基础信息、过敏史和用药风险完成处方确认。</p>
           </div>
         </div>
       </section>
@@ -480,9 +482,9 @@ export function renderRoomTopbar() {
 export function renderRoomSidebar() {
   const activeRecord =
     appView === "video"
-      ? "active-video"
+      ? new URLSearchParams(location.search).get("record") || "active-video"
       : appView === "text"
-        ? "active-text"
+        ? new URLSearchParams(location.search).get("record") || "active-text"
         : appView === "history"
           ? new URLSearchParams(location.search).get("record") || "ended-text"
           : "";
@@ -516,17 +518,41 @@ export function renderRoomSidebar() {
 }
 
 export function renderMessageList({ type = "all", state = "ongoing", activeRecord = "" } = {}) {
+  const activeVideoRecordId = getActiveVideoConsultationRecordId(activeRecord);
   return consultationRecords
     .filter((record) => (type === "all" || record.type === type) && record.state === state)
-    .map((record, index) => renderMessageItem(record, record.id === activeRecord, index))
+    .slice(0, state === "ongoing" ? 6 : undefined)
+    .map((record, index) => renderMessageItem(record, record.id === activeRecord, index, activeVideoRecordId))
     .join("");
 }
 
-export function renderMessageItem(record, active, index = 0) {
-  const badgeKey = getMessageBadgeKey(record.typeLabel, record.type, index);
-  const showBadge = record.badge && !active && !dismissedMessageBadges.has(badgeKey);
+export function getActiveVideoConsultationRecordId(activeRecord = "") {
+  const urlRecordId = new URLSearchParams(location.search).get("record");
+  const candidates = [
+    activeRecord,
+    appView === "video" ? urlRecordId : "",
+    activeVideoConsultationState.recordId
+  ].filter(Boolean);
+  return (
+    candidates
+      .map((recordId) =>
+        consultationRecords.find((record) => record.id === recordId && record.type === "video" && record.state === "ongoing")
+      )
+      .find(Boolean)?.id || ""
+  );
+}
+
+export function renderMessageItem(record, active, index = 0, activeVideoRecordId = "") {
+  const badgeKey = getMessageBadgeKey(record.id);
+  const unreadCount = Number(record.unreadCount ?? record.badge ?? 0);
+  const showBadge = unreadCount > 0 && !dismissedMessageBadges.has(badgeKey);
+  const videoLocked =
+    !active && record.type === "video" && record.state === "ongoing" && activeVideoRecordId && record.id !== activeVideoRecordId;
+  const lockedAttrs = videoLocked
+    ? ` aria-disabled="true" data-video-locked="true" title="当前视频问诊未结束，暂不可进入新的视频问诊"`
+    : "";
   return `
-    <button class="message-item${active ? " is-active" : ""}" type="button" data-record-id="${record.id}" data-target-view="${record.targetView || ""}" data-record-state="${record.state}" data-badge-key="${badgeKey}">
+    <button class="message-item${active ? " is-active" : ""}${videoLocked ? " is-video-locked" : ""}" type="button" data-record-id="${record.id}" data-target-view="${record.targetView || ""}" data-record-state="${record.state}" data-badge-key="${badgeKey}"${lockedAttrs}>
       <span class="message-item__stripe" aria-hidden="true"></span>
       <span class="message-item__body">
         <span class="message-item__meta">
@@ -536,8 +562,18 @@ export function renderMessageItem(record, active, index = 0) {
         <span class="message-item__title">${record.title}</span>
         <span class="message-item__preview">${record.preview}</span>
       </span>
-      ${showBadge ? `<span class="message-item__badge">${record.badge}</span>` : ""}
+      ${showBadge ? `<span class="message-item__badge">${unreadCount}</span>` : ""}
     </button>`;
+}
+
+export function getActiveConsultationRecord(type = appView) {
+  const recordId = new URLSearchParams(location.search).get("record");
+  const fallbackId = type === "video" ? "active-video" : "active-text";
+  return (
+    consultationRecords.find((record) => record.id === recordId && record.state === "ongoing") ||
+    consultationRecords.find((record) => record.id === fallbackId) ||
+    consultationRecords.find((record) => record.state === "ongoing" && record.type === type)
+  );
 }
 
 export function renderRoomMain() {
@@ -708,8 +744,12 @@ export function renderHistoryPage() {
             <section class="history-panel">
               <h2>处方明细</h2>
               <div class="history-medicine-table">
-                <div><strong>阿奇霉素分散片</strong><span>0.125g*6片｜口服｜1次/日｜1盒</span></div>
-                <div><strong>复方氨酚烷胺胶囊</strong><span>12粒｜口服｜2次/日｜1盒</span></div>
+                ${(record.prescriptionMedicines || [])
+                  .map(
+                    (medicine) =>
+                      `<div><strong>${medicine.name}</strong><span>${medicine.spec}｜${medicine.usage}｜${medicine.frequency}｜${medicine.quantity}${medicine.unit}</span></div>`
+                  )
+                  .join("")}
               </div>
             </section>
             <section class="history-panel">
@@ -746,23 +786,24 @@ export function renderRoom() {
 }
 
 export function renderTextMain() {
+  const record = getActiveConsultationRecord("text");
   return `
     <main class="text-main">
       <section class="text-card" aria-label="图文问诊">
         <div class="pharmacy-bar">
           <div class="pharmacy-bar__left">
-            <h2>武汉市好药师大药房南岸店</h2>
+            <h2>${record?.title || "图文问诊"}</h2>
             ${renderRiskTag({ text: "迎检", size: "lg", className: "risk-tag--inspection" })}
             ${renderLabelTag({ text: "中药", tone: "focus", size: "lg", className: "risk-tag--medicine medicine-type-tag" })}
           </div>
           <div class="pharmacy-bar__right">
-            ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-text")?.elapsedSeconds ?? 0)}
+            ${renderDurationChip("icon", record?.elapsedSeconds ?? 0)}
             ${renderButton({ text: "取消问诊", tone: "danger", size: "md", className: "cancel-consult-trigger" })}
           </div>
         </div>
         <div class="consult-workspace">
-          ${renderChatPanel()}
-          ${renderPrescriptionPanel()}
+          ${renderChatPanel(record?.id)}
+          ${renderPrescriptionPanel({ record })}
         </div>
       </section>
     </main>`;
@@ -770,6 +811,8 @@ export function renderTextMain() {
 
 
 export function getActiveChatKey() {
+  const recordId = new URLSearchParams(location.search).get("record");
+  if (recordId && ongoingChatState[recordId]) return recordId;
   if (appView === "video") return "active-video";
   if (appView === "text") return "active-text";
   return null;
@@ -826,10 +869,10 @@ export function renderChatMessageMenu() {
     </div>`;
 }
 
-export function renderChatPanel() {
+export function renderChatPanel(chatKey = "active-text") {
   return `
     <section class="chat-panel" aria-label="聊天区域">
-      ${renderChatThread("active-text")}
+      ${renderChatThread(chatKey)}
       <div class="ai-reply">
         <div class="ai-reply__head">
           <span class="ai-spark" aria-hidden="true"></span>
@@ -845,29 +888,16 @@ export function renderChatPanel() {
     </section>`;
 }
 
-export const defaultPrescriptionMedicines = [
-  {
-    index: 1,
-    name: "阿奇霉素分散片",
-    type: "处方药",
-    spec: "0.125g*6片",
-    usage: "口服",
-    frequency: "1次/日",
-    dose: "0.25毫克",
-    quantity: "1",
-    unit: "盒",
-    risk: "高"
-  }
-];
+export const defaultPrescriptionMedicines = [];
 
 export const defaultPatientDetail = {
-  weight: "XX",
-  pregnancy: "否",
-  phone: "XXXXXXXXXXX",
-  liverAbnormal: "否",
-  idCard: "XXXXXXXXXXXXXXXXXX",
-  kidneyAbnormal: "否",
-  allergies: "无"
+  weight: "--",
+  pregnancy: "--",
+  phone: "--",
+  liverAbnormal: "--",
+  idCard: "--",
+  kidneyAbnormal: "--",
+  allergies: "--"
 };
 
 export function renderPatientInfoGrid(patientDetail = defaultPatientDetail) {
@@ -883,7 +913,7 @@ export function renderPatientInfoGrid(patientDetail = defaultPatientDetail) {
 
 export function renderMedicineTableRow(row, readonly = false) {
   return `
-    <div class="medicine-table__row">
+    <div class="medicine-table__row" data-medicine-index="${row.index}" data-medicine-name="${row.name}">
       <span>${row.index}</span>
       <span>${row.name}</span>
       <span>${row.type}</span>
@@ -909,7 +939,7 @@ export function renderDiagnosisTags(tags, readonly = false) {
         ${
           readonly
             ? `<span class="diagnosis-tag diagnosis-tag--readonly">`
-            : `<button class="diagnosis-tag" type="button" aria-label="移除诊断：${tag}">`
+            : `<button class="diagnosis-tag" type="button" data-diagnosis-tag="${tag}" aria-label="移除诊断：${tag}">`
         }
           <span>${tag}</span>
           ${
@@ -929,16 +959,16 @@ export function renderPrescriptionPanel(options = {}) {
   const { includeSecondMedicine = false, readonly = false, record = null } = normalized;
 
   const patientName =
-    readonly && record
+    record
       ? `${record.patient}&nbsp;&nbsp;${record.patientGender || ""}&nbsp;&nbsp;${record.age}`
-      : "柯思达&nbsp;&nbsp;男&nbsp;&nbsp;30岁";
-  const patientDetail = readonly && record?.patientDetail ? record.patientDetail : defaultPatientDetail;
+      : "暂无患者信息";
+  const patientDetail = record?.patientDetail ? record.patientDetail : defaultPatientDetail;
   const diagnosisTags =
-    readonly && record
+    record
       ? record.diagnosisTags || [record.diagnosis].filter(Boolean)
-      : ["支气管肺炎"];
+      : [];
   const medicines =
-    readonly && record?.prescriptionMedicines?.length
+    record?.prescriptionMedicines?.length
       ? record.prescriptionMedicines
       : defaultPrescriptionMedicines;
   let medicineRows = medicines;
@@ -1078,6 +1108,7 @@ export function renderVideoToolbar() {
 
 export function renderVideoChatPanel() {
   const { cameraOn } = videoMediaState;
+  const record = getActiveConsultationRecord("video");
   return `
     <section class="chat-panel video-chat-panel" aria-label="视频聊天区域">
       <div class="video-window" data-video-controls="true">
@@ -1088,7 +1119,7 @@ export function renderVideoChatPanel() {
         </div>
         ${renderVideoToolbar()}
       </div>
-      ${renderChatThread("active-video", { threadClass: "video-chat-thread" })}
+      ${renderChatThread(record?.id || "active-video", { threadClass: "video-chat-thread" })}
       <div class="video-input-wrap">
         ${renderChatInput()}
       </div>
@@ -1096,23 +1127,24 @@ export function renderVideoChatPanel() {
 }
 
 export function renderVideoMain() {
+  const record = getActiveConsultationRecord("video");
   return `
     <main class="text-main">
       <section class="text-card" aria-label="视频问诊">
         <div class="pharmacy-bar">
           <div class="pharmacy-bar__left">
-            <h2>武汉市好药师大药房南岸店</h2>
+            <h2>${record?.title || "视频问诊"}</h2>
             ${renderRiskTag({ text: "迎检", size: "lg", className: "risk-tag--inspection" })}
             ${renderLabelTag({ text: "中药", tone: "focus", size: "lg", className: "risk-tag--medicine medicine-type-tag" })}
           </div>
           <div class="pharmacy-bar__right">
-            ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-video")?.elapsedSeconds ?? 0)}
+            ${renderDurationChip("icon", record?.elapsedSeconds ?? 0)}
             ${renderButton({ text: "取消问诊", tone: "danger", size: "md", className: "cancel-consult-trigger" })}
           </div>
         </div>
         <div class="consult-workspace">
           ${renderVideoChatPanel()}
-          ${renderPrescriptionPanel(true)}
+          ${renderPrescriptionPanel({ record })}
         </div>
       </section>
     </main>`;

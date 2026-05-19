@@ -55,3 +55,41 @@ export function hydrateAppData(payload) {
   quickReplyCategories = appData.quickReplies.categories ?? [];
   quickReplyMessages = appData.quickReplies.messages ?? [];
 }
+
+export function addConsultationRecord(record, chat) {
+  if (!record?.id || consultationRecords.some((item) => item.id === record.id)) return false;
+  const ongoingRecords = consultationRecords.filter((item) => item.state === "ongoing");
+  const archivedRecords = consultationRecords.filter((item) => item.state !== "ongoing");
+  const insertIndex = Math.floor(Math.random() * (ongoingRecords.length + 1));
+  ongoingRecords.splice(insertIndex, 0, record);
+  consultationRecords = [...ongoingRecords.slice(0, 6), ...archivedRecords];
+  appData.consultations.records = consultationRecords;
+  if (chat) {
+    ongoingChatState[record.id] = chat;
+    appData.consultations.ongoingChats = ongoingChatState;
+  }
+  return true;
+}
+
+function formatEndedAt(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate())
+  ].join("-") + ` ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function updateConsultationRecordState(recordId, state) {
+  const record = consultationRecords.find((item) => item.id === recordId);
+  if (!record) return null;
+  record.state = state;
+  if (state === "ended" && !record.endedAt) {
+    record.endedAt = formatEndedAt();
+  }
+  if (state !== "ongoing") {
+    record.badge = 0;
+    record.unreadCount = 0;
+  }
+  return record;
+}

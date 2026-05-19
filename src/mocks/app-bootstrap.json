@@ -12,7 +12,7 @@
       "video": 1,
       "consult": 0
     },
-    "updatedAt": "2026-05-19T14:00:00+08:00"
+    "updatedAt": "2026-05-19T16:42:00+08:00"
   },
   "navigation": {
     "menuGroups": [
@@ -167,28 +167,88 @@
         "type": "text",
         "typeLabel": "图文",
         "state": "ongoing",
-        "title": "武汉市好药师大药房",
+        "title": "武汉市好药师大药房光谷店",
         "patient": "李女士",
         "age": "36岁",
-        "preview": "您好！请问那个药怎么服用？",
-        "time": "16:38",
+        "patientGender": "女",
+        "preview": "嗓子疼两天，吞咽有点痛，体温 37.6。",
+        "time": "16:42",
         "badge": 1,
+        "unreadCount": 1,
         "targetView": "text",
-        "elapsedSeconds": 0
+        "elapsedSeconds": 96,
+        "diagnosis": "急性咽炎",
+        "diagnosisTags": [
+          "急性咽炎",
+          "咽痛"
+        ],
+        "patientDetail": {
+          "weight": "54",
+          "pregnancy": "否",
+          "phone": "13758602609",
+          "liverAbnormal": "否",
+          "idCard": "420106198902142609",
+          "kidneyAbnormal": "否",
+          "allergies": "无"
+        },
+        "prescriptionMedicines": [
+          {
+            "index": 1,
+            "name": "蒲地蓝消炎口服液",
+            "type": "处方药",
+            "spec": "10ml*10支",
+            "usage": "口服",
+            "frequency": "3次/日",
+            "dose": "10ml",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "低"
+          }
+        ]
       },
       {
         "id": "active-video",
         "type": "video",
         "typeLabel": "视频",
         "state": "ongoing",
-        "title": "成都双流九州通互联网医院",
+        "title": "嘉虹健康视频问诊",
         "patient": "周先生",
         "age": "42岁",
-        "preview": "患者正在等待视频接诊",
+        "patientGender": "男",
+        "preview": "咳嗽三天，有黄痰，晚上咳得厉害，没有胸闷。",
         "time": "16:34",
         "badge": 1,
+        "unreadCount": 1,
         "targetView": "video",
-        "elapsedSeconds": 0
+        "elapsedSeconds": 315,
+        "diagnosis": "急性支气管炎",
+        "diagnosisTags": [
+          "急性支气管炎",
+          "咳嗽咳痰"
+        ],
+        "patientDetail": {
+          "weight": "73",
+          "pregnancy": "否",
+          "phone": "13658604318",
+          "liverAbnormal": "否",
+          "idCard": "510104198403184318",
+          "kidneyAbnormal": "否",
+          "allergies": "无"
+        },
+        "prescriptionMedicines": [
+          {
+            "index": 1,
+            "name": "盐酸氨溴索片",
+            "type": "处方药",
+            "spec": "30mg*20片",
+            "usage": "口服",
+            "frequency": "3次/日",
+            "dose": "30mg",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "低"
+          }
+        ]
       },
       {
         "id": "ended-text",
@@ -208,9 +268,9 @@
         "patientDetail": {
           "weight": "52",
           "pregnancy": "否",
-          "phone": "138****5621",
+          "phone": "13858605621",
           "liverAbnormal": "否",
-          "idCard": "4201**********5621",
+          "idCard": "420106199605185621",
           "kidneyAbnormal": "否",
           "allergies": "无"
         },
@@ -301,9 +361,9 @@
         "patientDetail": {
           "weight": "68",
           "pregnancy": "否",
-          "phone": "139****1088",
+          "phone": "13958601088",
           "liverAbnormal": "否",
-          "idCard": "4201**********1088",
+          "idCard": "420106197503121088",
           "kidneyAbnormal": "否",
           "allergies": "青霉素"
         },
@@ -379,38 +439,288 @@
     ],
     "ongoingChats": {
       "active-text": {
-        "sessionDate": "2026-01-13 16:38:21",
+        "sessionDate": "2026-05-19 16:42:13",
         "messages": [
           {
             "id": "active-text-msg-1",
             "from": "doctor",
-            "text": "您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？",
+            "text": "您好，我看到您描述咽痛和低热。请问有没有咳嗽、皮疹，近期是否服用过其他药？",
             "recalled": false
           },
           {
             "id": "active-text-msg-2",
             "from": "patient",
-            "text": "还有发烧",
+            "text": "嗓子疼两天，吞咽有点痛，体温 37.6，没有皮疹，没吃别的药。",
             "recalled": false
           }
         ]
       },
       "active-video": {
-        "sessionDate": "2026-01-13 16:34:08",
+        "sessionDate": "2026-05-19 16:34:08",
         "messages": [
           {
             "id": "active-video-msg-1",
             "from": "doctor",
-            "text": "您好，下图已经出现局部明显脱落，请问下续是否继续原方案使用，药物是否有变化？患者无异常，请问是否需要补充？",
+            "text": "您好，视频接诊前先确认下：咳嗽几天了？痰色、体温和呼吸情况怎样？",
             "recalled": false
           },
           {
             "id": "active-video-msg-2",
             "from": "patient",
-            "text": "还有发烧",
+            "text": "咳嗽三天，有黄痰，晚上咳得厉害，没有胸闷，体温 37.4。",
             "recalled": false
           }
         ]
+      }
+    },
+    "realtimePool": {
+      "records": [
+        {
+          "id": "text-allergy",
+          "type": "text",
+          "typeLabel": "图文",
+          "state": "ongoing",
+          "title": "嘉虹健康图文复诊",
+          "patient": "赵女士",
+          "age": "33岁",
+          "patientGender": "女",
+          "preview": "连续打喷嚏流清鼻涕，之前花粉季也会这样。",
+          "time": "16:39",
+          "badge": 1,
+          "unreadCount": 1,
+          "targetView": "text",
+          "elapsedSeconds": 181,
+          "diagnosis": "过敏性鼻炎",
+          "diagnosisTags": [
+            "过敏性鼻炎",
+            "流涕"
+          ],
+          "patientDetail": {
+            "weight": "50",
+            "pregnancy": "否",
+            "phone": "13558603177",
+            "liverAbnormal": "否",
+            "idCard": "420111199303213177",
+            "kidneyAbnormal": "否",
+            "allergies": "花粉"
+          },
+          "prescriptionMedicines": [
+            {
+              "index": 1,
+              "name": "氯雷他定片",
+              "type": "处方药",
+              "spec": "10mg*6片",
+              "usage": "口服",
+              "frequency": "1次/日",
+              "dose": "10mg",
+              "quantity": "1",
+              "unit": "盒",
+              "risk": "低"
+            }
+          ]
+        },
+        {
+          "id": "text-gastritis",
+          "type": "text",
+          "typeLabel": "图文",
+          "state": "ongoing",
+          "title": "成都双流九州通互联网医院",
+          "patient": "孙女士",
+          "age": "28岁",
+          "patientGender": "女",
+          "preview": "饭后胃胀反酸，昨晚吃辣后更明显。",
+          "time": "16:36",
+          "badge": 1,
+          "unreadCount": 1,
+          "targetView": "text",
+          "elapsedSeconds": 260,
+          "diagnosis": "慢性胃炎急性加重",
+          "diagnosisTags": [
+            "慢性胃炎",
+            "反酸"
+          ],
+          "patientDetail": {
+            "weight": "48",
+            "pregnancy": "否",
+            "phone": "13258604753",
+            "liverAbnormal": "否",
+            "idCard": "510104199803104753",
+            "kidneyAbnormal": "否",
+            "allergies": "无"
+          },
+          "prescriptionMedicines": [
+            {
+              "index": 1,
+              "name": "奥美拉唑肠溶胶囊",
+              "type": "处方药",
+              "spec": "20mg*14粒",
+              "usage": "口服",
+              "frequency": "1次/日",
+              "dose": "20mg",
+              "quantity": "1",
+              "unit": "盒",
+              "risk": "低"
+            }
+          ]
+        },
+        {
+          "id": "video-hypertension",
+          "type": "video",
+          "typeLabel": "视频",
+          "state": "ongoing",
+          "title": "武汉市好药师大药房汉口店",
+          "patient": "刘先生",
+          "age": "45岁",
+          "patientGender": "男",
+          "preview": "最近血压 145/92 左右，之前一直吃这个药。",
+          "time": "16:31",
+          "badge": 1,
+          "unreadCount": 1,
+          "targetView": "video",
+          "elapsedSeconds": 402,
+          "diagnosis": "原发性高血压",
+          "diagnosisTags": [
+            "原发性高血压",
+            "复诊续方"
+          ],
+          "patientDetail": {
+            "weight": "78",
+            "pregnancy": "否",
+            "phone": "13858606524",
+            "liverAbnormal": "否",
+            "idCard": "420105198105286524",
+            "kidneyAbnormal": "否",
+            "allergies": "无"
+          },
+          "prescriptionMedicines": [
+            {
+              "index": 1,
+              "name": "苯磺酸氨氯地平片",
+              "type": "处方药",
+              "spec": "5mg*14片",
+              "usage": "口服",
+              "frequency": "1次/日",
+              "dose": "5mg",
+              "quantity": "2",
+              "unit": "盒",
+              "risk": "中"
+            }
+          ]
+        },
+        {
+          "id": "video-dermatitis",
+          "type": "video",
+          "typeLabel": "视频",
+          "state": "ongoing",
+          "title": "武汉市好药师大药房南湖店",
+          "patient": "何先生",
+          "age": "39岁",
+          "patientGender": "男",
+          "preview": "胳膊这片红疹很痒，抓了会脱皮，没有渗液。",
+          "time": "16:28",
+          "badge": 1,
+          "unreadCount": 1,
+          "targetView": "video",
+          "elapsedSeconds": 488,
+          "diagnosis": "湿疹",
+          "diagnosisTags": [
+            "湿疹",
+            "皮肤瘙痒"
+          ],
+          "patientDetail": {
+            "weight": "69",
+            "pregnancy": "否",
+            "phone": "13158608296",
+            "liverAbnormal": "否",
+            "idCard": "420112198705128296",
+            "kidneyAbnormal": "否",
+            "allergies": "青霉素"
+          },
+          "prescriptionMedicines": [
+            {
+              "index": 1,
+              "name": "糠酸莫米松乳膏",
+              "type": "处方药",
+              "spec": "10g:10mg",
+              "usage": "外用",
+              "frequency": "1次/日",
+              "dose": "薄涂患处",
+              "quantity": "1",
+              "unit": "支",
+              "risk": "中"
+            }
+          ]
+        }
+      ],
+      "chats": {
+        "text-allergy": {
+          "sessionDate": "2026-05-19 16:39:28",
+          "messages": [
+            {
+              "id": "text-allergy-msg-1",
+              "from": "doctor",
+              "text": "您好，鼻涕是清水样还是黄绿色？有没有发热、咽痛或喘憋？",
+              "recalled": false
+            },
+            {
+              "id": "text-allergy-msg-2",
+              "from": "patient",
+              "text": "连续打喷嚏流清鼻涕，之前花粉季也会这样，没有发热，也不喘。",
+              "recalled": false
+            }
+          ]
+        },
+        "text-gastritis": {
+          "sessionDate": "2026-05-19 16:36:45",
+          "messages": [
+            {
+              "id": "text-gastritis-msg-1",
+              "from": "doctor",
+              "text": "您好，胃部不适多久了？有没有黑便、呕血，近期是否怀孕或备孕？",
+              "recalled": false
+            },
+            {
+              "id": "text-gastritis-msg-2",
+              "from": "patient",
+              "text": "饭后胃胀反酸，昨晚吃辣后更明显，没有黑便呕血，也没有怀孕。",
+              "recalled": false
+            }
+          ]
+        },
+        "video-hypertension": {
+          "sessionDate": "2026-05-19 16:31:36",
+          "messages": [
+            {
+              "id": "video-hypertension-msg-1",
+              "from": "doctor",
+              "text": "您好，请先准备好近期血压记录。有没有头晕、胸痛或下肢水肿？",
+              "recalled": false
+            },
+            {
+              "id": "video-hypertension-msg-2",
+              "from": "patient",
+              "text": "最近血压 145/92 左右，之前一直吃这个药，没有胸痛，下肢也不肿。",
+              "recalled": false
+            }
+          ]
+        },
+        "video-dermatitis": {
+          "sessionDate": "2026-05-19 16:28:52",
+          "messages": [
+            {
+              "id": "video-dermatitis-msg-1",
+              "from": "doctor",
+              "text": "您好，视频里我会看一下皮损范围。请问是否有渗液、破溃，最近接触过新的洗涤用品吗？",
+              "recalled": false
+            },
+            {
+              "id": "video-dermatitis-msg-2",
+              "from": "patient",
+              "text": "胳膊这片红疹很痒，抓了会脱皮，没有渗液，最近换过洗衣液。",
+              "recalled": false
+            }
+          ]
+        }
       }
     }
   },

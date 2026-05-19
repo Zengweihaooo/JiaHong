@@ -22,11 +22,22 @@
 候诊人数和接诊状态不允许在页面里写死。当前通过 `mockApi.js` 模拟后端运行态：
 
 - `getRealtimeSnapshot()` 每 3 秒生成新的候诊队列数据。
+- 进行中问诊启动时预置 2 条，实时 Mock 池继续随机补充到 6 条上限；最终保持图文 3 条、视频 3 条。
+- 每条 Mock 会话包含独立患者资料、完整手机号和身份证号、匹配症状的聊天回复、诊断标签和处方用药，避免页面出现重复病人。
+- `getRealtimeSnapshot()` 从 `realtimePool` 随机抽取未出现的病例，并把候诊人数从 2 逐步同步到 6。
 - `waitingQueue` 写入 Mock 运行态存储，页面跳转后继续保持同一份候诊数字。
 - `updateDoctorStatus(status)` 写入 Mock 运行态存储，首页和问诊页读取同一个接诊状态。
 - `updateServiceAvailability(serviceKey, enabled)` 写入 Mock 运行态存储，首页服务开关和问诊页顶部服务开关保持一致。
 
 页面只通过 `state.js` 的 `doctorStatusState`、`waitingQueueState`、`serviceState` 读取运行态，不直接读取或修改 DOM 中的数字作为业务状态。
+
+消息列表和问诊详情同样由 Mock API 驱动：
+
+- 新增会话通过 `newConsultation.record` 进入 `data.js` 的 `consultationRecords`。
+- 新增聊天通过 `newConsultation.chat` 进入 `ongoingChatState`。
+- 点击会话时路由携带 `record` 参数，图文/视频页按同一个 `recordId` 渲染药店、患者、聊天、诊断和用药信息。
+- 进行中的消息列表最多展示 6 条，Mock 运行态新增会话会随机插入列表位置并做数量裁剪，避免列表无限增长或类型固定分组。
+- 未读状态按 `record.id` 持久化，不再按列表位置计算，新增会话插入后不会导致徽标错位。
 
 ## 数据结构
 

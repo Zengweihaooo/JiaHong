@@ -36,12 +36,14 @@ export function getRoomHref() {
   return getAppHref("/room/");
 }
 
-export function getTextHref() {
-  return getAppHref("/text/");
+export function getTextHref(recordId = "") {
+  const href = getAppHref("/text/");
+  return recordId ? `${href}?record=${encodeURIComponent(recordId)}` : href;
 }
 
-export function getVideoHref() {
-  return getAppHref("/video/");
+export function getVideoHref(recordId = "") {
+  const href = getAppHref("/video/");
+  return recordId ? `${href}?record=${encodeURIComponent(recordId)}` : href;
 }
 
 export function getHistoryHref(recordId = "ended-text") {

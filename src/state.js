@@ -8,6 +8,9 @@ export const consultationMachines = {};
 export const doctorStatusState = {
   status: "offline"
 };
+export const activeVideoConsultationState = {
+  recordId: ""
+};
 export const waitingQueueState = {
   total: 0,
   byType: {
@@ -19,6 +22,12 @@ export const waitingQueueState = {
 };
 
 const runtimeStateListeners = new Set();
+export const activeVideoConsultationStorageKey = "jh.activeVideoConsultationId.v1";
+export const dismissedBadgeStorageKey = "jh.dismissedMessageBadges.v2";
+export const safeSessionStorage =
+  typeof sessionStorage === "undefined"
+    ? { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+    : sessionStorage;
 
 export function subscribeRuntimeState(listener) {
   runtimeStateListeners.add(listener);
@@ -44,6 +53,20 @@ export function initRuntimeState({ services = [], consultationRecords = [], doct
     consultationMachines[record.id] = createStateMachine(mapRecordStateToMachineState(record.state));
   });
 
+  const storedActiveVideoId = safeSessionStorage.getItem(activeVideoConsultationStorageKey);
+  const storedActiveVideo = consultationRecords.find(
+    (record) => record.id === storedActiveVideoId && record.type === "video" && record.state === "ongoing"
+  );
+  const defaultActiveVideo = consultationRecords.find(
+    (record) => record.id === "active-video" && record.type === "video" && record.state === "ongoing"
+  );
+  activeVideoConsultationState.recordId = storedActiveVideo?.id || defaultActiveVideo?.id || "";
+  if (activeVideoConsultationState.recordId) {
+    safeSessionStorage.setItem(activeVideoConsultationStorageKey, activeVideoConsultationState.recordId);
+  } else {
+    safeSessionStorage.removeItem(activeVideoConsultationStorageKey);
+  }
+
   doctorStatusState.status = doctor?.status || "offline";
   setWaitingQueue(
     waitingQueue || {
@@ -62,6 +85,26 @@ export function initRuntimeState({ services = [], consultationRecords = [], doct
 
 export function sendConsultationEvent(recordId, event) {
   return consultationMachines[recordId]?.send(event);
+}
+
+export function registerConsultationMachine(record) {
+  if (!record?.id || consultationMachines[record.id]) return;
+  consultationMachines[record.id] = createStateMachine(mapRecordStateToMachineState(record.state));
+}
+
+export function setActiveVideoConsultation(recordId, { silent = false } = {}) {
+  activeVideoConsultationState.recordId = recordId || "";
+  if (activeVideoConsultationState.recordId) {
+    safeSessionStorage.setItem(activeVideoConsultationStorageKey, activeVideoConsultationState.recordId);
+  } else {
+    safeSessionStorage.removeItem(activeVideoConsultationStorageKey);
+  }
+  if (!silent) emitRuntimeStateChange();
+}
+
+export function clearActiveVideoConsultation(recordId, { silent = false } = {}) {
+  if (recordId && activeVideoConsultationState.recordId !== recordId) return;
+  setActiveVideoConsultation("", { silent });
 }
 
 export function setDoctorStatus(status, { silent = false } = {}) {
@@ -84,16 +127,8 @@ export function setWaitingQueue(queue, { silent = false } = {}) {
   if (!silent) emitRuntimeStateChange();
 }
 
-export const dismissedBadgeStorageKey = "jh.dismissedMessageBadges";
-export const safeSessionStorage =
-  typeof sessionStorage === "undefined"
-    ? { getItem: () => null, setItem: () => {}, removeItem: () => {} }
-    : sessionStorage;
 export const currentNavigation =
   typeof performance === "undefined" ? null : performance.getEntriesByType("navigation")[0];
-if (currentNavigation?.type === "reload") {
-  safeSessionStorage.removeItem(dismissedBadgeStorageKey);
-}
 export const dismissedMessageBadges = new Set(
   JSON.parse(safeSessionStorage.getItem(dismissedBadgeStorageKey) || "[]")
 );
@@ -107,6 +142,6 @@ export function rememberDismissedMessageBadge(badgeKey) {
   );
 }
 
-export function getMessageBadgeKey(type, targetView, index = 0) {
-  return `${type}:${targetView}:${index}`;
+export function getMessageBadgeKey(recordId) {
+  return `record:${recordId}`;
 }

@@ -5,19 +5,104 @@ import {
   updateDoctorStatus,
   updateServiceAvailability
 } from "./api/mockApi.js";
-import { announcements, consultationRecords, latestAnnouncement, quickEntryOptions } from "./data.js";
+import { addConsultationRecord, announcements, consultationRecords, latestAnnouncement, quickEntryOptions, updateConsultationRecordState } from "./data.js";
 import { consultationEvents } from "./domain/consultationStateMachine.js";
 import {
   doctorStatusState,
+  clearActiveVideoConsultation,
   rememberDismissedMessageBadge,
+  registerConsultationMachine,
   sendConsultationEvent,
   serviceState,
+  setActiveVideoConsultation,
   setDoctorStatus,
   setWaitingQueue,
   subscribeRuntimeState,
   waitingQueueState
 } from "./state.js";
-import { findOngoingChatMessage, formatDuration, getActiveChatKey, getConsultMainElement, getDoctorStatusLabel, icons, isConsultReadonlyView, renderMessageList, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, refreshChatThread, setConsultShellReadonly, videoMediaState } from "./render.js";
+import { findOngoingChatMessage, formatDuration, getActiveChatKey, getConsultMainElement, getDoctorStatusLabel, icons, isConsultReadonlyView, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, refreshChatThread, setConsultShellReadonly, videoMediaState } from "./render.js";
+
+const diagnosisSuggestionPool = [
+  "急性咽炎",
+  "过敏性鼻炎",
+  "慢性胃炎",
+  "急性支气管炎",
+  "原发性高血压",
+  "湿疹",
+  "咳嗽咳痰",
+  "反酸",
+  "皮肤瘙痒",
+  "复诊续方"
+];
+
+const medicineSuggestionPool = [
+  {
+    name: "蒲地蓝消炎口服液",
+    type: "处方药",
+    spec: "10ml*10支",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "10ml",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "氯雷他定片",
+    type: "处方药",
+    spec: "10mg*6片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "10mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "奥美拉唑肠溶胶囊",
+    type: "处方药",
+    spec: "20mg*14粒",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "20mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "盐酸氨溴索片",
+    type: "处方药",
+    spec: "30mg*20片",
+    usage: "口服",
+    frequency: "3次/日",
+    dose: "30mg",
+    quantity: "1",
+    unit: "盒",
+    risk: "低"
+  },
+  {
+    name: "苯磺酸氨氯地平片",
+    type: "处方药",
+    spec: "5mg*14片",
+    usage: "口服",
+    frequency: "1次/日",
+    dose: "5mg",
+    quantity: "2",
+    unit: "盒",
+    risk: "中"
+  },
+  {
+    name: "糠酸莫米松乳膏",
+    type: "处方药",
+    spec: "10g:10mg",
+    usage: "外用",
+    frequency: "1次/日",
+    dose: "薄涂患处",
+    quantity: "1",
+    unit: "支",
+    risk: "中"
+  }
+];
 
 function showToast(message) {
   const toast = document.querySelector(".toast");
@@ -176,9 +261,15 @@ function closeAllConsultConfirmDialogs() {
 function handleConsultConfirm(kind) {
   closeConsultConfirmDialog(kind);
   const recordId = getActiveOngoingRecordId();
+  const record = consultationRecords.find((entry) => entry.id === recordId);
   if (kind === "cancel") {
     if (recordId) {
       sendConsultationEvent(recordId, consultationEvents.CANCEL);
+      updateConsultationRecordState(recordId, "cancelled");
+      if (record?.type === "video") {
+        clearActiveVideoConsultation(recordId);
+      }
+      updateRoomMessageList();
       updateConsultationStatus(recordId, consultationEvents.CANCEL).catch(() => {
         showToast("问诊状态同步失败");
       });
@@ -189,6 +280,11 @@ function handleConsultConfirm(kind) {
   }
   if (recordId) {
     sendConsultationEvent(recordId, consultationEvents.END);
+    updateConsultationRecordState(recordId, "ended");
+    if (record?.type === "video") {
+      clearActiveVideoConsultation(recordId);
+    }
+    updateRoomMessageList();
     updateConsultationStatus(recordId, consultationEvents.END).catch(() => {
       showToast("问诊状态同步失败");
     });
@@ -350,6 +446,10 @@ function showPrescriptionTrace(record) {
 }
 
 function handleMessageItemClick(item) {
+  if (item.dataset.videoLocked === "true" || item.getAttribute("aria-disabled") === "true") {
+    showToast("当前视频问诊未结束，暂不可进入新的视频问诊");
+    return;
+  }
   if (item.dataset.badgeKey) {
     rememberDismissedMessageBadge(item.dataset.badgeKey);
   }
@@ -376,9 +476,12 @@ function handleMessageItemClick(item) {
   }
 
   if (item.dataset.targetView === "video") {
-    window.location.href = getVideoHref();
+    if (record?.id) {
+      setActiveVideoConsultation(record.id);
+    }
+    window.location.href = getVideoHref(record?.id);
   } else if (item.dataset.targetView === "text") {
-    window.location.href = getTextHref();
+    window.location.href = getTextHref(record?.id);
   }
 }
 
@@ -402,6 +505,8 @@ function bindPrescriptionTraceCards() {
 }
 
 function getActiveOngoingRecordId() {
+  const recordId = new URLSearchParams(location.search).get("record");
+  if (recordId) return recordId;
   if (appView === "text") return "active-text";
   if (appView === "video") return "active-video";
   return null;
@@ -521,7 +626,169 @@ function bindChatMessageMenu() {
   document.addEventListener("scroll", closeChatMessageMenu, true);
 }
 
+function getActiveConsultationRecord() {
+  const recordId = getActiveOngoingRecordId();
+  return consultationRecords.find((entry) => entry.id === recordId && entry.state === "ongoing");
+}
+
+function refreshActivePrescriptionPanel(record = getActiveConsultationRecord()) {
+  const panel = document.querySelector(".prescription-panel:not(.prescription-panel--readonly)");
+  if (!panel || !record) return;
+  panel.outerHTML = renderPrescriptionPanel({ record });
+  bindConsultWorkspace();
+}
+
+function normalizeRecordDiagnosis(record) {
+  const tags = Array.isArray(record.diagnosisTags) ? record.diagnosisTags.filter(Boolean) : [];
+  if (!tags.length && record.diagnosis) tags.push(record.diagnosis);
+  record.diagnosisTags = Array.from(new Set(tags));
+  record.diagnosis = record.diagnosisTags[0] || "";
+}
+
+function addDiagnosisToActiveRecord() {
+  const record = getActiveConsultationRecord();
+  if (!record) return;
+  normalizeRecordDiagnosis(record);
+  const nextDiagnosis =
+    diagnosisSuggestionPool.find((diagnosis) => !record.diagnosisTags.includes(diagnosis)) ||
+    `补充诊断${record.diagnosisTags.length + 1}`;
+  record.diagnosisTags.push(nextDiagnosis);
+  normalizeRecordDiagnosis(record);
+  refreshActivePrescriptionPanel(record);
+  showToast(`已添加诊断：${nextDiagnosis}`);
+}
+
+function removeDiagnosisFromActiveRecord(tag) {
+  const record = getActiveConsultationRecord();
+  if (!record || !tag) return;
+  normalizeRecordDiagnosis(record);
+  record.diagnosisTags = record.diagnosisTags.filter((item) => item !== tag);
+  normalizeRecordDiagnosis(record);
+  refreshActivePrescriptionPanel(record);
+  showToast("诊断已更新");
+}
+
+function normalizeMedicines(record) {
+  record.prescriptionMedicines = (record.prescriptionMedicines || []).map((medicine, index) => ({
+    ...medicine,
+    index: index + 1
+  }));
+}
+
+function findMedicineSuggestion(keyword) {
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  return (
+    medicineSuggestionPool.find((medicine) => medicine.name.toLowerCase().includes(normalizedKeyword)) ||
+    medicineSuggestionPool.find((medicine) => normalizedKeyword && normalizedKeyword.includes(medicine.name.toLowerCase())) ||
+    medicineSuggestionPool[0]
+  );
+}
+
+function addMedicineToActiveRecord(keyword = "") {
+  const record = getActiveConsultationRecord();
+  if (!record) return;
+  record.prescriptionMedicines = record.prescriptionMedicines || [];
+  const suggestion = findMedicineSuggestion(keyword);
+  if (record.prescriptionMedicines.some((medicine) => medicine.name === suggestion.name)) {
+    showToast("该药品已在处方中");
+    return;
+  }
+  record.prescriptionMedicines.push({
+    index: record.prescriptionMedicines.length + 1,
+    ...suggestion
+  });
+  normalizeMedicines(record);
+  refreshActivePrescriptionPanel(record);
+  showToast(`已添加药品：${suggestion.name}`);
+}
+
+function removeMedicineFromActiveRecord(name) {
+  const record = getActiveConsultationRecord();
+  if (!record || !name) return;
+  record.prescriptionMedicines = (record.prescriptionMedicines || []).filter((medicine) => medicine.name !== name);
+  normalizeMedicines(record);
+  refreshActivePrescriptionPanel(record);
+  showToast("药品已删除");
+}
+
+function bindPrescriptionEditor() {
+  const panel = document.querySelector(".prescription-panel:not(.prescription-panel--readonly)");
+  if (!panel || panel.dataset.editorBound === "true") return;
+  panel.dataset.editorBound = "true";
+
+  panel.querySelector(".diagnosis-select")?.addEventListener("click", addDiagnosisToActiveRecord);
+  panel.querySelectorAll(".diagnosis-tag[data-diagnosis-tag]").forEach((tag) => {
+    tag.addEventListener("click", () => removeDiagnosisFromActiveRecord(tag.dataset.diagnosisTag));
+  });
+  panel.querySelectorAll(".medicine-delete-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const row = button.closest("[data-medicine-name]");
+      removeMedicineFromActiveRecord(row?.dataset.medicineName);
+    });
+  });
+  panel.querySelector(".medicine-search input")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    addMedicineToActiveRecord(event.currentTarget.value);
+  });
+}
+
+function bindDragScrollContainers(root = document) {
+  root
+    .querySelectorAll(".message-list, .chat-thread, .video-chat-thread, .quick-reply-categories, .quick-reply-list, .prescription-panel")
+    .forEach((node) => {
+      if (node.dataset.dragScrollBound === "true") return;
+      node.dataset.dragScrollBound = "true";
+      let startY = 0;
+      let startScrollTop = 0;
+      let didDrag = false;
+      let pointerId = null;
+
+      node.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0 || node.scrollHeight <= node.clientHeight) return;
+        pointerId = event.pointerId;
+        startY = event.clientY;
+        startScrollTop = node.scrollTop;
+        didDrag = false;
+        node.classList.add("is-drag-scroll-active");
+        node.setPointerCapture?.(event.pointerId);
+      });
+
+      node.addEventListener("pointermove", (event) => {
+        if (pointerId !== event.pointerId) return;
+        const deltaY = event.clientY - startY;
+        if (Math.abs(deltaY) > 4) didDrag = true;
+        if (!didDrag) return;
+        event.preventDefault();
+        node.scrollTop = startScrollTop - deltaY;
+      });
+
+      const endDrag = (event) => {
+        if (pointerId !== event.pointerId) return;
+        pointerId = null;
+        node.classList.remove("is-drag-scroll-active");
+        node.releasePointerCapture?.(event.pointerId);
+      };
+
+      node.addEventListener("pointerup", endDrag);
+      node.addEventListener("pointercancel", endDrag);
+      node.addEventListener(
+        "click",
+        (event) => {
+          if (!didDrag) return;
+          event.preventDefault();
+          event.stopPropagation();
+          didDrag = false;
+        },
+        true
+      );
+    });
+}
+
 function bindConsultWorkspace() {
+  bindDragScrollContainers();
+  bindPrescriptionEditor();
+
   document.querySelectorAll(".ai-reply__options button").forEach((option) => {
     if (option.dataset.bound === "true") return;
     option.dataset.bound = "true";
@@ -647,6 +914,14 @@ export function startRealtimeMockUpdates() {
   const refresh = async () => {
     try {
       const snapshot = await getRealtimeSnapshot();
+      if (snapshot.newConsultation) {
+        const added = addConsultationRecord(snapshot.newConsultation.record, snapshot.newConsultation.chat);
+        if (added) {
+          registerConsultationMachine(snapshot.newConsultation.record);
+          updateRoomMessageList();
+          showToast(`新增${snapshot.newConsultation.record.typeLabel}问诊`);
+        }
+      }
       setWaitingQueue(snapshot.waitingQueue);
       if (snapshot.doctorStatus) {
         setDoctorStatus(snapshot.doctorStatus);
@@ -661,6 +936,7 @@ export function startRealtimeMockUpdates() {
 export function bindInteractions() {
   subscribeRuntimeState(applyRuntimeStateToDom);
   applyRuntimeStateToDom();
+  bindDragScrollContainers();
 
   document.querySelectorAll(".menu-item").forEach((item) => {
     item.addEventListener("click", () => {
