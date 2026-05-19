@@ -32,6 +32,7 @@
 - `src/presentation/interactions.js`：事件绑定和 DOM 响应，只把用户动作转交给 application controllers/render/ui 模块。
 - `src/presentation/ui/icons.js`：应用图标 HTML 模板。
 - `src/presentation/ui/dom.js`：DOM 查询、局部替换和应用挂载等浏览器适配操作。
+- `src/presentation/ui/localMedia.js`：浏览器摄像头和麦克风适配层，负责本地媒体流申请和轨道启停。
 
 ## 依赖方向
 
@@ -126,6 +127,7 @@ domain
 当前所有页面和 controllers 请求从 `src/infrastructure/api/appApi.js` 进入，`appApi.js` 暂时转发到 `mockApi.js`：
 
 - `getAppBootstrap()`：加载启动 Mock 数据。
+- `generatePatientAutoReply({ recordId, doctorMessage, record, chat })`：模拟后端病人自动回复，按医生消息和当前病例随机生成患者回复。
 - `updateServiceAvailability(serviceKey, enabled)`：模拟服务开关保存。
 - `updateConsultationStatus(recordId, event)`：模拟问诊流程状态同步。
 

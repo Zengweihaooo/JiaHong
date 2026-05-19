@@ -1,5 +1,6 @@
 export {
   getAppBootstrap,
+  generatePatientAutoReply,
   getRealtimeSnapshot,
   updateConsultationStatus,
   updateDoctorStatus,

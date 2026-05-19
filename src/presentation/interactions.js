@@ -13,6 +13,7 @@ import {
 } from "../application/controllers/consultationController.js";
 import {
   appendDoctorChatMessage,
+  generatePatientReplyForChat,
   getOngoingChatMessage,
   rememberMessageBadgeDismissed,
   recallOngoingChatMessage
@@ -41,6 +42,7 @@ import {
 } from "../application/controllers/prescriptionController.js";
 import { getConsultMainElement, isConsultReadonlyView, refreshChatThread, setConsultShellReadonly } from "./ui/dom.js";
 import { icons } from "./ui/icons.js";
+import { attachLocalCamera, setLocalCameraEnabled, setLocalMicrophoneEnabled } from "./ui/localMedia.js";
 import { formatDuration, getActiveChatKey, getDoctorStatusLabel, renderChatThread, renderMessageList, renderPrescriptionPanel, renderPrescriptionTraceMain, renderRoomMain, renderTextMain, renderVideoMain, renderVideoMediaIcon, videoMediaState } from "./render.js";
 
 function showToast(message) {
@@ -493,25 +495,41 @@ function handleChatMessageMenuAction(action) {
 function appendActiveDoctorChatMessage(text) {
   const chatKey = getActiveChatKey();
   const message = appendDoctorChatMessage(chatKey, text);
-  if (!message) return false;
+  if (!message) return null;
   refreshChatThread(renderChatThread, chatKey);
   bindChatMessageMenu();
   bindDragScrollContainers();
   const thread = document.querySelector(`[data-chat-key="${chatKey}"]`);
   if (thread) thread.scrollTop = thread.scrollHeight;
-  return true;
+  return { chatKey, message };
+}
+
+async function appendMockPatientReply(chatKey, doctorMessage) {
+  try {
+    const reply = await generatePatientReplyForChat(chatKey, doctorMessage);
+    if (!reply) return;
+    refreshChatThread(renderChatThread, chatKey);
+    bindChatMessageMenu();
+    bindDragScrollContainers();
+    const thread = document.querySelector(`[data-chat-key="${chatKey}"]`);
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  } catch {
+    showToast("病人自动回复失败");
+  }
 }
 
 function sendChatInputMessage(input) {
   if (isConsultReadonlyView()) return;
   const text = input?.value.trim();
   if (!text) return;
-  if (!appendActiveDoctorChatMessage(text)) {
+  const sent = appendActiveDoctorChatMessage(text);
+  if (!sent) {
     showToast("当前会话不可发送");
     return;
   }
   input.value = "";
   input.focus();
+  appendMockPatientReply(sent.chatKey, sent.message);
 }
 
 function bindChatMessageMenu() {
@@ -844,6 +862,8 @@ function syncVideoWindowControls(videoWindow) {
   const pipOff = pip?.querySelector(".video-window__pip-off");
   if (pipOff) pipOff.setAttribute("aria-hidden", String(cameraOn));
   videoWindow.classList.toggle("is-media-off", !cameraOn || !micOn);
+  setLocalCameraEnabled(cameraOn);
+  setLocalMicrophoneEnabled(micOn);
 
   videoWindow.querySelectorAll("[data-video-action]").forEach((button) => {
     const isCamera = button.dataset.videoAction === "toggle-camera";
@@ -867,10 +887,35 @@ function syncVideoWindowControls(videoWindow) {
   });
 }
 
+async function setupLocalCamera(videoWindow) {
+  const video = videoWindow.querySelector("[data-local-camera]");
+  const pip = videoWindow.querySelector(".video-window__pip--local");
+  const status = videoWindow.querySelector("[data-camera-status]");
+  if (!video || video.dataset.cameraBound === "true") return;
+
+  video.dataset.cameraBound = "true";
+  pip?.classList.add("is-camera-loading");
+  if (status) status.textContent = "正在连接摄像头";
+
+  const result = await attachLocalCamera(video, videoMediaState);
+  pip?.classList.remove("is-camera-loading");
+  pip?.classList.toggle("is-camera-ready", result.ok);
+  pip?.classList.toggle("is-camera-error", !result.ok);
+
+  if (status) {
+    status.textContent = result.ok
+      ? "医生摄像头已连接"
+      : result.reason === "NotAllowedError"
+        ? "摄像头权限未开启"
+        : "无法连接摄像头";
+  }
+}
+
 function bindVideoControls() {
   document.querySelectorAll(".video-window[data-video-controls]").forEach((videoWindow) => {
     if (videoWindow.dataset.bound === "true") return;
     videoWindow.dataset.bound = "true";
+    setupLocalCamera(videoWindow);
 
     videoWindow.querySelectorAll("[data-video-action]").forEach((button) => {
       button.addEventListener("click", (event) => {
@@ -878,6 +923,11 @@ function bindVideoControls() {
         if (button.dataset.videoAction === "toggle-camera") {
           videoMediaState.cameraOn = !videoMediaState.cameraOn;
           showToast(videoMediaState.cameraOn ? "摄像头已开启" : "摄像头已关闭");
+          if (videoMediaState.cameraOn && videoWindow.querySelector(".video-window__pip--local.is-camera-error")) {
+            const localVideo = videoWindow.querySelector("[data-local-camera]");
+            if (localVideo) localVideo.dataset.cameraBound = "false";
+            setupLocalCamera(videoWindow);
+          }
         } else if (button.dataset.videoAction === "toggle-mic") {
           videoMediaState.micOn = !videoMediaState.micOn;
           showToast(videoMediaState.micOn ? "麦克风已开启" : "麦克风已关闭");

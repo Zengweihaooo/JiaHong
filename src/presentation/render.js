@@ -1088,7 +1088,8 @@ export function renderVideoChatPanel() {
       <div class="video-window" data-video-controls="true">
         <img class="video-window__main" src="${assetUrl("assets/video-main.png")}" alt="患者视频画面" />
         <div class="video-window__pip video-window__pip--local${cameraOn ? "" : " is-camera-off"}">
-          <img src="${assetUrl("assets/video-doctor.png")}" alt="医生摄像头画面" />
+          <video class="video-window__local-video" data-local-camera autoplay muted playsinline aria-label="医生摄像头画面"></video>
+          <div class="video-window__camera-status" data-camera-status>正在连接摄像头</div>
           <div class="video-window__pip-off" aria-hidden="${cameraOn}">摄像头已关闭</div>
         </div>
         ${renderVideoToolbar()}

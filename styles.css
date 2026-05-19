@@ -4551,10 +4551,6 @@ body.page-view-room {
   z-index: 2;
 }
 
-.video-window__pip.is-camera-off img {
-  visibility: hidden;
-}
-
 .video-window__pip-off {
   position: absolute;
   inset: 0;
@@ -4571,6 +4567,39 @@ body.page-view-room {
 
 .video-window__pip.is-camera-off .video-window__pip-off {
   display: flex;
+}
+
+.video-window__local-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.video-window__pip.is-camera-loading .video-window__local-video,
+.video-window__pip.is-camera-error .video-window__local-video,
+.video-window__pip.is-camera-off .video-window__local-video {
+  visibility: hidden;
+}
+
+.video-window__camera-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: #5a6572;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.video-window__pip.is-camera-ready .video-window__camera-status,
+.video-window__pip.is-camera-off .video-window__camera-status {
+  display: none;
 }
 
 .video-window__main {

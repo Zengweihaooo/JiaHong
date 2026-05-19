@@ -1,4 +1,5 @@
-import { ongoingChatState } from "../state/dataStore.js";
+import { generatePatientAutoReply } from "../../infrastructure/api/appApi.js";
+import { consultationRecords, ongoingChatState } from "../state/dataStore.js";
 import { rememberDismissedMessageBadge } from "../state/runtimeState.js";
 
 export function getOngoingChatMessage(chatKey, messageId) {
@@ -27,4 +28,19 @@ export function appendDoctorChatMessage(chatKey, text, date = new Date()) {
   };
   chat.messages = [...(chat.messages || []), message];
   return message;
+}
+
+export async function generatePatientReplyForChat(chatKey, doctorMessage) {
+  const chat = ongoingChatState[chatKey];
+  if (!chat || !doctorMessage) return null;
+  const record = consultationRecords.find((item) => item.id === chatKey) || null;
+  const response = await generatePatientAutoReply({
+    recordId: chatKey,
+    doctorMessage,
+    record,
+    chat
+  });
+  if (!response?.message) return null;
+  chat.messages = [...(chat.messages || []), response.message];
+  return response.message;
 }
