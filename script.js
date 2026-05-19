@@ -519,6 +519,50 @@ function renderQuickReplyDialog() {
     </div>`;
 }
 
+const consultConfirmConfig = {
+  cancel: {
+    title: "取消问诊",
+    message: "确定要取消本次问诊吗？取消后将退出当前会话，未保存内容不会保留。",
+    confirmText: "确定取消"
+  },
+  end: {
+    title: "结束问诊",
+    message: "确定要结束本次问诊吗？结束后将无法继续与患者沟通。",
+    confirmText: "确定结束"
+  }
+};
+
+function renderConsultConfirmDialogs() {
+  return Object.entries(consultConfirmConfig)
+    .map(
+      ([kind, config]) => `
+    <div class="consult-confirm-overlay" data-confirm-kind="${kind}" aria-hidden="true">
+      <section
+        class="consult-confirm-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="consult-confirm-title-${kind}"
+        aria-describedby="consult-confirm-desc-${kind}"
+      >
+        <header class="consult-confirm-dialog__header">
+          <h2 id="consult-confirm-title-${kind}">${config.title}</h2>
+          <button type="button" class="consult-confirm-dialog__close" aria-label="关闭">
+            <img src="${assetUrl("assets/quick-reply-close.svg")}" alt="" />
+          </button>
+        </header>
+        <div class="consult-confirm-dialog__body">
+          <p id="consult-confirm-desc-${kind}">${config.message}</p>
+        </div>
+        <footer class="consult-confirm-dialog__footer">
+          ${renderButton({ text: "再想想", tone: "outline-secondary", size: "md", className: "consult-confirm-dismiss" })}
+          ${renderButton({ text: config.confirmText, tone: "danger", size: "md", className: "consult-confirm-submit" })}
+        </footer>
+      </section>
+    </div>`
+    )
+    .join("");
+}
+
 function renderRiskWarningDialog() {
   const headers = [
     "药品名称",
@@ -1076,7 +1120,7 @@ function renderTextMain() {
           </div>
           <div class="pharmacy-bar__right">
             ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-text")?.elapsedSeconds ?? 0)}
-            ${renderButton({ text: "取消问诊", tone: "danger", size: "md" })}
+            ${renderButton({ text: "取消问诊", tone: "danger", size: "md", className: "cancel-consult-trigger" })}
           </div>
         </div>
         <div class="consult-workspace">
@@ -1331,19 +1375,81 @@ function renderTextPage() {
       ${renderTextMain()}
       ${renderQuickReplyDialog()}
       ${renderRiskWarningDialog()}
+      ${renderConsultConfirmDialogs()}
       ${renderChatMessageMenu()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
 }
 
+const videoMediaState = {
+  cameraOn: true,
+  micOn: true
+};
+
+function renderVideoMediaIcon(type, enabled) {
+  if (type === "camera") {
+    return enabled
+      ? `<svg class="video-control-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h4l2-2h4l2 2h4a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.6"/>
+        </svg>`
+      : `<svg class="video-control-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h4l2-2h4l2 2h4a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="m3 3 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>`;
+  }
+
+  return enabled
+    ? `<svg class="video-control-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M6 11v1a6 6 0 0 0 12 0v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>`
+    : `<svg class="video-control-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 11v1a6 6 0 0 0 9.2 5.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="m4 4 16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>`;
+}
+
+function renderVideoWindowControls() {
+  const { cameraOn, micOn } = videoMediaState;
+  return `
+    <div class="video-window-controls" role="toolbar" aria-label="视频通话控制">
+      <button
+        type="button"
+        class="video-window-controls__btn${cameraOn ? "" : " is-off"}"
+        data-video-action="toggle-camera"
+        aria-pressed="${cameraOn}"
+        aria-label="${cameraOn ? "关闭摄像头" : "开启摄像头"}"
+      >
+        ${renderVideoMediaIcon("camera", cameraOn)}
+        <span>${cameraOn ? "关闭摄像头" : "开启摄像头"}</span>
+      </button>
+      <button
+        type="button"
+        class="video-window-controls__btn${micOn ? "" : " is-off"}"
+        data-video-action="toggle-mic"
+        aria-pressed="${micOn}"
+        aria-label="${micOn ? "关闭语音" : "开启语音"}"
+      >
+        ${renderVideoMediaIcon("mic", micOn)}
+        <span>${micOn ? "关闭语音" : "开启语音"}</span>
+      </button>
+    </div>`;
+}
+
 function renderVideoChatPanel() {
+  const { cameraOn } = videoMediaState;
   return `
     <section class="chat-panel video-chat-panel" aria-label="视频聊天区域">
-      <div class="video-window">
-        <img class="video-window__main" src="${assetUrl("assets/video-main.png")}" alt="" />
-        <div class="video-window__pip">
-          <img src="${assetUrl("assets/video-doctor.png")}" alt="" />
+      <div class="video-window" data-video-controls="true">
+        <img class="video-window__main" src="${assetUrl("assets/video-main.png")}" alt="患者视频画面" />
+        <div class="video-window__pip video-window__pip--local${cameraOn ? "" : " is-camera-off"}">
+          <img src="${assetUrl("assets/video-doctor.png")}" alt="医生摄像头画面" />
+          <div class="video-window__pip-off" aria-hidden="${cameraOn}">摄像头已关闭</div>
         </div>
+        ${renderVideoWindowControls()}
       </div>
       ${renderChatThread("active-video", { threadClass: "video-chat-thread" })}
       <div class="video-input-wrap">
@@ -1364,7 +1470,7 @@ function renderVideoMain() {
           </div>
           <div class="pharmacy-bar__right">
             ${renderDurationChip("icon", consultationRecords.find((record) => record.id === "active-video")?.elapsedSeconds ?? 0)}
-            ${renderButton({ text: "取消问诊", tone: "danger", size: "md" })}
+            ${renderButton({ text: "取消问诊", tone: "danger", size: "md", className: "cancel-consult-trigger" })}
           </div>
         </div>
         <div class="consult-workspace">
@@ -1383,6 +1489,7 @@ function renderVideoPage() {
       ${renderVideoMain()}
       ${renderQuickReplyDialog()}
       ${renderRiskWarningDialog()}
+      ${renderConsultConfirmDialogs()}
       ${renderChatMessageMenu()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
@@ -1645,6 +1752,63 @@ function closeRiskWarningDialog() {
   if (wasOpen) {
     enableEndConsultButton();
   }
+}
+
+function openConsultConfirmDialog(kind) {
+  const overlay = document.querySelector(`.consult-confirm-overlay[data-confirm-kind="${kind}"]`);
+  if (!overlay) return;
+  overlay.classList.add("is-open");
+  overlay.setAttribute("aria-hidden", "false");
+  overlay.querySelector(".consult-confirm-submit")?.focus();
+}
+
+function closeConsultConfirmDialog(kind) {
+  const overlay = document.querySelector(`.consult-confirm-overlay[data-confirm-kind="${kind}"]`);
+  if (!overlay) return;
+  overlay.classList.remove("is-open");
+  overlay.setAttribute("aria-hidden", "true");
+}
+
+function closeAllConsultConfirmDialogs() {
+  document.querySelectorAll(".consult-confirm-overlay.is-open").forEach((overlay) => {
+    closeConsultConfirmDialog(overlay.dataset.confirmKind);
+  });
+}
+
+function handleConsultConfirm(kind) {
+  closeConsultConfirmDialog(kind);
+  if (kind === "cancel") {
+    showToast("已取消问诊");
+    window.location.href = getRoomHref();
+    return;
+  }
+  showToast("问诊已结束");
+}
+
+function bindConsultConfirmDialogs() {
+  if (bindConsultConfirmDialogs.bound) return;
+  bindConsultConfirmDialogs.bound = true;
+
+  document.querySelectorAll(".consult-confirm-overlay").forEach((overlay) => {
+    const kind = overlay.dataset.confirmKind;
+    overlay.querySelector(".consult-confirm-dialog__close")?.addEventListener("click", () => {
+      closeConsultConfirmDialog(kind);
+    });
+    overlay.querySelector(".consult-confirm-dismiss")?.addEventListener("click", () => {
+      closeConsultConfirmDialog(kind);
+    });
+    overlay.querySelector(".consult-confirm-submit")?.addEventListener("click", () => {
+      handleConsultConfirm(kind);
+    });
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) {
+        closeConsultConfirmDialog(kind);
+      }
+    });
+    overlay.querySelector(".consult-confirm-dialog")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+  });
 }
 
 function openAnnouncementDialog(event) {
@@ -1971,12 +2135,69 @@ function bindConsultWorkspace() {
     button.addEventListener("click", openRiskWarningDialog);
   });
 
+  document.querySelectorAll(".cancel-consult-trigger").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      openConsultConfirmDialog("cancel");
+    });
+  });
+
   document.querySelectorAll(".end-consult-trigger").forEach((button) => {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
     button.addEventListener("click", () => {
       if (button.disabled) return;
-      showToast("结束问诊");
+      openConsultConfirmDialog("end");
+    });
+  });
+
+  bindVideoControls();
+}
+
+function syncVideoWindowControls(videoWindow) {
+  if (!videoWindow) return;
+  const { cameraOn, micOn } = videoMediaState;
+  const pip = videoWindow.querySelector(".video-window__pip--local");
+  pip?.classList.toggle("is-camera-off", !cameraOn);
+  const pipOff = pip?.querySelector(".video-window__pip-off");
+  if (pipOff) pipOff.setAttribute("aria-hidden", String(cameraOn));
+  videoWindow.classList.toggle("is-media-off", !cameraOn || !micOn);
+
+  videoWindow.querySelectorAll("[data-video-action]").forEach((button) => {
+    const isCamera = button.dataset.videoAction === "toggle-camera";
+    const enabled = isCamera ? cameraOn : micOn;
+    const label = isCamera ? (enabled ? "关闭摄像头" : "开启摄像头") : enabled ? "关闭语音" : "开启语音";
+
+    button.classList.toggle("is-off", !enabled);
+    button.setAttribute("aria-pressed", String(enabled));
+    button.setAttribute("aria-label", label);
+    const labelNode = button.querySelector("span");
+    if (labelNode) labelNode.textContent = label;
+    const icon = button.querySelector(".video-control-icon");
+    if (icon) {
+      icon.outerHTML = renderVideoMediaIcon(isCamera ? "camera" : "mic", enabled);
+    }
+  });
+}
+
+function bindVideoControls() {
+  document.querySelectorAll(".video-window[data-video-controls]").forEach((videoWindow) => {
+    if (videoWindow.dataset.bound === "true") return;
+    videoWindow.dataset.bound = "true";
+
+    videoWindow.querySelectorAll("[data-video-action]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (button.dataset.videoAction === "toggle-camera") {
+          videoMediaState.cameraOn = !videoMediaState.cameraOn;
+          showToast(videoMediaState.cameraOn ? "摄像头已开启" : "摄像头已关闭");
+        } else if (button.dataset.videoAction === "toggle-mic") {
+          videoMediaState.micOn = !videoMediaState.micOn;
+          showToast(videoMediaState.micOn ? "语音已开启" : "语音已关闭");
+        }
+        syncVideoWindowControls(videoWindow);
+      });
     });
   });
 }
@@ -2047,6 +2268,7 @@ function bindInteractions() {
 
   bindConsultWorkspace();
   bindChatMessageMenu();
+  bindConsultConfirmDialogs();
 
   const quickReplyOverlay = document.querySelector(".quick-reply-overlay");
 
@@ -2279,6 +2501,7 @@ function bindInteractions() {
       closeQuickEntryDialog(event);
       closeUserMenus();
       closeChatMessageMenu();
+      closeAllConsultConfirmDialogs();
     }
   });
 }

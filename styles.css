@@ -2363,8 +2363,90 @@ body.page-view-room {
 }
 
 .consult-shell--readonly .quick-reply-overlay,
-.consult-shell--readonly .risk-warning-overlay {
+.consult-shell--readonly .risk-warning-overlay,
+.consult-shell--readonly .consult-confirm-overlay {
   display: none !important;
+}
+
+.consult-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(122, 136, 152, 0.3);
+}
+
+.consult-confirm-overlay.is-open {
+  display: flex;
+}
+
+.consult-confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 32px));
+  overflow: hidden;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow:
+    0 84px 32px rgba(16, 42, 67, 0.18),
+    0 8px 8px rgba(16, 42, 67, 0.1);
+}
+
+.consult-confirm-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-bottom: 0.667px solid rgba(229, 231, 235, 0.5);
+  background: #f2f3f4;
+}
+
+.consult-confirm-dialog__header h2 {
+  margin: 0;
+  color: #1e2939;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.consult-confirm-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.consult-confirm-dialog__close img {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.consult-confirm-dialog__body {
+  padding: 20px 16px 8px;
+}
+
+.consult-confirm-dialog__body p {
+  margin: 0;
+  color: var(--jh-text-secondary);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.consult-confirm-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 16px 16px;
 }
 
 .text-card--readonly {
@@ -4252,6 +4334,93 @@ body.page-view-room {
   height: 252px;
   overflow: hidden;
   background: #d8dde1;
+}
+
+.video-window[data-video-controls].is-media-off .video-window-controls,
+.video-window[data-video-controls]:hover .video-window-controls,
+.video-window[data-video-controls]:focus-within .video-window-controls {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.video-window-controls {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 24px;
+  background: rgba(16, 24, 32, 0.78);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: none;
+}
+
+.video-window-controls__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 20px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.video-window-controls__btn:hover,
+.video-window-controls__btn:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.video-window-controls__btn.is-off {
+  color: #ffb4b4;
+}
+
+.video-control-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.video-window__pip--local {
+  z-index: 2;
+}
+
+.video-window__pip.is-camera-off img {
+  visibility: hidden;
+}
+
+.video-window__pip-off {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #5a6572;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.video-window__pip.is-camera-off .video-window__pip-off {
+  display: flex;
 }
 
 .video-window__main {
