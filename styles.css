@@ -4569,6 +4569,13 @@ body.page-view-room {
   min-height: 29px;
 }
 
+.ai-reply__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
 .ai-reply__title {
   display: flex;
   align-items: center;
@@ -4609,15 +4616,16 @@ body.page-view-room {
 
 .ai-reply--expanded .ai-reply__hint,
 .ai-reply--collapsed .ai-reply__refresh,
+.ai-reply--collapsed .ai-reply__close,
 .ai-reply--collapsed .ai-reply__options,
 .ai-reply--collapsed .ai-reply__notice {
   display: none;
 }
 
-.ai-reply__refresh {
+.ai-reply__refresh,
+.ai-reply__close {
   display: inline-flex;
   align-items: center;
-  flex: 0 0 auto;
   gap: 6px;
   min-width: 0;
   height: 24px;
@@ -4630,13 +4638,16 @@ body.page-view-room {
   cursor: pointer;
 }
 
-.ai-reply__refresh svg {
+.ai-reply__refresh svg,
+.ai-reply__close svg {
   width: 16px;
   height: 16px;
 }
 
 .ai-reply__refresh:hover,
-.ai-reply__refresh:focus-visible {
+.ai-reply__refresh:focus-visible,
+.ai-reply__close:hover,
+.ai-reply__close:focus-visible {
   color: #7c5cff;
   outline: none;
 }

@@ -48,6 +48,18 @@ function bindAiReplyOptions() {
       });
     });
   });
+
+  document.querySelectorAll(".ai-reply__close").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const aiReply = button.closest(".ai-reply");
+      if (!aiReply) return;
+      aiReply.dataset.aiReplyState = "collapsed";
+      aiReply.classList.add("ai-reply--collapsed");
+      aiReply.classList.remove("ai-reply--expanded");
+    });
+  });
 }
 
 function toggleAiReply(button) {

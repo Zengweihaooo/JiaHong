@@ -11,7 +11,7 @@ export function renderChatInput({ className = "" } = {}) {
   return `
     <div class="jh-chat-input${className ? ` ${className}` : ""}">
       <div class="jh-chat-input__top">
-        ${renderButton({ text: "快捷回复", tone: "outline-primary", className: "quick-reply-trigger" })}
+        ${renderButton({ text: "智能回复", tone: "outline-primary", className: "quick-reply-trigger" })}
         <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
       </div>
       <div class="jh-chat-input__actions">
@@ -104,13 +104,20 @@ export function renderAiReplyComposer(record = null) {
           <span class="ai-spark" aria-hidden="true"></span>
           <h3>智能推荐回复</h3>
         </div>
-        <p class="ai-reply__hint">双击快捷回复展开或收起智能回复</p>
-        <button class="ai-reply__refresh" type="button" aria-label="换一批智能推荐回复">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path d="M13.4 5.8A5.5 5.5 0 0 0 3.1 4.2L1.5 5.8M1.5 2.4v3.4h3.4M2.6 10.2a5.5 5.5 0 0 0 10.3 1.6l1.6-1.6m0 3.4v-3.4h-3.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
-          </svg>
-          <span>换一批</span>
-        </button>
+        <p class="ai-reply__hint">双击智能回复展开或收起智能回复</p>
+        <div class="ai-reply__actions">
+          <button class="ai-reply__refresh" type="button" aria-label="换一批智能推荐回复">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M13.4 5.8A5.5 5.5 0 0 0 3.1 4.2L1.5 5.8M1.5 2.4v3.4h3.4M2.6 10.2a5.5 5.5 0 0 0 10.3 1.6l1.6-1.6m0 3.4v-3.4h-3.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+            </svg>
+            <span>换一批</span>
+          </button>
+          <button class="ai-reply__close" type="button" aria-label="关闭智能推荐回复">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+            </svg>
+          </button>
+        </div>
       </div>
       ${renderAiReplyOptions(getAiReplies(record))}
       <p class="ai-reply__notice">AI辅助内容基于患者档案与对话语境生成，仅供医生参考，发送前请核实。</p>
