@@ -10,7 +10,7 @@ import {
   stopEvent
 } from "../ui/interactionPrimitives.js";
 import { applyRuntimeStateToDom } from "./runtimeUiBindings.js?v=20260528-06";
-import { bindQuickEntryInteractions, closeQuickEntryDialog, closeQuickSchedulePanel } from "./homeQuickEntryBindings.js?v=20260602-02";
+import { bindQuickEntryInteractions, closeQuickEntryDialog, closeQuickSchedulePanel } from "./homeQuickEntryBindings.js?v=20260602-03";
 
 function openAnnouncementDialog(event) {
   stopEvent(event);

@@ -93,30 +93,19 @@ function endMouseQuickCardDrag() {
 }
 
 function openQuickSchedulePanel(card, event) {
-  event?.preventDefault();
-  event?.stopPropagation();
   const quickEntryCard = card.closest(".quick-entry-card");
-  const panel = quickEntryCard?.querySelector(".schedule-panel");
-  if (!quickEntryCard || !panel) return false;
-  quickEntryCard.classList.remove("is-editing");
-  quickEntryCard.querySelector(".quick-entry-card__edit")?.setAttribute("aria-pressed", "false");
-  const editText = quickEntryCard.querySelector(".quick-entry-card__edit-text");
-  if (editText) editText.textContent = "编辑";
-  setQuickCardEditControlsState(quickEntryCard, false);
-  quickEntryCard.classList.add("is-schedule-open");
-  panel.hidden = false;
-  panel.querySelector(".schedule-panel__back")?.focus();
-  return true;
+  if (quickEntryCard) {
+    quickEntryCard.classList.remove("is-editing");
+    quickEntryCard.querySelector(".quick-entry-card__edit")?.setAttribute("aria-pressed", "false");
+    const editText = quickEntryCard.querySelector(".quick-entry-card__edit-text");
+    if (editText) editText.textContent = "编辑";
+    setQuickCardEditControlsState(quickEntryCard, false);
+  }
+  return Boolean(openOverlay(".schedule-overlay", ".schedule-panel__back", event));
 }
 
 export function closeQuickSchedulePanel(event) {
-  document.querySelectorAll(".quick-entry-card.is-schedule-open").forEach((quickEntryCard) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-    quickEntryCard.classList.remove("is-schedule-open");
-    const panel = quickEntryCard.querySelector(".schedule-panel");
-    if (panel) panel.hidden = true;
-  });
+  closeOverlay(".schedule-overlay", event);
 }
 
 function activateQuickCard(card, event) {
@@ -175,12 +164,14 @@ function bindQuickEntryEditButtons() {
 }
 
 function bindQuickSchedulePanel() {
-  document.querySelectorAll(".schedule-panel__back").forEach((button) => {
-    if (button.dataset.bound === "true") return;
-    button.dataset.bound = "true";
-    button.addEventListener("click", closeQuickSchedulePanel);
+  const scheduleOverlay = document.querySelector(".schedule-overlay");
+  if (!scheduleOverlay) return;
+  bindOverlayDismiss(scheduleOverlay, {
+    close: closeQuickSchedulePanel,
+    closeSelector: ".schedule-panel__back",
+    dialogSelector: ".schedule-dialog"
   });
-  document.querySelectorAll(".schedule-panel__detail").forEach((button) => {
+  scheduleOverlay.querySelectorAll(".schedule-panel__detail").forEach((button) => {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
     button.addEventListener("click", () => {

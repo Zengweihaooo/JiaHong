@@ -9,8 +9,9 @@ import {
   renderAnnouncementDialog,
   renderAnnouncementListDialog,
   renderMain,
-  renderQuickEntryDialog
-} from "./views/homeView.js?v=20260602-01";
+  renderQuickEntryDialog,
+  renderScheduleDialog
+} from "./views/homeView.js?v=20260602-03";
 import {
   renderTextPage,
   renderVideoPage
@@ -82,6 +83,7 @@ export function renderAppMarkup() {
       ${renderAnnouncementDialog()}
       ${renderAnnouncementListDialog()}
       ${renderQuickEntryDialog()}
+      ${renderScheduleDialog()}
       <div class="toast" role="status" aria-live="polite"></div>
     </div>`;
 }
