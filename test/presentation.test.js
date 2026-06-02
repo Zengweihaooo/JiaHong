@@ -102,6 +102,23 @@ test("quick entry cards escape user text and mark add/custom variants", async ()
   assert.doesNotMatch(add, /quick-card__delete/);
 });
 
+test("home quick actions keep one add entry at the end when capacity remains", async () => {
+  setupBrowserGlobals("/");
+  const { normalizeQuickActions } = await import("../src/presentation/views/homeView.js?quick-actions");
+
+  const entries = normalizeQuickActions([
+    { title: "排班管理", desc: "查看值班安排" },
+    { title: "", desc: "添加快捷入口", isAdd: true },
+    { title: "历史问诊", desc: "历史病历查询" },
+    { title: "", desc: "添加快捷入口", isAdd: true }
+  ]);
+
+  assert.equal(entries.length, 3);
+  assert.equal(entries[0].title, "排班管理");
+  assert.equal(entries[1].title, "历史问诊");
+  assert.equal(entries[2].isAdd, true);
+});
+
 test("medicine table renders empty, editable, readonly, escaped, and warning states", async () => {
   setupBrowserGlobals("/");
   const { renderMedicineTable, renderMedicineTableRow } = await import("../src/presentation/components/medicineTable.js");

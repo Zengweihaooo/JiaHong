@@ -1937,7 +1937,8 @@ button {
 }
 
 .quick-card--add {
-  border-style: dashed;
+  color: var(--jh-text-tertiary);
+  background: linear-gradient(270deg, #fcfcfc 0%, var(--jh-panel) 100%);
 }
 
 .quick-card__delete,

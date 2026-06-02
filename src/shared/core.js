@@ -9,6 +9,11 @@ export function getCurrentRoutePath() {
     const rest = normalized.slice(base.length) || "/";
     return rest.startsWith("/") ? rest : `/${rest}`;
   }
+  const segments = normalized.split("/").filter(Boolean);
+  const routeIndex = segments.findIndex((segment) => validAppViews.has(segment) && segment !== "home");
+  if (routeIndex >= 0) {
+    return `/${segments.slice(routeIndex).join("/")}`;
+  }
   return normalized;
 }
 
