@@ -6,6 +6,17 @@ import { getActiveChatKey } from "./renderRecordSelectors.js?v=20260528-06";
 
 const defaultMessageIntervalSeconds = 58;
 const defaultAiReplyHighlights = ["多久", "体温", "几天", "位置", "程度", "痰色", "胸闷气促", "呼吸", "低头", "热敷", "活动颈部"];
+const followUpVoucherVariants = ["image", "voice", "mixed"];
+const followUpVoucherImages = [
+  { title: "图片凭证1", image: "assets/consult-materials/allergic-rhinitis.png" },
+  { title: "图片凭证2", image: "assets/consult-materials/pediatric-fever.png" },
+  { title: "图片凭证3", image: "assets/consult-materials/sore-throat.png" },
+  { title: "图片凭证4", image: "assets/consult-materials/skin-rash.png" }
+];
+const followUpVoucherVoices = [
+  { title: "语音凭证1", duration: 8 },
+  { title: "语音凭证2", duration: 7 }
+];
 
 export function renderChatInput({ className = "" } = {}) {
   return `
@@ -256,6 +267,87 @@ function getConsultInfo(record = {}) {
   };
 }
 
+function getStableVariantIndex(value = "") {
+  const source = String(value || "");
+  return Array.from(source).reduce((sum, char) => sum + char.charCodeAt(0), 0) % followUpVoucherVariants.length;
+}
+
+export function getFollowUpVoucher(record = {}) {
+  if (record?.type !== "text" && record?.type !== "video") return null;
+  const explicitType = record.followUpVoucher?.type;
+  const type = followUpVoucherVariants.includes(explicitType)
+    ? explicitType
+    : followUpVoucherVariants[getStableVariantIndex(record.id || record.title || record.type)];
+  const images = record.followUpVoucher?.images?.length ? record.followUpVoucher.images : followUpVoucherImages;
+  const voices = record.followUpVoucher?.voices?.length ? record.followUpVoucher.voices : followUpVoucherVoices;
+  return {
+    type,
+    images: type === "voice" ? [] : images.slice(0, 4),
+    voices: type === "image" ? [] : voices.slice(0, 2)
+  };
+}
+
+function renderVoiceWaveform() {
+  return `
+    <span class="followup-voice-wave" aria-hidden="true">
+      ${[12, 18, 10, 20, 14, 8, 8, 6, 4, 10, 14, 14, 12, 10, 10, 8]
+        .map((height) => `<span style="--wave-height:${height}px"></span>`)
+        .join("")}
+    </span>`;
+}
+
+function renderFollowUpVoucherImage(image, index, total) {
+  return `
+    <button class="followup-voucher-image consult-attachment" type="button" aria-label="预览${escapeHtml(image.title)}" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${total}" data-consult-attachment-title="${escapeHtml(image.title)}" data-consult-attachment-image="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}">
+      <span class="followup-voucher-image__thumb">
+        <img src="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}" alt="${escapeHtml(image.title)}" loading="lazy" />
+      </span>
+    </button>`;
+}
+
+function renderFollowUpVoucherVoice(voice, index) {
+  const duration = Number(voice.duration || 0) || (index === 0 ? 8 : 7);
+  return `
+    <button class="followup-voucher-voice" type="button" aria-label="查看${escapeHtml(voice.title || `语音凭证${index + 1}`)}，${duration}秒" data-followup-voice-title="${escapeHtml(voice.title || `语音凭证${index + 1}`)}" data-followup-voice-duration="${duration}">
+      ${renderVoiceWaveform()}
+      <span>${duration}”</span>
+    </button>`;
+}
+
+export function renderFollowUpVoucherCard(record) {
+  const voucher = getFollowUpVoucher(record);
+  if (!voucher) return "";
+  return `
+    <section class="followup-voucher-card followup-voucher-card--${voucher.type}" aria-label="复诊凭证">
+      <h3>复诊凭证</h3>
+      ${
+        voucher.voices.length
+          ? `<div class="followup-voucher-row">
+              <span class="followup-voucher-label">语音凭证：</span>
+              <div class="followup-voucher-voices">
+                ${voucher.voices.map((voice, index) => renderFollowUpVoucherVoice(voice, index)).join("")}
+              </div>
+            </div>`
+          : ""
+      }
+      ${
+        voucher.voices.length && voucher.images.length
+          ? `<div class="followup-voucher-divider" aria-hidden="true"></div>`
+          : ""
+      }
+      ${
+        voucher.images.length
+          ? `<div class="followup-voucher-row">
+              <span class="followup-voucher-label">图片凭证：</span>
+              <div class="followup-voucher-images">
+                ${voucher.images.map((image, index) => renderFollowUpVoucherImage(image, index, voucher.images.length)).join("")}
+              </div>
+            </div>`
+          : ""
+      }
+    </section>`;
+}
+
 export function renderConsultInfoCard(record) {
   if (record?.type !== "consult") return "";
   const consultInfo = getConsultInfo(record);
@@ -308,6 +400,26 @@ export function renderConsultAttachmentDialog() {
     </div>`;
 }
 
+export function renderFollowUpVoiceDialog() {
+  return `
+    <div class="followup-voice-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="followup-voice-dialog">
+        <div class="followup-voice-dialog__header">
+          <h2>
+            <span class="consult-attachment-dialog__icon" aria-hidden="true"></span>
+            <span data-followup-voice-dialog-title>语音凭证</span>
+          </h2>
+          <button class="followup-voice-dialog__close" type="button" aria-label="关闭语音凭证"></button>
+        </div>
+        <div class="followup-voice-dialog__body">
+          <button class="followup-voice-dialog__play" type="button" aria-label="播放语音凭证"></button>
+          ${renderVoiceWaveform()}
+          <span class="followup-voice-dialog__duration" data-followup-voice-dialog-duration>8”</span>
+        </div>
+      </div>
+    </div>`;
+}
+
 export function renderChatMessageMenu() {
   return `
     <div class="chat-message-menu" role="menu" aria-hidden="true" hidden>
@@ -320,6 +432,7 @@ export function renderChatMessageMenu() {
 export function renderChatPanel(chatKey = getActiveChatKey(), { record = null } = {}) {
   return `
     <section class="chat-panel" aria-label="聊天区域">
+      ${renderFollowUpVoucherCard(record)}
       ${renderConsultInfoCard(record)}
       ${renderChatThread(chatKey)}
       ${renderAiReplyComposer(record)}

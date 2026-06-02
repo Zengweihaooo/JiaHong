@@ -2,6 +2,7 @@ import { assetUrl, getHomeHref } from "../../shared/core.js";
 import { renderData, renderRuntime } from "../../application/viewModels/renderViewModel.js?v=20260528-06";
 import { renderButton, renderCheckbox, renderStatusBadge, renderSwitch } from "../components/primitives.js";
 import { icons } from "../ui/icons.js";
+import { renderSearchField } from "./prescriptionFormFields.js?v=20260528-06";
 
 export function renderMenu() {
   return renderData.menuGroups
@@ -134,18 +135,123 @@ export function renderRoomTopbar() {
     </header>`;
 }
 
-export function renderRoomMain() {
+function renderRoomEmptyState({ className = "" } = {}) {
   return `
-    <main class="room-main">
-      <section class="room-card" aria-label="候诊室">
-        ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "room-refresh" })}
-        <div class="room-empty">
+        <div class="room-empty${className ? ` ${className}` : ""}">
           <img class="room-empty__icon" src="${assetUrl("assets/room-empty.svg")}" alt="" aria-hidden="true" />
           <div class="room-empty__copy">
             <h2>暂无待接诊订单</h2>
             <p>保持在线后，系统将自动接收新的图文或视频问诊</p>
           </div>
+        </div>`;
+}
+
+function renderPendingChatPanel() {
+  return `
+        <section class="chat-panel room-pending-chat-panel" aria-label="待接诊聊天区域">
+          <div class="room-pending-chat-skeleton" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="room-pending-chat-empty" aria-hidden="true"></div>
+        </section>`;
+}
+
+function renderPendingPatientField(label, value, { required = false } = {}) {
+  return `
+          <span class="patient-info__field">
+            <span class="patient-info__field-label">${required ? "<em>*</em>" : ""}${label}：</span>
+            <span class="patient-info__field-value">${value}</span>
+          </span>`;
+}
+
+function renderPendingMedicineTable() {
+  return `
+          <div class="medicine-table room-pending-medicine-table" aria-label="所需药品">
+            <div class="medicine-table__row medicine-table__head">
+              <span>序号</span>
+              <span>药品名称</span>
+              <span>类型</span>
+              <span>规格</span>
+              <span>用法</span>
+              <span>服用频次</span>
+              <span>用量</span>
+              <span>数量</span>
+              <span>单位</span>
+              <span>风险</span>
+              <span>操作</span>
+            </div>
+          </div>`;
+}
+
+function renderPendingMedicineSearch() {
+  return `
+              <div class="medicine-search-combobox">
+                ${renderSearchField({ className: "medicine-search", disabled: true })}
+              </div>`;
+}
+
+function renderPendingPrescriptionPanel() {
+  return `
+        <section class="prescription-panel room-pending-prescription-panel" aria-label="待接诊处方区域">
+          <div class="patient-info room-pending-patient-info">
+            <div class="patient-info__grid">
+              ${renderPendingPatientField("过敏史", "无")}
+              ${renderPendingPatientField("肝功能异常", "否", { required: true })}
+              ${renderPendingPatientField("妊娠哺乳", "无", { required: true })}
+              ${renderPendingPatientField("肾功能异常", "否", { required: true })}
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="diagnosis-section consultation-diagnosis-section room-pending-diagnosis">
+            <h3>诊断意见</h3>
+            <div class="diagnosis-row">
+              <label><span>*</span>诊断</label>
+              <button class="jh-input-field jh-input-field--lg diagnosis-select" type="button" disabled>请选择诊断</button>
+              <div class="diagnosis-input" aria-disabled="true"></div>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="medicine-section consultation-medicine-section room-pending-medicine-section">
+            <h3>所需药品</h3>
+            <div class="medicine-scroll-area">
+              ${renderPendingMedicineSearch()}
+              ${renderPendingMedicineTable()}
+            </div>
+          </div>
+          <div class="room-pending-prescription-spacer"></div>
+          <div class="prescription-actions room-pending-prescription-actions">
+            <span class="prescription-remark-field">
+              <span class="prescription-remark-field__label">处方备注：</span>
+            </span>
+          </div>
+        </section>`;
+}
+
+function renderPendingConsultWorkspace() {
+  return `
+    <main class="room-main">
+      <section class="room-card room-card--pending-consult" aria-label="待接诊问诊室">
+        ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "room-refresh" })}
+        <div class="consult-workspace room-pending-workspace">
+          ${renderPendingChatPanel()}
+          ${renderPendingPrescriptionPanel()}
         </div>
+      </section>
+    </main>`;
+}
+
+export function renderRoomMain() {
+  const hasWaitingQueue = Number(renderRuntime.waitingQueue?.total || 0) > 0;
+  if (hasWaitingQueue) return renderPendingConsultWorkspace();
+
+  return `
+    <main class="room-main">
+      <section class="room-card" aria-label="候诊室">
+        ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "room-refresh" })}
+        ${renderRoomEmptyState()}
       </section>
     </main>`;
 }

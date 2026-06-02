@@ -11,24 +11,25 @@ import {
   renderMain,
   renderQuickEntryDialog,
   renderScheduleDialog
-} from "./views/homeView.js?v=20260602-03";
+} from "./views/homeView.js?v=20260603-03";
 import {
   renderTextPage,
   renderVideoPage
-} from "./views/consultRoomView.js?v=20260528-06";
+} from "./views/consultRoomView.js?v=20260603-01";
 import { renderHistoryPage } from "./views/historyView.js?v=20260528-06";
 import { getActiveConsultationRecord } from "./views/renderRecordSelectors.js?v=20260528-06";
 import {
   renderChatMessageMenu,
-  renderConsultAttachmentDialog
-} from "./views/chatView.js?v=20260528-06";
+  renderConsultAttachmentDialog,
+  renderFollowUpVoiceDialog
+} from "./views/chatView.js?v=20260603-01";
 import {
   renderRoomMain,
   renderRoomTopbar,
   renderSidebar,
   renderTopbar
 } from "./views/roomShellView.js?v=20260528-06";
-import { renderRoomSidebar } from "./views/roomMessageListView.js?v=20260602-03";
+import { renderRoomSidebar } from "./views/roomMessageListView.js?v=20260603-01";
 
 export function renderQuickReplyDialog() {
   return renderQuickReplyDialogView({
@@ -49,7 +50,8 @@ function renderConsultOverlays() {
       ${renderRiskWarningDialog()}
       ${renderConsultConfirmDialogs()}
       ${renderChatMessageMenu()}
-      ${renderConsultAttachmentDialog()}`;
+      ${renderConsultAttachmentDialog()}
+      ${renderFollowUpVoiceDialog()}`;
 }
 
 export function renderRoom() {

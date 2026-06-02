@@ -2,9 +2,10 @@ import { fillChatInput, sendChatInputMessage } from "./chatBindings.js";
 import {
   openConsultAttachmentDialog,
   openConsultConfirmDialog,
+  openFollowUpVoiceDialog,
   openQuickReplyDialog,
   requestPrescriptionSubmit
-} from "./consultDialogBindings.js?v=20260527-41";
+} from "./consultDialogBindings.js?v=20260603-01";
 import { bindDragScrollContainers } from "./dragScrollBindings.js";
 import { bindPrescriptionEditor } from "./prescriptionEditorBindings.js?v=20260528-06";
 import { bindVideoControls } from "./videoControls.js";
@@ -105,6 +106,11 @@ function bindConsultAttachments() {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
     button.addEventListener("click", (event) => openConsultAttachmentDialog(button, event));
+  });
+  document.querySelectorAll(".followup-voucher-voice").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", (event) => openFollowUpVoiceDialog(button, event));
   });
 }
 

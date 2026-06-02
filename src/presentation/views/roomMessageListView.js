@@ -28,6 +28,7 @@ const messageTypeMeta = {
 };
 
 function getInitialActiveRecordId() {
+  if (appView === "room") return getSessionIdParam() || "";
   return (
     getSessionIdParam() ||
     (appView === "history" ? getDefaultEndedRenderRecord()?.id : getDefaultOngoingRenderRecord(appView)?.id) ||

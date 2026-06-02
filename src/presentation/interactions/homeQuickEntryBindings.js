@@ -178,6 +178,23 @@ function bindQuickSchedulePanel() {
       showToast("排班详情暂未开放");
     });
   });
+  scheduleOverlay.querySelectorAll(".schedule-panel__punch").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      if (button.dataset.punchState === "done") return;
+      button.dataset.punchState = "done";
+      button.classList.remove("schedule-panel__punch--primary", "schedule-panel__punch--warning");
+      button.classList.add("schedule-panel__punch--done");
+      button.textContent = "已打卡";
+      const panel = button.closest(".schedule-panel");
+      const punchedCount = panel?.querySelector("[data-schedule-punched-count]");
+      const unpunchedCount = panel?.querySelector("[data-schedule-unpunched-count]");
+      if (punchedCount) punchedCount.textContent = String(Number(punchedCount.textContent || 0) + 1);
+      if (unpunchedCount) unpunchedCount.textContent = String(Math.max(0, Number(unpunchedCount.textContent || 0) - 1));
+      showToast("打卡成功");
+    });
+  });
 }
 
 function bindQuickGrid() {
