@@ -1,5 +1,5 @@
-import { maxQuickActionCards } from "../../domain/quickEntries.js";
-import { renderQuickCardMarkup } from "../components/quickEntryCards.js";
+import { getQuickEntryFeature, maxQuickActionCards } from "../../domain/quickEntries.js?v=20260602-01";
+import { renderQuickCardMarkup } from "../components/quickEntryCards.js?v=20260602-01";
 
 export const quickGridAnimationMs = 280;
 
@@ -13,6 +13,34 @@ export function getQuickGridCards(grid) {
 
 export function getQuickGridCustomCards(grid) {
   return Array.from(grid.querySelectorAll(".quick-card--custom"));
+}
+
+export function getQuickEntryIdentity(entry = {}) {
+  const feature = getQuickEntryFeature(entry);
+  if (feature) return `feature:${feature}`;
+  const title = String(entry.title || "").trim();
+  return title ? `title:${title}` : "";
+}
+
+export function getQuickCardIdentity(card) {
+  if (!card) return "";
+  if (card.dataset.quickFeature) return `feature:${card.dataset.quickFeature}`;
+  const title = String(card.dataset.quickTitle || "").trim();
+  return title ? `title:${title}` : "";
+}
+
+export function getUsedQuickEntryIdentities(grid, excludedCard = null) {
+  return new Set(
+    getQuickGridCustomCards(grid)
+      .filter((card) => card !== excludedCard)
+      .map(getQuickCardIdentity)
+      .filter(Boolean)
+  );
+}
+
+export function isQuickEntryAlreadyUsed(grid, option, excludedCard = null) {
+  const identity = getQuickEntryIdentity(option);
+  return Boolean(identity && getUsedQuickEntryIdentities(grid, excludedCard).has(identity));
 }
 
 export function setQuickCardEditControlsState(scope, editing) {
@@ -87,6 +115,9 @@ export function ensureQuickAddCard(grid) {
 
 export function addCustomQuickCardToGrid(grid, option) {
   if (!grid) return { ok: false, reason: "missing-grid" };
+  if (isQuickEntryAlreadyUsed(grid, option)) {
+    return { ok: false, reason: "duplicate" };
+  }
   if (getQuickActionCount(grid) >= maxQuickActionCards) {
     return { ok: false, reason: "limit", limit: maxQuickActionCards };
   }
@@ -106,11 +137,13 @@ export function addCustomQuickCardToGrid(grid, option) {
 
 export function replaceQuickCard(card, option) {
   if (!card || !option) return false;
+  const grid = card.closest(".quick-grid");
+  if (grid && isQuickEntryAlreadyUsed(grid, option, card)) return false;
   const editing = card.closest(".quick-entry-card")?.classList.contains("is-editing");
   card.outerHTML = renderQuickCardMarkup(option);
   if (editing) {
-    const grid = document.querySelector(".quick-grid");
-    if (grid) setQuickCardEditControlsState(grid, true);
+    const activeGrid = document.querySelector(".quick-grid");
+    if (activeGrid) setQuickCardEditControlsState(activeGrid, true);
   }
   return true;
 }

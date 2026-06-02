@@ -5142,6 +5142,16 @@ body.page-view-room {
   background: #ffffff;
 }
 
+.quick-entry-dialog__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 32px 16px;
+  color: var(--jh-text-tertiary);
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+}
+
 .announcement-list-item,
 .quick-entry-option {
   display: flex;

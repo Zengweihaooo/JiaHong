@@ -25,7 +25,7 @@ import {
 import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260528-06";
 import { bindDragScrollContainers } from "./interactions/dragScrollBindings.js?v=20260527-45";
 import { configurePrescriptionEditorBindings } from "./interactions/prescriptionEditorBindings.js?v=20260528-06";
-import { bindHomeInteractions, closeHomeOverlays } from "./interactions/homeInteractionBindings.js?v=20260528-06";
+import { bindHomeInteractions, closeHomeOverlays } from "./interactions/homeInteractionBindings.js?v=20260602-01";
 import {
   bindConsultConfirmDialogs,
   bindConsultDialogOverlays,

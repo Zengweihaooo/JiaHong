@@ -1,4 +1,4 @@
-import { getQuickEntryFeature } from "../../domain/quickEntries.js";
+import { getQuickEntryFeature } from "../../domain/quickEntries.js?v=20260602-01";
 import { escapeHtml } from "../ui/html.js";
 import { renderQuickEntryIcon } from "../ui/icons.js";
 

@@ -8,9 +8,9 @@ import {
   renderSwitch
 } from "../components/primitives.js";
 import { icons, renderQuickEntryIcon } from "../ui/icons.js";
-import { renderQuickCardMarkup } from "../components/quickEntryCards.js";
+import { renderQuickCardMarkup } from "../components/quickEntryCards.js?v=20260602-01";
 import { renderSchedulePanel } from "./homeSchedulePanel.js";
-import { maxQuickActionCards } from "../../domain/quickEntries.js";
+import { maxQuickActionCards } from "../../domain/quickEntries.js?v=20260602-01";
 
 export function renderWaitingCard() {
   return `
@@ -181,6 +181,7 @@ export function renderQuickEntryDialog() {
                 </button>`
             )
             .join("")}
+          <p class="quick-entry-dialog__empty" hidden>暂无可添加的快捷入口</p>
         </div>
       </section>
     </div>`;

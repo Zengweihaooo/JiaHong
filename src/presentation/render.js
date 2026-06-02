@@ -10,7 +10,7 @@ import {
   renderAnnouncementListDialog,
   renderMain,
   renderQuickEntryDialog
-} from "./views/homeView.js?v=20260528-06";
+} from "./views/homeView.js?v=20260602-01";
 import {
   renderTextPage,
   renderVideoPage

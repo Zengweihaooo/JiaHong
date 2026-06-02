@@ -119,6 +119,28 @@ test("home quick actions keep one add entry at the end when capacity remains", a
   assert.equal(entries[2].isAdd, true);
 });
 
+test("quick entry duplicate checks match existing cards by feature or title", async () => {
+  const { isQuickEntryAlreadyUsed } = await import("../src/presentation/interactions/quickEntryGridDom.js?duplicates");
+  const makeCard = ({ title = "", feature = "" }) => ({
+    dataset: {
+      quickFeature: feature,
+      quickTitle: title
+    }
+  });
+  const scheduleCard = makeCard({ title: "排班管理", feature: "schedule" });
+  const commissionCard = makeCard({ title: "医生佣金条", feature: "commission" });
+  const followUpCard = makeCard({ title: "患者随访" });
+  const grid = {
+    querySelectorAll: () => [scheduleCard, commissionCard, followUpCard]
+  };
+
+  assert.equal(isQuickEntryAlreadyUsed(grid, { title: "排班管理" }), true);
+  assert.equal(isQuickEntryAlreadyUsed(grid, { title: "佣金明细" }), true);
+  assert.equal(isQuickEntryAlreadyUsed(grid, { title: "患者随访" }), true);
+  assert.equal(isQuickEntryAlreadyUsed(grid, { title: "风险提醒" }), false);
+  assert.equal(isQuickEntryAlreadyUsed(grid, { title: "患者随访" }, followUpCard), false);
+});
+
 test("medicine table renders empty, editable, readonly, escaped, and warning states", async () => {
   setupBrowserGlobals("/");
   const { renderMedicineTable, renderMedicineTableRow } = await import("../src/presentation/components/medicineTable.js");
