@@ -3204,22 +3204,23 @@ body.page-view-room {
 
 .message-item--compact {
   height: 42px;
-  background: var(--room-sidebar-row-muted-bg);
+  background: #ffffff;
 }
 
-.message-item.is-active {
+.message-item.is-active,
+.message-item.is-current-video {
   background: var(--room-sidebar-active-bg);
 }
 
 .message-item.is-video-locked,
 .message-item.is-video-locked:hover,
 .message-item.is-video-locked:focus-visible {
-  background: var(--room-sidebar-row-muted-bg);
+  background: #ffffff;
   cursor: not-allowed;
 }
 
 .message-item.is-video-locked .message-item__stripe {
-  background: var(--jh-blue);
+  background: transparent;
 }
 
 .message-item__stripe {
@@ -3228,7 +3229,8 @@ body.page-view-room {
   background: transparent;
 }
 
-.message-item.is-active .message-item__stripe {
+.message-item.is-active .message-item__stripe,
+.message-item.is-current-video .message-item__stripe {
   background: var(--jh-blue);
 }
 

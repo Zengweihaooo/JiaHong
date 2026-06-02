@@ -141,6 +141,42 @@ test("quick entry duplicate checks match existing cards by feature or title", as
   assert.equal(isQuickEntryAlreadyUsed(grid, { title: "患者随访" }, followUpCard), false);
 });
 
+test("video contact list keeps the active video expanded while other videos stay compact", async () => {
+  setupBrowserGlobals("/room/");
+  const { renderMessageItem } = await import("../src/presentation/views/roomMessageListView.js?video-contact-list");
+  const activeVideo = {
+    id: "video_active",
+    type: "video",
+    state: "ongoing",
+    title: "武汉市好药师大药房",
+    preview: "您好！请问那个药...",
+    unreadCount: 3,
+    targetView: "video"
+  };
+  const waitingVideo = {
+    id: "video_waiting",
+    type: "video",
+    state: "ongoing",
+    title: "武汉市好药师大药房",
+    preview: "另一条视频问诊",
+    unreadCount: 1,
+    targetView: "video"
+  };
+
+  const activeMarkup = renderMessageItem(activeVideo, false, 0, "video_active");
+  assert.match(activeMarkup, /is-current-video/);
+  assert.match(activeMarkup, /message-item__current/);
+  assert.match(activeMarkup, /您好！请问那个药/);
+  assert.doesNotMatch(activeMarkup, /message-item--compact/);
+  assert.doesNotMatch(activeMarkup, /message-item__badge/);
+
+  const waitingMarkup = renderMessageItem(waitingVideo, false, 1, "video_active");
+  assert.match(waitingMarkup, /message-item--compact/);
+  assert.match(waitingMarkup, /message-item__badge/);
+  assert.doesNotMatch(waitingMarkup, /另一条视频问诊/);
+  assert.doesNotMatch(waitingMarkup, /message-item__current/);
+});
+
 test("medicine table renders empty, editable, readonly, escaped, and warning states", async () => {
   setupBrowserGlobals("/");
   const { renderMedicineTable, renderMedicineTableRow } = await import("../src/presentation/components/medicineTable.js");

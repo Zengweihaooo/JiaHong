@@ -95,15 +95,18 @@ export function renderMessageItem(record, active, index = 0, activeVideoRecordId
   const unreadCount = Number(record.unreadCount ?? record.badge ?? 0);
   const showBadge = unreadCount > 0 && !renderRuntime.isMessageBadgeDismissed(record.id);
   const typeMeta = messageTypeMeta[record.type] || messageTypeMeta.consult;
-  const currentVideo = record.type === "video" && active;
-  const compact = record.type === "video" && !active;
+  const currentVideo =
+    record.type === "video" &&
+    record.state === "ongoing" &&
+    (record.id === activeVideoRecordId || (!activeVideoRecordId && active));
+  const compact = record.type === "video" && !active && !currentVideo;
   const videoLocked =
-    !active && record.type === "video" && record.state === "ongoing" && activeVideoRecordId && record.id !== activeVideoRecordId;
+    !active && !currentVideo && record.type === "video" && record.state === "ongoing" && activeVideoRecordId && record.id !== activeVideoRecordId;
   const lockedAttrs = videoLocked
     ? ` aria-disabled="true" data-video-locked="true" title="当前视频问诊未结束，暂不可进入新的视频问诊"`
     : "";
   return `
-    <button class="message-item message-item--${record.type}${compact ? " message-item--compact" : ""}${active ? " is-active" : ""}${videoLocked ? " is-video-locked" : ""}" type="button" data-record-id="${record.id}" data-target-view="${record.targetView || ""}" data-record-state="${record.state}" data-badge-key="${badgeKey}"${lockedAttrs}>
+    <button class="message-item message-item--${record.type}${compact ? " message-item--compact" : ""}${active ? " is-active" : ""}${currentVideo ? " is-current-video" : ""}${videoLocked ? " is-video-locked" : ""}" type="button" data-record-id="${record.id}" data-target-view="${record.targetView || ""}" data-record-state="${record.state}" data-badge-key="${badgeKey}"${lockedAttrs}>
       <span class="message-item__stripe" aria-hidden="true"></span>
       <span class="message-item__icon" aria-hidden="true">
         <img src="${assetUrl(typeMeta.icon)}" alt="" />
