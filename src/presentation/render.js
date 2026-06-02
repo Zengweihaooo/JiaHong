@@ -28,7 +28,7 @@ import {
   renderSidebar,
   renderTopbar
 } from "./views/roomShellView.js?v=20260528-06";
-import { renderRoomSidebar } from "./views/roomMessageListView.js?v=20260602-02";
+import { renderRoomSidebar } from "./views/roomMessageListView.js?v=20260602-03";
 
 export function renderQuickReplyDialog() {
   return renderQuickReplyDialogView({

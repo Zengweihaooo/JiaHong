@@ -56,11 +56,23 @@ export function getNextOngoingVideoConsultationRecord(records = [], { excludeRec
   return getPreferredVideoRecord(videoRecords, preferredRecordId);
 }
 
-export function getMessageListRecords(records = [], { type = "all", state = "ongoing", activeVideoRecordId = "" } = {}) {
+function collapseOngoingVideoRecords(records = [], activeVideoRecordId = "") {
+  const preferredVideo = getPreferredVideoRecord(records, activeVideoRecordId);
+  if (!preferredVideo) return records;
+  return records.filter((record) => record.type !== "video" || record.id === preferredVideo.id);
+}
+
+export function getMessageListRecords(
+  records = [],
+  { type = "all", state = "ongoing", activeVideoRecordId = "", collapseVideoQueue = false } = {}
+) {
   const filteredRecords = records.filter(
     (record) => (type === "all" || record.type === type) && record.state === state
   );
-  const sortedRecords = sortOngoingContactRecords(filteredRecords, { activeVideoRecordId });
+  const displayRecords = state === "ongoing" && collapseVideoQueue
+    ? collapseOngoingVideoRecords(filteredRecords, activeVideoRecordId)
+    : filteredRecords;
+  const sortedRecords = sortOngoingContactRecords(displayRecords, { activeVideoRecordId });
   return state === "ongoing" ? sortedRecords.slice(0, maxVisibleOngoingConsultations) : sortedRecords;
 }
 

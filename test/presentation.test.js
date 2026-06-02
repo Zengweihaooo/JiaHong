@@ -141,40 +141,61 @@ test("quick entry duplicate checks match existing cards by feature or title", as
   assert.equal(isQuickEntryAlreadyUsed(grid, { title: "患者随访" }, followUpCard), false);
 });
 
-test("video contact list keeps the active video expanded while other videos stay compact", async () => {
+test("video contact list only renders one ongoing video while the video queue is active", async () => {
   setupBrowserGlobals("/room/");
-  const { renderMessageItem } = await import("../src/presentation/views/roomMessageListView.js?video-contact-list");
-  const activeVideo = {
-    id: "video_active",
-    type: "video",
-    state: "ongoing",
-    title: "武汉市好药师大药房",
-    preview: "您好！请问那个药...",
-    unreadCount: 3,
-    targetView: "video"
-  };
-  const waitingVideo = {
-    id: "video_waiting",
-    type: "video",
-    state: "ongoing",
-    title: "武汉市好药师大药房",
-    preview: "另一条视频问诊",
-    unreadCount: 1,
-    targetView: "video"
-  };
+  const { hydrateAppData } = await import("../src/application/state/dataStore.js");
+  const { activeVideoConsultationState } = await import("../src/application/state/runtimeState.js?v=20260528-06");
+  hydrateAppData({
+    schemaVersion: 1,
+    consultations: {
+      records: [
+        {
+          id: "video_active",
+          type: "video",
+          state: "ongoing",
+          title: "当前视频药房",
+          preview: "您好！请问那个药...",
+          unreadCount: 3,
+          targetView: "video",
+          time: "10:00"
+        },
+        {
+          id: "video_waiting",
+          type: "video",
+          state: "ongoing",
+          title: "等待视频药房",
+          preview: "另一条视频问诊",
+          unreadCount: 1,
+          targetView: "video",
+          time: "10:01"
+        },
+        {
+          id: "text_1",
+          type: "text",
+          state: "ongoing",
+          title: "图文药房",
+          preview: "图文问诊",
+          unreadCount: 1,
+          targetView: "text",
+          time: "10:02"
+        }
+      ],
+      ongoingChats: {}
+    },
+    navigation: { menuGroups: [] },
+    home: { quickActions: [], quickEntryOptions: [], announcements: [] },
+    services: [],
+    quickReplies: { categories: [], messages: [] }
+  });
+  activeVideoConsultationState.recordId = "video_active";
 
-  const activeMarkup = renderMessageItem(activeVideo, false, 0, "video_active");
-  assert.match(activeMarkup, /is-current-video/);
-  assert.match(activeMarkup, /message-item__current/);
-  assert.match(activeMarkup, /您好！请问那个药/);
-  assert.doesNotMatch(activeMarkup, /message-item--compact/);
-  assert.doesNotMatch(activeMarkup, /message-item__badge/);
-
-  const waitingMarkup = renderMessageItem(waitingVideo, false, 1, "video_active");
-  assert.match(waitingMarkup, /message-item--compact/);
-  assert.match(waitingMarkup, /message-item__badge/);
-  assert.doesNotMatch(waitingMarkup, /另一条视频问诊/);
-  assert.doesNotMatch(waitingMarkup, /message-item__current/);
+  const { renderMessageList } = await import("../src/presentation/views/roomMessageListView.js?video-contact-list");
+  const markup = renderMessageList({ state: "ongoing", activeRecord: "text_1" });
+  assert.match(markup, /当前视频药房/);
+  assert.match(markup, /is-current-video/);
+  assert.match(markup, /您好！请问那个药/);
+  assert.doesNotMatch(markup, /等待视频药房/);
+  assert.match(markup, /图文药房/);
 });
 
 test("medicine table renders empty, editable, readonly, escaped, and warning states", async () => {

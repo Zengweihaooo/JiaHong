@@ -1,5 +1,5 @@
 import { appView, assetUrl, getSessionIdParam } from "../../shared/core.js";
-import { contactLayoutTypeOrder, getMessageListRecords } from "../../domain/consultationQueue.js";
+import { contactLayoutTypeOrder, getMessageListRecords } from "../../domain/consultationQueue.js?v=20260602-03";
 import { renderData, renderRuntime } from "../../application/viewModels/renderViewModel.js?v=20260528-06";
 import {
   getActiveVideoConsultationRecordId,
@@ -63,7 +63,12 @@ export function renderRoomSidebar() {
 
 export function renderMessageList({ type = "all", state = "ongoing", activeRecord = "" } = {}) {
   const activeVideoRecordId = getActiveVideoConsultationRecordId(activeRecord);
-  const records = getMessageListRecords(renderData.consultationRecords, { type, state, activeVideoRecordId });
+  const records = getMessageListRecords(renderData.consultationRecords, {
+    type,
+    state,
+    activeVideoRecordId,
+    collapseVideoQueue: true
+  });
   if (type !== "all") {
     return records
       .map((record, index) => renderMessageItem(record, record.id === activeRecord, index, activeVideoRecordId))
