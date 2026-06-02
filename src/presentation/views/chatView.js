@@ -11,7 +11,6 @@ export function renderChatInput({ className = "" } = {}) {
   return `
     <div class="jh-chat-input${className ? ` ${className}` : ""}">
       <div class="jh-chat-input__top">
-        ${renderButton({ text: "智能回复", tone: "outline-primary", className: "quick-reply-trigger" })}
         <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
       </div>
       <div class="jh-chat-input__actions">
@@ -103,6 +102,7 @@ export function renderAiReplyComposer(record = null) {
         <div class="ai-reply__title">
           <span class="ai-spark" aria-hidden="true"></span>
           <h3>智能推荐回复</h3>
+          ${renderButton({ text: "智能回复", tone: "outline-primary", className: "quick-reply-trigger", size: "sm" })}
         </div>
         <p class="ai-reply__hint">双击智能回复展开或收起智能回复</p>
         <div class="ai-reply__actions">

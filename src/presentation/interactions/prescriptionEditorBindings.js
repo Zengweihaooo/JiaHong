@@ -56,6 +56,60 @@ function hideResolvedInlineRiskWarning(panel) {
   panel?.classList.remove("has-inline-risk-warning");
 }
 
+function hideMedicineRiskTip(panel) {
+  const tip = panel?.querySelector("[data-medicine-risk-tip]");
+  if (!tip) return;
+  tip.hidden = true;
+  delete tip.dataset.activeMedicineIndex;
+}
+
+function showMedicineRiskTip(panel, row) {
+  const tip = panel?.querySelector("[data-medicine-risk-tip]");
+  if (!tip || !row) return;
+  const message = row.dataset.warningMessage || "";
+  const suggestion = row.dataset.warningSuggestion || "";
+  const messageNode = tip.querySelector("[data-medicine-risk-message]");
+  const suggestionNode = tip.querySelector("[data-medicine-risk-suggestion]");
+  if (messageNode) messageNode.textContent = message;
+  if (suggestionNode) suggestionNode.textContent = suggestion;
+  tip.dataset.activeMedicineIndex = row.dataset.medicineIndex || "";
+  tip.hidden = false;
+}
+
+function getRowWarningLevel(medicine = {}) {
+  const priority = { general: 1, severe: 2, must: 3 };
+  const statuses = Object.values(medicine.warningColumns || {}).filter((value) => priority[value]);
+  if (!statuses.length) return Array.isArray(medicine.warningFields) && medicine.warningFields.length ? "severe" : "";
+  return statuses.reduce((current, next) => (priority[next] > priority[current] ? next : current), "general");
+}
+
+function applyMedicineRowWarningState(row, result) {
+  const rowIndex = Number(row?.dataset.medicineIndex || 0);
+  const medicine = result?.record?.prescriptionMedicines?.find((item) => Number(item.index) === rowIndex);
+  if (!row || !medicine) return;
+  const panel = row.closest(".prescription-panel");
+  const level = getRowWarningLevel(medicine);
+  row.classList.remove("medicine-table__row--warning-linked", "medicine-table__row--warning-must", "medicine-table__row--warning-severe", "medicine-table__row--warning-general");
+  if (!level) {
+    delete row.dataset.warningLevel;
+    delete row.dataset.warningMessage;
+    delete row.dataset.warningSuggestion;
+    const tip = panel?.querySelector("[data-medicine-risk-tip]");
+    if (tip?.dataset.activeMedicineIndex === String(row.dataset.medicineIndex || "")) {
+      hideMedicineRiskTip(panel);
+    }
+    return;
+  }
+  row.classList.add("medicine-table__row--warning-linked", `medicine-table__row--warning-${level}`);
+  row.dataset.warningLevel = level;
+  row.dataset.warningMessage = medicine.warningMessage || `[警示信息]${medicine.name || "当前药品"}需完成风险核对`;
+  row.dataset.warningSuggestion = medicine.warningSuggestion || "[建议信息]请结合患者基础信息、过敏史和用药风险完成处方确认。";
+  const tip = panel?.querySelector("[data-medicine-risk-tip]");
+  if (tip?.dataset.activeMedicineIndex === String(row.dataset.medicineIndex || "")) {
+    showMedicineRiskTip(panel, row);
+  }
+}
+
 async function renderDiagnosisDropdown(input) {
   const panel = input.closest(".prescription-panel");
   const dropdown = panel?.querySelector(".diagnosis-options");
@@ -303,6 +357,18 @@ export function bindPrescriptionEditor() {
   });
   bindMedicineUsageControls(panel);
   bindMedicineUnitControls(panel);
+  const riskTip = panel.querySelector("[data-medicine-risk-tip]");
+  riskTip?.querySelector(".medicine-risk-tip__close")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    hideMedicineRiskTip(panel);
+  });
+  panel.querySelectorAll(".medicine-table__row[data-warning-level]").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("input, button, .medicine-usage-options, .medicine-unit-options")) return;
+      showMedicineRiskTip(panel, row);
+    });
+  });
   panel.querySelectorAll(".medicine-edit-field[data-medicine-field]").forEach((input) => {
     input.addEventListener("input", () => {
       const row = input.closest("[data-medicine-index]");
@@ -318,6 +384,7 @@ export function bindPrescriptionEditor() {
       if (result.medicineWarningsResolved) {
         row?.classList.remove("medicine-table__row--warning-linked");
       }
+      applyMedicineRowWarningState(row, result);
       if (result.recordWarningsResolved) {
         hideResolvedInlineRiskWarning(panel);
       }
@@ -336,6 +403,7 @@ export function bindPrescriptionEditor() {
       if (result.medicineWarningsResolved) {
         row?.classList.remove("medicine-table__row--warning-linked");
       }
+      applyMedicineRowWarningState(row, result);
       if (result.recordWarningsResolved) {
         hideResolvedInlineRiskWarning(panel);
       }

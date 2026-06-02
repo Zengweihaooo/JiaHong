@@ -105,13 +105,15 @@ export function updateMedicineFieldInActiveRecord(index, field, value, context =
   medicine[field] = nextValue;
 
   const warningFields = Array.isArray(medicine.warningFields) ? medicine.warningFields : [];
+  const previousWarningColumns = medicine.warningColumns || {};
   const fieldWarningCleared = warningFields.includes(field) && nextValue && nextValue !== previousValue;
   if (fieldWarningCleared) {
     medicine.warningFields = warningFields.filter((item) => item !== field);
     if (medicine.warningFields.length) {
       medicine.warningColumns = medicine.warningFields.reduce((columns, warningField) => {
         const column = warningFieldColumns[warningField];
-        return column ? { ...columns, [column]: "severe" } : columns;
+        if (!column) return columns;
+        return { ...columns, [column]: previousWarningColumns[column] || "severe" };
       }, {});
     } else {
       delete medicine.warningFields;

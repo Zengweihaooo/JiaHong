@@ -12,6 +12,13 @@ function getMedicineWarningFields(row = {}) {
   return new Set(Array.isArray(row.warningFields) ? row.warningFields : []);
 }
 
+function getMedicineRowWarningLevel(row = {}) {
+  const statusPriority = { general: 1, severe: 2, must: 3 };
+  const statuses = Object.values(row.warningColumns || {}).filter((value) => statusPriority[value]);
+  if (!statuses.length) return Array.isArray(row.warningFields) && row.warningFields.length ? "severe" : "";
+  return statuses.reduce((current, next) => (statusPriority[next] > statusPriority[current] ? next : current), "general");
+}
+
 function getMedicineWarningClass(warningFields, field) {
   return warningFields.has(field) ? " medicine-warning-target" : "";
 }
@@ -98,10 +105,18 @@ function renderUnitSelector(row, warningFields, readonly = false) {
 
 export function renderMedicineTableRow(row, readonly = false) {
   const warningFields = getMedicineWarningFields(row);
-  const rowWarningClass = warningFields.size ? " medicine-table__row--warning-linked" : "";
+  const rowWarningLevel = getMedicineRowWarningLevel(row);
+  const rowWarningClass = rowWarningLevel ? ` medicine-table__row--warning-linked medicine-table__row--warning-${rowWarningLevel}` : "";
+  const warningMessage = row.warningMessage || `[警示信息]${row.name || "当前药品"}需完成风险核对`;
+  const warningSuggestion = row.warningSuggestion || "[建议信息]请结合患者基础信息、过敏史和用药风险完成处方确认。";
 
   return `
-    <div class="medicine-table__row${rowWarningClass}" data-medicine-index="${row.index}" data-medicine-name="${escapeHtml(row.name)}">
+    <div
+      class="medicine-table__row${rowWarningClass}"
+      data-medicine-index="${row.index}"
+      data-medicine-name="${escapeHtml(row.name)}"
+      ${rowWarningLevel ? `data-warning-level="${rowWarningLevel}" data-warning-message="${escapeHtml(warningMessage)}" data-warning-suggestion="${escapeHtml(warningSuggestion)}"` : ""}
+    >
       <span>${row.index}</span>
       <span class="${getMedicineWarningClass(warningFields, "name").trim()}">${escapeHtml(row.name)}</span>
       <span>${escapeHtml(row.type)}</span>
@@ -109,7 +124,7 @@ export function renderMedicineTableRow(row, readonly = false) {
       ${renderFieldCombobox(row, warningFields, "usage", "用法", readonly)}
       ${renderFieldCombobox(row, warningFields, "frequency", "服用频次", readonly)}
       ${renderFieldCombobox(row, warningFields, "dose", "用量", readonly)}
-      <span>${escapeHtml(row.quantity)}</span>
+      ${renderEditableBox(row, warningFields, "quantity", "数量", readonly)}
       ${renderUnitSelector(row, warningFields, readonly)}
       ${renderRiskTag({ text: row.risk, size: "sm", className: "risk-small" })}
       ${

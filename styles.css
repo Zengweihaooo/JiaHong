@@ -4610,6 +4610,11 @@ body.page-view-room {
   gap: 10px;
 }
 
+.ai-reply__title .quick-reply-trigger {
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+
 .ai-spark {
   width: 29px;
   height: 29px;
@@ -4764,11 +4769,6 @@ body.page-view-room {
   border: 1px solid #eceef0;
   border-radius: 8px;
   background: #ffffff;
-}
-
-.jh-chat-input__top > .jh-btn--outline-primary {
-  width: 72px;
-  min-width: 0;
 }
 
 .jh-chat-input__top {
@@ -5837,9 +5837,9 @@ body.page-view-room {
 .patient-info {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin: 16px 24px;
-  padding: 24px 0;
+  gap: 16px;
+  margin: 10px 24px;
+  padding: 16px 0;
   background: #ffffff;
 }
 
@@ -5867,7 +5867,7 @@ body.page-view-room {
   min-width: 0;
   color: var(--jh-text-secondary);
   font-size: 14px;
-  line-height: 22px;
+  line-height: 20px;
 }
 
 .patient-info__meta span {
@@ -5880,17 +5880,17 @@ body.page-view-room {
 .patient-info__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px clamp(40px, 8%, 80px);
+  gap: 12px clamp(32px, 7%, 72px);
   color: var(--jh-text-secondary);
   font-size: 14px;
-  line-height: 22px;
+  line-height: 20px;
 }
 
 .patient-info__field {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -5910,8 +5910,8 @@ body.page-view-room {
   align-items: center;
   width: 100%;
   min-width: 0;
-  height: 38px;
-  padding: 8px 16px;
+  height: 34px;
+  padding: 6px 12px;
   overflow: hidden;
   border-radius: 4px;
   background: #f8f8f9;
@@ -6571,7 +6571,99 @@ body.page-view-room {
 }
 
 .medicine-table__row--warning-linked {
-  background: #fffafa;
+  cursor: pointer;
+}
+
+.medicine-table__row--warning-general {
+  background: #fffaf0;
+}
+
+.medicine-table__row--warning-severe {
+  background: #fff5f5;
+}
+
+.medicine-table__row--warning-must {
+  background: #ffecec;
+}
+
+.medicine-table__row--warning-linked:hover {
+  filter: brightness(0.995);
+}
+
+.medicine-risk-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 24px 0;
+  padding: 12px;
+  border: 1px solid #ffd7d7;
+  border-radius: 8px;
+  background: #fff7f7;
+}
+
+.medicine-risk-tip[hidden] {
+  display: none;
+}
+
+.medicine-risk-tip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.medicine-risk-tip__head h4 {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.medicine-risk-tip__close {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: #ffe8e8;
+  cursor: pointer;
+}
+
+.medicine-risk-tip__close::before,
+.medicine-risk-tip__close::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 5px;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: #b42318;
+}
+
+.medicine-risk-tip__close::before {
+  transform: rotate(45deg);
+}
+
+.medicine-risk-tip__close::after {
+  transform: rotate(-45deg);
+}
+
+.medicine-risk-tip__message,
+.medicine-risk-tip__suggestion {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.medicine-risk-tip__message {
+  color: #d92d20;
+}
+
+.medicine-risk-tip__suggestion {
+  color: #6b7280;
 }
 
 .table-input {
@@ -6745,7 +6837,8 @@ body.page-view-room {
   justify-self: center;
 }
 
-.medicine-table__row > span:nth-child(8) {
+.medicine-table__row > span:nth-child(8),
+.medicine-table__row > input[data-medicine-field="quantity"] {
   color: var(--jh-table-strong-text);
   text-align: center;
 }

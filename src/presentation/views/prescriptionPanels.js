@@ -122,6 +122,18 @@ function renderMedicineSection({ medicines, readonly = false, className = "" }) 
       </div>`;
 }
 
+function renderMedicineRiskTip() {
+  return `
+    <section class="medicine-risk-tip" data-medicine-risk-tip role="dialog" aria-label="药品风险提示" hidden>
+      <div class="medicine-risk-tip__head">
+        <h4>药品风险提示</h4>
+        <button class="medicine-risk-tip__close" type="button" aria-label="关闭风险提示"></button>
+      </div>
+      <p class="medicine-risk-tip__message" data-medicine-risk-message></p>
+      <p class="medicine-risk-tip__suggestion" data-medicine-risk-suggestion></p>
+    </section>`;
+}
+
 const inlineRiskWarningHeaders = [
   "药品名称",
   "患者条件",
@@ -221,7 +233,7 @@ export function renderPrescriptionPanel(options = {}) {
       ${renderDiagnosisSection({ title: "疾病信息", diagnosisTags, readonly, treatmentAdvice: null })}
       <div class="section-divider"></div>
       ${renderMedicineSection({ medicines: medicineRows, readonly })}
-      ${readonly ? "" : renderInlineRiskWarning(medicineRows, Boolean(record?.inlineRiskWarningVisible))}
+      ${readonly ? "" : renderMedicineRiskTip()}
       ${renderPrescriptionActions({ readonly, videoSubmitLock, prescriptionSubmitted: Boolean(record?.prescriptionSubmitted) })}
     </section>`;
 }
@@ -244,6 +256,7 @@ export function renderConsultationPanel(options = {}) {
       })}
       <div class="section-divider"></div>
       ${renderMedicineSection({ medicines, readonly, className: "consultation-medicine-section" })}
+      ${readonly ? "" : renderMedicineRiskTip()}
       ${renderPrescriptionActions({ readonly, consultation: true })}
     </section>`;
 }

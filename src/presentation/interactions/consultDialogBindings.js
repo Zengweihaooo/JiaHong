@@ -3,7 +3,6 @@ import {
   activePrescriptionHasWarnings,
   openRiskReviewForActiveConsultation,
   resolveActiveConsultation,
-  showPrescriptionWarningsForActiveConsultation,
   submitPrescriptionForActiveConsultation
 } from "../../application/controllers/consultationController.js";
 import {
@@ -46,41 +45,10 @@ function setPrescriptionSubmittedControlsState(submitted) {
   });
 }
 
-function revealInlineRiskWarning() {
-  const warning = document.querySelector("[data-inline-risk-warning]");
-  const panel = warning?.closest(".prescription-panel");
-  if (!warning || !panel) return;
-  warning.hidden = false;
-  warning.classList.add("is-visible");
-  panel.classList.add("has-inline-risk-warning");
-  const scrollToWarning = () => {
-    panel.scrollTo({
-      top: panel.scrollHeight,
-      behavior: "smooth"
-    });
-    warning.scrollIntoView({
-      block: "end",
-      behavior: "smooth"
-    });
-  };
-  scrollToWarning();
-  window.requestAnimationFrame(scrollToWarning);
-}
-
 export async function requestPrescriptionSubmit() {
   const context = getConsultContext();
   if (activePrescriptionHasWarnings(context)) {
-    const inlineWarning = document.querySelector("[data-inline-risk-warning]");
-    if (inlineWarning && !inlineWarning.hidden) {
-      revealInlineRiskWarning();
-      return;
-    }
-    try {
-      await showPrescriptionWarningsForActiveConsultation(context);
-    } catch {
-      showToast("问诊状态同步失败");
-    }
-    openRiskWarningDialog({ revealInlineOnClose: true, syncRiskReview: false });
+    showToast("存在用药风险，请点击高亮药品行查看具体提示并完成修改");
     return;
   }
   try {
@@ -111,13 +79,8 @@ export function openRiskWarningDialog({ revealInlineOnClose = false, syncRiskRev
 function closeRiskWarningDialog() {
   const overlay = document.querySelector(".risk-warning-overlay");
   if (!overlay) return;
-  const wasOpen = overlay.classList.contains("is-open");
-  const shouldRevealInline = overlay.dataset.revealInlineOnClose === "true";
   delete overlay.dataset.revealInlineOnClose;
   setOverlayOpen(overlay, false);
-  if (wasOpen && shouldRevealInline) {
-    revealInlineRiskWarning();
-  }
 }
 
 export function openConsultAttachmentDialog(button, event) {
