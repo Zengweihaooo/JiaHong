@@ -9,7 +9,7 @@ import {
 } from "../components/primitives.js";
 import { icons, renderQuickEntryIcon } from "../ui/icons.js";
 import { renderQuickCardMarkup } from "../components/quickEntryCards.js?v=20260604-01";
-export { renderScheduleDialog } from "./homeSchedulePanel.js?v=20260603-03";
+export { renderScheduleDialog } from "./homeSchedulePanel.js?v=20260604-01";
 import { maxQuickActionCards } from "../../domain/quickEntries.js?v=20260602-01";
 
 export function renderWaitingCard() {

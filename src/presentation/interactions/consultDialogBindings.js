@@ -88,6 +88,7 @@ export function openConsultAttachmentDialog(button, event) {
   const overlay = document.querySelector(".consult-attachment-overlay");
   if (!overlay) return;
   markFollowUpVoucherViewed(button);
+  markConsultAttachmentViewed(button);
   const index = button?.dataset.consultAttachmentIndex || "1";
   const total = button?.dataset.consultAttachmentTotal || "4";
   const title = button?.dataset.consultAttachmentTitle || `附件${index}`;
@@ -126,6 +127,15 @@ function markFollowUpVoucherViewed(button) {
   button.classList.add("followup-voucher-item--viewed");
   const label = button.getAttribute("aria-label") || "";
   button.setAttribute("aria-label", label.replace("请点击检查复诊凭证：", "已检查复诊凭证："));
+}
+
+function markConsultAttachmentViewed(button) {
+  if (button?.dataset?.consultAttachmentStatus !== "unread") return;
+  button.dataset.consultAttachmentStatus = "read";
+  button.classList.remove("consult-attachment--unread");
+  button.classList.add("consult-attachment--read");
+  const title = button.dataset.consultAttachmentTitle || "附件";
+  button.setAttribute("aria-label", `已读病例附件：预览${title}`);
 }
 
 function switchConsultAttachment(direction, event) {

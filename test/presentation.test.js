@@ -158,9 +158,14 @@ test("schedule panel renders punch controls and ending-soon warning state", asyn
   const { renderSchedulePanel } = await import("../src/presentation/views/homeSchedulePanel.js?schedule-punch");
 
   const markup = renderSchedulePanel({ hidden: false, titleId: "schedule-title-test" });
-  assert.match(markup, /近期排班/);
+  assert.match(markup, /今日排班/);
+  assert.match(markup, /schedule-day-grid/);
+  assert.match(markup, /6月3日/);
+  assert.match(markup, /上午  00:00–12:00/);
+  assert.match(markup, /下午  12:00–24:00/);
   assert.match(markup, /schedule-panel__punch schedule-panel__punch--warning/);
   assert.match(markup, /立即打卡/);
+  assert.match(markup, /待打卡/);
   assert.match(markup, /已打卡：/);
   assert.match(markup, /待打卡：/);
 });
@@ -320,6 +325,30 @@ test("follow-up vouchers render for text and video consultations with image and 
   assert.equal(renderFollowUpVoucherCard({ id: "consult_1", type: "consult" }), "");
   assert.equal(getFollowUpVoucher({ id: "video_1", type: "video" })?.images.length >= 0, true);
   assert.match(renderFollowUpVoiceDialog(), /followup-voice-overlay/);
+});
+
+test("consult case attachments render unread state without styling message list cards", async () => {
+  setupBrowserGlobals("/text/");
+  const { renderConsultInfoCard } = await import("../src/presentation/views/chatView.js?consult-case-attachments");
+  const { renderMessageItem } = await import("../src/presentation/views/roomMessageListView.js?message-card-no-read-border");
+
+  const consultInfo = renderConsultInfoCard({
+    id: "consult_attachments",
+    type: "consult",
+    consultInfo: {
+      attachments: [{ title: "病例附件1", image: "assets/figma-consult/attachment-preview.png" }]
+    }
+  });
+  assert.match(consultInfo, /病例信息/);
+  assert.match(consultInfo, /consult-attachment--unread/);
+  assert.match(consultInfo, /data-consult-attachment-status="unread"/);
+
+  const messageItem = renderMessageItem(
+    { id: "consult_message", type: "consult", state: "ongoing", title: "咨询消息", preview: "病例附件待查看", unreadCount: 1 },
+    false
+  );
+  assert.match(messageItem, /message-item__badge/);
+  assert.doesNotMatch(messageItem, /message-item--unread|message-item--read/);
 });
 
 test("room main keeps empty state without queue and shows pending workspace with queue", async () => {

@@ -4,7 +4,7 @@ import { renderData } from "../../application/viewModels/renderViewModel.js?v=20
 import { renderButton, renderLabelTag, renderReadTag } from "../components/primitives.js";
 import { renderPrescriptionPanel } from "./prescriptionPanels.js?v=20260604-01";
 import { getDefaultEndedRenderRecord } from "./renderRecordSelectors.js?v=20260528-06";
-import { renderRoomSidebar } from "./roomMessageListView.js?v=20260528-06";
+import { renderRoomSidebar } from "./roomMessageListView.js?v=20260604-02";
 import { renderRoomTopbar } from "./roomShellView.js?v=20260528-06";
 
 export function getConsultMainClass() {

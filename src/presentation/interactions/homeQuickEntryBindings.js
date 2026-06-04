@@ -192,6 +192,13 @@ function bindQuickSchedulePanel() {
       const unpunchedCount = panel?.querySelector("[data-schedule-unpunched-count]");
       if (punchedCount) punchedCount.textContent = String(Number(punchedCount.textContent || 0) + 1);
       if (unpunchedCount) unpunchedCount.textContent = String(Math.max(0, Number(unpunchedCount.textContent || 0) - 1));
+      panel?.querySelectorAll('[data-schedule-active-status="true"]').forEach((status) => {
+        status.textContent = "✓";
+        status.setAttribute("aria-label", "已打卡");
+        status.classList.remove("schedule-day-block__status--warning");
+        status.classList.add("schedule-day-block__status--done");
+      });
+      panel?.querySelector(".schedule-day-grid__missed-callout")?.remove();
       document.querySelectorAll('.quick-card[data-attention="unpunched-schedule"]').forEach((card) => {
         delete card.dataset.attention;
         card.querySelector(".quick-card__attention-dot")?.remove();
