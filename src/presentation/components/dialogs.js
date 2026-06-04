@@ -35,7 +35,7 @@ export function renderQuickReplyDialogView({ categories = [], messages = [] } = 
               .join("")}
           </div>
         </div>
-        <footer class="quick-reply-dialog__footer">单击快捷用语填入输入框，双击即可发送</footer>
+        <footer class="quick-reply-dialog__footer">单击快捷用语填入输入框并关闭，双击即可发送</footer>
       </section>
     </div>`;
 }

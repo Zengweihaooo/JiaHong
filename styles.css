@@ -1705,7 +1705,7 @@ button {
   gap: 8px;
 }
 
-.notice-card__unread-dot,
+.announcement__unread-dot,
 .announcement-list-item__unread-dot {
   display: inline-block;
   flex: 0 0 auto;
@@ -6197,8 +6197,12 @@ body.page-view-room {
   line-height: 22px;
 }
 
-.announcement-list-item__tag {
-  flex: 0 0 auto;
+.announcement-list-item__title-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .announcement-list-item__summary,

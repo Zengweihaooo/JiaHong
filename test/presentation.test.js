@@ -144,13 +144,14 @@ test("home announcements render history entry and read state", async () => {
 
   const noticeMarkup = renderNoticeCard();
   assert.match(noticeMarkup, /查看历史公告/);
-  assert.match(noticeMarkup, /jh-read-tag--read/);
+  assert.doesNotMatch(noticeMarkup, /jh-read-tag--read|jh-read-tag--unread/);
   assert.doesNotMatch(noticeMarkup, /notice-card__unread-dot/);
 
   const historyMarkup = renderAnnouncementListDialog();
   assert.match(historyMarkup, /历史公告/);
   assert.match(historyMarkup, /第二条公告/);
   assert.match(historyMarkup, /announcement-list-item__unread-dot/);
+  assert.doesNotMatch(historyMarkup, /announcement-list-item__tag|jh-read-tag--read|jh-read-tag--unread/);
 });
 
 test("schedule panel renders punch controls and ending-soon warning state", async () => {

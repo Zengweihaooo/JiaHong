@@ -267,6 +267,7 @@ export function bindConsultConfirmDialogs() {
 function bindQuickReplyOverlay() {
   const quickReplyOverlay = document.querySelector(".quick-reply-overlay");
   if (!quickReplyOverlay) return;
+  let closeQuickReplyTimer = 0;
 
   bindOverlayDismiss(quickReplyOverlay, {
     close: closeQuickReplyDialog,
@@ -287,8 +288,12 @@ function bindQuickReplyOverlay() {
     event?.stopPropagation();
     const didFill = fillChatInput(message.textContent);
     if (send && didFill) {
+      window.clearTimeout(closeQuickReplyTimer);
       sendChatInputMessage(document.querySelector(".jh-chat-input textarea"));
       window.setTimeout(closeQuickReplyDialog, 120);
+    } else if (didFill) {
+      window.clearTimeout(closeQuickReplyTimer);
+      closeQuickReplyTimer = window.setTimeout(closeQuickReplyDialog, 360);
     }
   };
 

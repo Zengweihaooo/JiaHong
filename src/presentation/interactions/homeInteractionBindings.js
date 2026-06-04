@@ -12,27 +12,18 @@ import {
 import { applyRuntimeStateToDom } from "./runtimeUiBindings.js?v=20260528-06";
 import { bindQuickEntryInteractions, closeQuickEntryDialog, closeQuickSchedulePanel } from "./homeQuickEntryBindings.js?v=20260604-02";
 
-function setReadTagState(tag, read) {
-  if (!tag) return;
-  tag.classList.toggle("jh-read-tag--unread", !read);
-  tag.classList.toggle("jh-read-tag--read", read);
-  tag.textContent = read ? "已读" : "未读";
-}
-
 function syncAnnouncementReadState(announcementId) {
   const latestTrigger = document.querySelector(".announcement__detail-trigger");
   const isLatestAnnouncement = latestTrigger?.dataset.announcementId === announcementId;
   if (isLatestAnnouncement) {
     const noticeCard = document.querySelector(".notice-card");
     noticeCard?.classList.remove("notice-card--unread");
-    noticeCard?.querySelector(".notice-card__unread-dot")?.remove();
-    setReadTagState(noticeCard?.querySelector(".announcement-tag"), true);
+    noticeCard?.querySelector(".announcement__unread-dot")?.remove();
   }
 
   const listItem = Array.from(document.querySelectorAll(".announcement-list-item"))
     .find((item) => item.dataset.announcementId === announcementId);
   listItem?.querySelector(".announcement-list-item__unread-dot")?.remove();
-  setReadTagState(listItem?.querySelector(".announcement-list-item__tag"), true);
 }
 
 function openAnnouncementDialog(event) {

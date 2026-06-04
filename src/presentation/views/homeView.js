@@ -3,7 +3,6 @@ import { renderData, renderRuntime } from "../../application/viewModels/renderVi
 import {
   renderButton,
   renderCheckbox,
-  renderReadTag,
   renderStatusBadge,
   renderSwitch
 } from "../components/primitives.js";
@@ -85,7 +84,7 @@ export function renderNoticeCard() {
       <div class="notice-card__inner">
         <div class="notice-card__head">
           <div class="notice-card__title-row">
-            <h2 class="card__title">最新公告${isUnread ? '<span class="notice-card__unread-dot" aria-label="有未读公告"></span>' : ""}</h2>
+            <h2 class="card__title">最新公告</h2>
             <span class="notice-card__date">${renderData.latestAnnouncement.date}</span>
           </div>
           <div class="divider"></div>
@@ -94,7 +93,7 @@ export function renderNoticeCard() {
           <div class="announcement__top">
             <div class="announcement__title-row">
               <h3 class="announcement__title">${renderData.latestAnnouncement.title}</h3>
-              ${renderReadTag(isUnread ? "unread" : "read", "announcement-tag")}
+              ${isUnread ? '<span class="announcement__unread-dot" aria-label="有未读公告"></span>' : ""}
             </div>
             <div class="announcement__body">${renderData.latestAnnouncement.content.split("\n").slice(0, 2).join("\n")}
 <button class="announcement__detail-trigger" type="button" data-announcement-id="${renderData.latestAnnouncement.id}">……展开详情</button></div>
@@ -145,9 +144,8 @@ export function renderAnnouncementListDialog() {
                 <button class="announcement-list-item" type="button" data-announcement-id="${announcement.id}">
                   <span class="announcement-list-item__main">
                     <span class="announcement-list-item__title">
+                      <span class="announcement-list-item__title-text">${announcement.title}</span>
                       ${announcement.unread ? '<span class="announcement-list-item__unread-dot" aria-label="未读公告"></span>' : ""}
-                      ${announcement.title}
-                      ${announcement.unread ? renderReadTag("unread", "announcement-list-item__tag") : renderReadTag("read", "announcement-list-item__tag")}
                     </span>
                     <span class="announcement-list-item__summary">${announcement.content.split("\n")[0]}</span>
                   </span>
