@@ -2,7 +2,7 @@ import { appView, getSessionIdParam } from "../../shared/core.js";
 import { normalizeArchivedConsultationRecord } from "../../domain/archivedConsultation.js";
 import { renderData } from "../../application/viewModels/renderViewModel.js?v=20260528-06";
 import { renderButton, renderLabelTag, renderReadTag } from "../components/primitives.js";
-import { renderPrescriptionPanel } from "./prescriptionPanels.js?v=20260604-01";
+import { renderPrescriptionPanel } from "./prescriptionPanels.js?v=20260604-02";
 import { getDefaultEndedRenderRecord } from "./renderRecordSelectors.js?v=20260528-06";
 import { renderRoomSidebar } from "./roomMessageListView.js?v=20260604-02";
 import { renderRoomTopbar } from "./roomShellView.js?v=20260528-06";

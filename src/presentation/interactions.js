@@ -4,7 +4,7 @@ import { refreshRealtimeState } from "../application/controllers/realtimeControl
 import { subscribeToRuntimeState } from "../application/controllers/runtimeController.js?v=20260528-06";
 import { isConsultReadonlyView } from "./ui/dom.js";
 import { showToast } from "./ui/interactionPrimitives.js?v=20260527-36";
-import { formatDuration, getDurationTone } from "./components/primitives.js?v=20260527-36";
+import { formatDuration, getDurationTone } from "./components/primitives.js?v=20260604-37";
 import {
   applyRuntimeStateToDom,
   bindDoctorStatusMenus,
@@ -21,23 +21,23 @@ import {
   bindChatMessageMenu,
   closeChatMessageMenu,
   configureChatBindings
-} from "./interactions/chatBindings.js";
-import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260604-03";
+} from "./interactions/chatBindings.js?v=20260604-02";
+import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260604-09";
 import { bindDragScrollContainers } from "./interactions/dragScrollBindings.js?v=20260527-45";
-import { configurePrescriptionEditorBindings } from "./interactions/prescriptionEditorBindings.js?v=20260604-01";
+import { configurePrescriptionEditorBindings } from "./interactions/prescriptionEditorBindings.js?v=20260604-06";
 import { bindHomeInteractions, closeHomeOverlays } from "./interactions/homeInteractionBindings.js?v=20260604-03";
 import {
   bindConsultConfirmDialogs,
   bindConsultDialogOverlays,
   closeConsultDialogOverlays,
   configureConsultDialogBindings
-} from "./interactions/consultDialogBindings.js?v=20260604-02";
+} from "./interactions/consultDialogBindings.js?v=20260604-04";
 import {
   bindRoomInteractions,
   configureRoomInteractionBindings,
   handleConsultResolved,
   updateRoomMessageList
-} from "./interactions/roomInteractionBindings.js?v=20260604-02";
+} from "./interactions/roomInteractionBindings.js?v=20260604-04";
 
 function getRouteConsultationContext() {
   return {

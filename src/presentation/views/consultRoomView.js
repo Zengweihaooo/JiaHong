@@ -1,8 +1,8 @@
 import { assetUrl } from "../../shared/core.js";
-import { renderButton, renderDurationChip, renderLabelTag, renderRiskTag } from "../components/primitives.js?v=20260527-36";
+import { renderButton, renderDurationChip, renderLabelTag, renderRiskTag } from "../components/primitives.js?v=20260604-37";
 import { getActiveConsultationRecord } from "./renderRecordSelectors.js?v=20260528-06";
-import { renderAiReplyComposer, renderChatPanel, renderChatThread, renderFollowUpVoucherCard } from "./chatView.js?v=20260604-03";
-import { renderConsultationPanel, renderPrescriptionPanel } from "./prescriptionPanels.js?v=20260604-01";
+import { renderAiReplyComposer, renderChatPanel, renderChatThread, renderConsultInfoCard } from "./chatView.js?v=20260604-10";
+import { renderConsultationPanel, renderPrescriptionPanel } from "./prescriptionPanels.js?v=20260604-02";
 import { renderRoomSidebar } from "./roomMessageListView.js?v=20260604-02";
 import { renderRoomTopbar } from "./roomShellView.js?v=20260528-06";
 import { renderVideoToolbar, videoMediaState } from "./videoMedia.js";
@@ -89,7 +89,7 @@ export function renderVideoChatPanel() {
         </div>
         ${renderVideoToolbar()}
       </div>
-      ${renderFollowUpVoucherCard(record)}
+      ${renderConsultInfoCard(record)}
       ${renderChatThread(record?.id, { threadClass: "video-chat-thread" })}
       <div class="video-input-wrap">
         ${renderAiReplyComposer(record)}

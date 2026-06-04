@@ -3,7 +3,7 @@ import {
   renderConsultConfirmDialogs,
   renderQuickReplyDialogView,
   renderRiskWarningDialogView
-} from "./components/dialogs.js?v=20260527-41";
+} from "./components/dialogs.js?v=20260604-42";
 import { renderData } from "../application/viewModels/renderViewModel.js?v=20260528-06";
 import {
   renderAnnouncementDialog,
@@ -15,14 +15,13 @@ import {
 import {
   renderTextPage,
   renderVideoPage
-} from "./views/consultRoomView.js?v=20260604-05";
-import { renderHistoryPage } from "./views/historyView.js?v=20260604-02";
+} from "./views/consultRoomView.js?v=20260604-12";
+import { renderHistoryPage } from "./views/historyView.js?v=20260604-03";
 import { getActiveConsultationRecord } from "./views/renderRecordSelectors.js?v=20260528-06";
 import {
   renderChatMessageMenu,
-  renderConsultAttachmentDialog,
-  renderFollowUpVoiceDialog
-} from "./views/chatView.js?v=20260604-03";
+  renderConsultAttachmentDialog
+} from "./views/chatView.js?v=20260604-10";
 import {
   renderRoomMain,
   renderRoomTopbar,
@@ -50,8 +49,7 @@ function renderConsultOverlays() {
       ${renderRiskWarningDialog()}
       ${renderConsultConfirmDialogs()}
       ${renderChatMessageMenu()}
-      ${renderConsultAttachmentDialog()}
-      ${renderFollowUpVoiceDialog()}`;
+      ${renderConsultAttachmentDialog()}`;
 }
 
 export function renderRoom() {

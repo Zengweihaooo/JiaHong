@@ -190,6 +190,167 @@
   "consultations": {
     "records": [
       {
+        "id": "demo_multi_medicine_risk_001",
+        "type": "text",
+        "typeLabel": "图文",
+        "state": "ongoing",
+        "title": "多药品风险提示 Demo",
+        "patient": "演示患者",
+        "age": "38岁",
+        "patientGender": "男",
+        "preview": "5种药品中有3种存在冲突，点击风险药品切换查看详情。",
+        "time": "16:45",
+        "badge": 1,
+        "unreadCount": 1,
+        "targetView": "text",
+        "elapsedSeconds": 45,
+        "diagnosis": "急性上呼吸道感染",
+        "diagnosisTags": [
+          "急性上呼吸道感染",
+          "发热"
+        ],
+        "patientDetail": {
+          "weight": "68",
+          "pregnancy": "否",
+          "phone": "13800000001",
+          "liverAbnormal": "否",
+          "idCard": "420106198801010001",
+          "kidneyAbnormal": "否",
+          "allergies": "无"
+        },
+        "consultInfo": {
+          "description": "发热、鼻塞、咽痛2天，既往自行服用复方感冒药后症状缓解不明显。",
+          "attachments": [
+            {
+              "title": "体温记录",
+              "image": "assets/consult-materials/pediatric-fever.png"
+            },
+            {
+              "title": "既往用药照片",
+              "image": "assets/consult-materials/sore-throat.png"
+            }
+          ],
+          "caseVoices": [
+            {
+              "title": "患者补充病史",
+              "duration": 6
+            },
+            {
+              "title": "患者补充用药说明",
+              "duration": 6
+            },
+            {
+              "title": "复方感冒药成分说明",
+              "duration": 9
+            }
+          ]
+        },
+        "prescriptionMedicines": [
+          {
+            "index": 1,
+            "name": "阿莫西林胶囊",
+            "type": "处方药",
+            "spec": "0.25g*24粒",
+            "usage": "口服",
+            "frequency": "3次/日",
+            "dose": "0.5g",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "高"
+          },
+          {
+            "index": 2,
+            "name": "布洛芬缓释胶囊",
+            "type": "处方药",
+            "spec": "0.3g*12粒",
+            "usage": "口服",
+            "frequency": "2次/日",
+            "dose": "0.3g",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "低",
+            "warningFields": [
+              "name"
+            ],
+            "riskWarnings": [
+              {
+                "category": "重复用药",
+                "level": "must"
+              }
+            ],
+            "warningColumns": {
+              "2": "must"
+            },
+            "warningMessage": "[警示信息]布洛芬缓释胶囊与双氯芬酸钠肠溶片同属非甾体抗炎药，联合使用会增加胃肠道出血和肾损伤风险。",
+            "warningSuggestion": "[建议信息]请仅保留一种非甾体抗炎药，并结合疼痛与发热情况调整方案。"
+          },
+          {
+            "index": 3,
+            "name": "双氯芬酸钠肠溶片",
+            "type": "处方药",
+            "spec": "25mg*30片",
+            "usage": "口服",
+            "frequency": "3次/日",
+            "dose": "25mg",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "高",
+            "warningFields": [
+              "name"
+            ],
+            "riskWarnings": [
+              {
+                "category": "相互作用",
+                "level": "severe"
+              }
+            ],
+            "warningColumns": {
+              "5": "severe"
+            },
+            "warningMessage": "[警示信息]双氯芬酸钠肠溶片与布洛芬缓释胶囊作用机制重复，不建议在同一处方中联合使用。",
+            "warningSuggestion": "[建议信息]请停用双氯芬酸钠肠溶片或布洛芬缓释胶囊其中一种，并评估患者胃肠道风险。"
+          },
+          {
+            "index": 4,
+            "name": "氯雷他定片",
+            "type": "处方药",
+            "spec": "10mg*6片",
+            "usage": "口服",
+            "frequency": "1次/日",
+            "dose": "10mg",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "低",
+            "warningFields": [
+              "frequency"
+            ],
+            "riskWarnings": [
+              {
+                "category": "患者条件",
+                "level": "general"
+              }
+            ],
+            "warningColumns": {
+              "1": "general"
+            },
+            "warningMessage": "[警示信息]患者自述正在服用含抗组胺成分的复方感冒药，继续使用氯雷他定片可能造成重复用药。",
+            "warningSuggestion": "[建议信息]请核对患者现用复方感冒药成分，确认无重复抗组胺成分后再开具。"
+          },
+          {
+            "index": 5,
+            "name": "蒲地蓝消炎口服液",
+            "type": "处方药",
+            "spec": "10ml*10支",
+            "usage": "口服",
+            "frequency": "3次/日",
+            "dose": "10ml",
+            "quantity": "1",
+            "unit": "盒",
+            "risk": "低"
+          }
+        ]
+      },
+      {
         "id": "cs_20260519_164213_001",
         "type": "text",
         "typeLabel": "图文",
@@ -719,6 +880,23 @@
       }
     ],
     "ongoingChats": {
+      "demo_multi_medicine_risk_001": {
+        "sessionDate": "2026-05-19 16:45:00",
+        "messages": [
+          {
+            "id": "demo_multi_medicine_risk_001-msg-1",
+            "from": "doctor",
+            "text": "您好，请确认目前正在使用的退热止痛药和复方感冒药名称。",
+            "recalled": false
+          },
+          {
+            "id": "demo_multi_medicine_risk_001-msg-2",
+            "from": "patient",
+            "text": "家里还在吃一种复方感冒药，具体成分不清楚，想一起开些退热止痛药。",
+            "recalled": false
+          }
+        ]
+      },
       "cs_20260519_164213_001": {
         "sessionDate": "2026-05-19 16:42:13",
         "messages": [

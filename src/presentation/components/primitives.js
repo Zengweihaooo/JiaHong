@@ -103,10 +103,10 @@ export function renderReadTag(status = "unread", className = "") {
 }
 
 export function renderRiskTag({ text = "高", size = "sm", className = "" } = {}) {
+  if (text === "中") return "";
   const safeSize = size === "lg" ? "lg" : "sm";
   const riskLevelClass = {
     高: "jh-risk-tag--high",
-    中: "jh-risk-tag--medium",
     低: "jh-risk-tag--low"
   }[text] || "";
   return `<span class="jh-risk-tag jh-risk-tag--${safeSize}${riskLevelClass ? ` ${riskLevelClass}` : ""}${className ? ` ${className}` : ""}">${text}</span>`;

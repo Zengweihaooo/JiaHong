@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
 import { searchDiagnosisCatalog, searchMedicineCatalog } from "../src/infrastructure/api/mockCatalogSearch.js";
 import { createPatientAutoReplyMessage, formatMessageTime } from "../src/infrastructure/api/mockPatientReply.js";
@@ -44,6 +45,30 @@ test("medicine catalog search supports indication matching and keeps medicine/sp
 
   assert.equal(response.items.some((medicine) => medicine.indications?.includes("鼻窦炎")), true);
   assert.equal(new Set(keys).size, keys.length);
+});
+
+test("multi-medicine risk demo contains five medicines and three switchable risk details", async () => {
+  const bootstrap = JSON.parse(
+    await readFile(new URL("../src/infrastructure/mocks/app-bootstrap.json", import.meta.url), "utf8")
+  );
+  const record = bootstrap.consultations.records.find((item) => item.id === "demo_multi_medicine_risk_001");
+  const riskMedicines = record.prescriptionMedicines.filter((medicine) => medicine.warningMessage && medicine.warningSuggestion);
+
+  assert.equal(record.prescriptionMedicines.length, 5);
+  assert.equal(riskMedicines.length, 3);
+  assert.equal(record.followUpVoucher, undefined);
+  assert.equal(record.consultInfo.attachments.length, 2);
+  assert.equal(record.consultInfo.caseVoices.length, 3);
+  assert.equal(record.prescriptionMedicines[3].risk, "低");
+  assert.equal(new Set(riskMedicines.map((medicine) => medicine.warningMessage)).size, 3);
+  assert.deepEqual(
+    riskMedicines.map((medicine) => medicine.riskWarnings[0]),
+    [
+      { category: "重复用药", level: "must" },
+      { category: "相互作用", level: "severe" },
+      { category: "患者条件", level: "general" }
+    ]
+  );
 });
 
 test("patient auto reply formats timestamps and creates deterministic message metadata", (t) => {

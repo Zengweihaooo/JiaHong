@@ -16,6 +16,12 @@ import {
 } from "../src/domain/consultationQueue.js";
 import { normalizeArchivedConsultationRecord } from "../src/domain/archivedConsultation.js";
 import { getConsultationDurationTone } from "../src/domain/consultationRules.js";
+import {
+  getHighestMedicineRiskLevel,
+  getMedicineRiskWarnings,
+  prescriptionRiskCategories,
+  prescriptionRiskLevels
+} from "../src/domain/prescriptionRisk.js";
 
 test("state machine follows the allowed consultation flow and ignores invalid events", () => {
   const machine = createStateMachine();
@@ -40,6 +46,36 @@ test("record states map to the correct machine starting points", () => {
   assert.equal(mapRecordStateToMachineState("ended"), consultationStates.ARCHIVED);
   assert.equal(mapRecordStateToMachineState("waiting"), consultationStates.WAITING);
   assert.equal(mapRecordStateToMachineState(undefined), consultationStates.WAITING);
+});
+
+test("prescription risk reminders use independent categories and red-orange-yellow levels", () => {
+  assert.deepEqual(prescriptionRiskCategories, [
+    "患者条件",
+    "重复用药",
+    "用法用量",
+    "给药途径",
+    "相互作用",
+    "生化指标",
+    "配伍",
+    "过敏",
+    "孕产",
+    "其他"
+  ]);
+  assert.deepEqual(prescriptionRiskLevels, {
+    must: "必须处理",
+    severe: "严重警告",
+    general: "一般警告"
+  });
+
+  const medicine = {
+    risk: "低",
+    riskWarnings: [
+      { category: "患者条件", level: "general" },
+      { category: "重复用药", level: "must" }
+    ]
+  };
+  assert.equal(getMedicineRiskWarnings(medicine).length, 2);
+  assert.equal(getHighestMedicineRiskLevel(medicine), "must");
 });
 
 test("ongoing contact records prioritize the active video, then type order, time, and stable input order", () => {

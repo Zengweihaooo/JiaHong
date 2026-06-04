@@ -8,15 +8,16 @@ const defaultMessageIntervalSeconds = 58;
 const defaultAiReplyHighlights = ["多久", "体温", "几天", "位置", "程度", "痰色", "胸闷气促", "呼吸", "低头", "热敷", "活动颈部"];
 const followUpVoucherVariants = ["image", "voice", "mixed"];
 const followUpVoucherImages = [
-  { title: "图片凭证1", image: "assets/consult-materials/allergic-rhinitis.png" },
-  { title: "图片凭证2", image: "assets/consult-materials/pediatric-fever.png" },
-  { title: "图片凭证3", image: "assets/consult-materials/sore-throat.png" },
-  { title: "图片凭证4", image: "assets/consult-materials/skin-rash.png" }
+  { title: "病例图片1", image: "assets/consult-materials/allergic-rhinitis.png" },
+  { title: "病例图片2", image: "assets/consult-materials/pediatric-fever.png" },
+  { title: "病例图片3", image: "assets/consult-materials/sore-throat.png" },
+  { title: "病例图片4", image: "assets/consult-materials/skin-rash.png" }
 ];
 const followUpVoucherVoices = [
-  { title: "语音凭证1", duration: 8 },
-  { title: "语音凭证2", duration: 7 }
+  { title: "病例语音1", duration: 8 },
+  { title: "病例语音2", duration: 7 }
 ];
+const defaultConsultCaseVoices = [{ title: "病例信息语音", duration: 7 }];
 
 export function renderChatInput({ className = "" } = {}) {
   return `
@@ -242,16 +243,34 @@ export function renderChatThread(chatKey = getActiveChatKey(), { threadClass = "
 }
 
 function getConsultInfo(record = {}) {
-  const attachments = record.consultInfo?.attachments?.length
-    ? record.consultInfo.attachments
-    : [
-        { title: "附件1", image: "assets/consult-materials/allergic-rhinitis.png" },
-        { title: "附件2", image: "assets/consult-materials/pediatric-fever.png" },
-        { title: "附件3", image: "assets/consult-materials/sore-throat.png" },
-        { title: "附件4", image: "assets/consult-materials/skin-rash.png" }
-      ];
+  const voucher = getFollowUpVoucher(record);
+  const hasConsultInfo = Boolean(record?.consultInfo);
+  const hasConsultAttachments = Array.isArray(record.consultInfo?.attachments) && record.consultInfo.attachments.length > 0;
+  const defaultConsultAttachments = [
+    { title: "附件1", image: "assets/consult-materials/allergic-rhinitis.png" },
+    { title: "附件2", image: "assets/consult-materials/pediatric-fever.png" },
+    { title: "附件3", image: "assets/consult-materials/sore-throat.png" },
+    { title: "附件4", image: "assets/consult-materials/skin-rash.png" }
+  ];
+  const attachments = [
+    ...(hasConsultAttachments ? record.consultInfo.attachments : record?.type === "consult" ? defaultConsultAttachments : []),
+    ...(voucher?.images || [])
+  ];
+  const normalizeVoices = (voices = [], fallback = []) => {
+    const source = Array.isArray(voices) && voices.length ? voices : fallback;
+    return source.map((voice, index) =>
+      typeof voice === "string"
+        ? { title: voice, duration: index === 0 ? 8 : 7 }
+        : { title: voice.title || `语音${index + 1}`, duration: Number(voice.duration || 0) || (index === 0 ? 8 : 7) }
+    );
+  };
+  const caseVoices = [
+    ...normalizeVoices(record.consultInfo?.caseVoices, record?.type === "consult" || hasConsultInfo ? defaultConsultCaseVoices : []),
+    ...normalizeVoices(voucher?.voices || [])
+  ];
   return {
-    description: record.consultInfo?.description || "颈部酸痛僵硬，转头活动受限，久坐后痛感加重",
+    description: record.consultInfo?.description || (record?.type === "consult" ? "颈部酸痛僵硬，转头活动受限，久坐后痛感加重" : ""),
+    caseVoices,
     attachments: attachments.map((attachment, index) =>
       typeof attachment === "string"
         ? {
@@ -266,19 +285,16 @@ function getConsultInfo(record = {}) {
   };
 }
 
-function getStableVariantIndex(value = "") {
-  const source = String(value || "");
-  return Array.from(source).reduce((sum, char) => sum + char.charCodeAt(0), 0) % followUpVoucherVariants.length;
-}
-
 export function getFollowUpVoucher(record = {}) {
-  if (record?.type !== "text" && record?.type !== "video") return null;
-  const explicitType = record.followUpVoucher?.type;
-  const type = followUpVoucherVariants.includes(explicitType)
-    ? explicitType
-    : followUpVoucherVariants[getStableVariantIndex(record.id || record.title || record.type)];
-  const images = record.followUpVoucher?.images?.length ? record.followUpVoucher.images : followUpVoucherImages;
-  const voices = record.followUpVoucher?.voices?.length ? record.followUpVoucher.voices : followUpVoucherVoices;
+  const source = record?.followUpVoucher;
+  if (!source) return null;
+  const hasImages = Array.isArray(source.images) && source.images.length > 0;
+  const hasVoices = Array.isArray(source.voices) && source.voices.length > 0;
+  const inferredType = hasImages && hasVoices ? "mixed" : hasImages ? "image" : hasVoices ? "voice" : "";
+  const type = followUpVoucherVariants.includes(source.type) ? source.type : inferredType;
+  if (!type) return null;
+  const images = hasImages ? source.images : followUpVoucherImages;
+  const voices = hasVoices ? source.voices : followUpVoucherVoices;
   return {
     type,
     images: type === "voice" ? [] : images.slice(0, 4),
@@ -289,15 +305,22 @@ export function getFollowUpVoucher(record = {}) {
 function renderVoiceWaveform() {
   return `
     <span class="followup-voice-wave" aria-hidden="true">
-      ${[12, 18, 10, 20, 14, 8, 8, 6, 4, 10, 14, 14, 12, 10, 10, 8]
-        .map((height) => `<span style="--wave-height:${height}px"></span>`)
-        .join("")}
+      <svg class="followup-voice-wave__icon" viewBox="0 0 24 24" focusable="false">
+        <circle class="followup-voice-wave__base" cx="6" cy="12" r="2.1" />
+        <path class="followup-voice-wave__base" d="M10 8.8c1.1.8 1.8 1.9 1.8 3.2s-.7 2.4-1.8 3.2" />
+        <path class="followup-voice-wave__base" d="M13.2 6.2c1.9 1.4 3 3.4 3 5.8s-1.1 4.4-3 5.8" />
+        <path class="followup-voice-wave__base" d="M16.5 3.8c2.7 2 4.2 4.8 4.2 8.2s-1.5 6.2-4.2 8.2" />
+        <circle class="followup-voice-wave__active followup-voice-wave__active--1" cx="6" cy="12" r="2.1" />
+        <path class="followup-voice-wave__active followup-voice-wave__active--1" d="M10 8.8c1.1.8 1.8 1.9 1.8 3.2s-.7 2.4-1.8 3.2" />
+        <path class="followup-voice-wave__active followup-voice-wave__active--2" d="M13.2 6.2c1.9 1.4 3 3.4 3 5.8s-1.1 4.4-3 5.8" />
+        <path class="followup-voice-wave__active followup-voice-wave__active--3" d="M16.5 3.8c2.7 2 4.2 4.8 4.2 8.2s-1.5 6.2-4.2 8.2" />
+      </svg>
     </span>`;
 }
 
 function renderFollowUpVoucherImage(image, index, total) {
   return `
-    <button class="followup-voucher-image followup-voucher-item followup-voucher-item--unviewed consult-attachment" type="button" aria-label="请点击检查复诊凭证：预览${escapeHtml(image.title)}" data-followup-voucher-item="true" data-followup-voucher-status="unviewed" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${total}" data-consult-attachment-title="${escapeHtml(image.title)}" data-consult-attachment-image="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}">
+    <button class="followup-voucher-image followup-voucher-item followup-voucher-item--unviewed consult-attachment" type="button" aria-label="未读病例附件：预览${escapeHtml(image.title)}" data-followup-voucher-item="true" data-followup-voucher-status="unviewed" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${total}" data-consult-attachment-title="${escapeHtml(image.title)}" data-consult-attachment-image="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}">
       <span class="followup-voucher-image__thumb">
         <img src="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}" alt="${escapeHtml(image.title)}" loading="lazy" />
       </span>
@@ -306,75 +329,62 @@ function renderFollowUpVoucherImage(image, index, total) {
 
 function renderFollowUpVoucherVoice(voice, index) {
   const duration = Number(voice.duration || 0) || (index === 0 ? 8 : 7);
+  const title = voice.title || `病例语音${index + 1}`;
   return `
-    <button class="followup-voucher-voice followup-voucher-item followup-voucher-item--unviewed" type="button" aria-label="请点击检查复诊凭证：查看${escapeHtml(voice.title || `语音凭证${index + 1}`)}，${duration}秒" data-followup-voucher-item="true" data-followup-voucher-status="unviewed" data-followup-voice-title="${escapeHtml(voice.title || `语音凭证${index + 1}`)}" data-followup-voice-duration="${duration}">
+    <button class="followup-voucher-voice followup-voucher-item followup-voucher-item--unviewed" type="button" aria-label="播放${escapeHtml(title)}，${duration}秒" aria-pressed="false" data-followup-voucher-item="true" data-followup-voucher-status="unviewed" data-followup-voice-title="${escapeHtml(title)}" data-followup-voice-duration="${duration}">
+      <span class="followup-voice-time">
+        <span data-followup-voice-current>${duration}"</span>
+      </span>
       ${renderVoiceWaveform()}
-      <span>${duration}”</span>
     </button>`;
 }
 
-export function renderFollowUpVoucherCard(record) {
-  const voucher = getFollowUpVoucher(record);
-  if (!voucher) return "";
-  return `
-    <section class="followup-voucher-card followup-voucher-card--${voucher.type}" aria-label="复诊凭证">
-      <div class="followup-voucher-card__head">
-        <h3>复诊凭证</h3>
-        <p>请点击检查复诊凭证</p>
-      </div>
-      ${
-        voucher.voices.length
-          ? `<div class="followup-voucher-row">
-              <span class="followup-voucher-label">语音凭证：</span>
-              <div class="followup-voucher-voices">
-                ${voucher.voices.map((voice, index) => renderFollowUpVoucherVoice(voice, index)).join("")}
-              </div>
-            </div>`
-          : ""
-      }
-      ${
-        voucher.voices.length && voucher.images.length
-          ? `<div class="followup-voucher-divider" aria-hidden="true"></div>`
-          : ""
-      }
-      ${
-        voucher.images.length
-          ? `<div class="followup-voucher-row">
-              <span class="followup-voucher-label">图片凭证：</span>
-              <div class="followup-voucher-images">
-                ${voucher.images.map((image, index) => renderFollowUpVoucherImage(image, index, voucher.images.length)).join("")}
-              </div>
-            </div>`
-          : ""
-      }
-    </section>`;
-}
-
 export function renderConsultInfoCard(record) {
-  if (record?.type !== "consult") return "";
+  if (record?.type !== "consult" && !record?.consultInfo && !getFollowUpVoucher(record)) return "";
   const consultInfo = getConsultInfo(record);
   return `
     <section class="consult-info-card" aria-label="咨询信息">
       <h3>咨询信息</h3>
-      <div class="consult-info-card__row">
-        <span class="consult-info-card__label">病情描述：</span>
-        <p>${escapeHtml(consultInfo.description)}</p>
-      </div>
-      <div class="consult-info-card__row">
-        <span class="consult-info-card__label">病例信息：</span>
-        <div class="consult-attachments">
-          ${consultInfo.attachments
-            .map(
-              (attachment, index) => `
-                <button class="consult-attachment consult-attachment--unread" type="button" aria-label="未读病例附件：预览${escapeHtml(attachment.title)}" data-consult-attachment-status="unread" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${consultInfo.attachments.length}" data-consult-attachment-title="${escapeHtml(attachment.title)}" data-consult-attachment-image="${assetUrl(attachment.image)}">
-                  <span class="consult-attachment__thumb">
-                    <img src="${assetUrl(attachment.image)}" alt="${escapeHtml(attachment.title)}" loading="lazy" />
-                  </span>
-                </button>`
-            )
-            .join("")}
-        </div>
-      </div>
+      ${
+        consultInfo.description
+          ? `<div class="consult-info-card__row">
+              <span class="consult-info-card__label">病情描述：</span>
+              <p>${escapeHtml(consultInfo.description)}</p>
+            </div>`
+          : ""
+      }
+      ${
+        consultInfo.attachments.length || consultInfo.caseVoices.length
+          ? `<div class="consult-info-card__row">
+              <span class="consult-info-card__label">病例信息：</span>
+              <div class="consult-info-card__content">
+                ${
+                  consultInfo.attachments.length
+                    ? `<div class="consult-attachments">
+                        ${consultInfo.attachments
+                          .map(
+                            (attachment, index) => `
+                              <button class="consult-attachment consult-attachment--unread" type="button" aria-label="未读病例附件：预览${escapeHtml(attachment.title)}" data-consult-attachment-status="unread" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${consultInfo.attachments.length}" data-consult-attachment-title="${escapeHtml(attachment.title)}" data-consult-attachment-image="${assetUrl(attachment.image)}">
+                                <span class="consult-attachment__thumb">
+                                  <img src="${assetUrl(attachment.image)}" alt="${escapeHtml(attachment.title)}" loading="lazy" />
+                                </span>
+                              </button>`
+                          )
+                          .join("")}
+                      </div>`
+                    : ""
+                }
+                ${
+                  consultInfo.caseVoices.length
+                    ? `<div class="consult-info-card__voices" aria-label="病例信息语音">
+                        ${consultInfo.caseVoices.map((voice, index) => renderFollowUpVoucherVoice(voice, index)).join("")}
+                      </div>`
+                    : ""
+                }
+              </div>
+            </div>`
+          : ""
+      }
     </section>`;
 }
 
@@ -402,26 +412,6 @@ export function renderConsultAttachmentDialog() {
     </div>`;
 }
 
-export function renderFollowUpVoiceDialog() {
-  return `
-    <div class="followup-voice-overlay" role="dialog" aria-modal="true" aria-hidden="true">
-      <div class="followup-voice-dialog">
-        <div class="followup-voice-dialog__header">
-          <h2>
-            <span class="consult-attachment-dialog__icon" aria-hidden="true"></span>
-            <span data-followup-voice-dialog-title>语音凭证</span>
-          </h2>
-          <button class="followup-voice-dialog__close" type="button" aria-label="关闭语音凭证"></button>
-        </div>
-        <div class="followup-voice-dialog__body">
-          <button class="followup-voice-dialog__play" type="button" aria-label="播放语音凭证"></button>
-          ${renderVoiceWaveform()}
-          <span class="followup-voice-dialog__duration" data-followup-voice-dialog-duration>8”</span>
-        </div>
-      </div>
-    </div>`;
-}
-
 export function renderChatMessageMenu() {
   return `
     <div class="chat-message-menu" role="menu" aria-hidden="true" hidden>
@@ -434,7 +424,6 @@ export function renderChatMessageMenu() {
 export function renderChatPanel(chatKey = getActiveChatKey(), { record = null } = {}) {
   return `
     <section class="chat-panel" aria-label="聊天区域">
-      ${renderFollowUpVoucherCard(record)}
       ${renderConsultInfoCard(record)}
       ${renderChatThread(chatKey)}
       ${renderAiReplyComposer(record)}

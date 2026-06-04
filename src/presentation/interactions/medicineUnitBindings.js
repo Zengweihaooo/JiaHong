@@ -1,14 +1,16 @@
 import { updateMedicineFieldInActiveRecord } from "../../application/controllers/prescriptionController.js";
 
 let getPrescriptionContext = () => ({});
+let onMedicineFieldUpdated = () => {};
 const medicineFieldOptions = {
   usage: ["口服", "外用", "适量冲洗", "口腔吸入", "鼻吸入"],
   frequency: ["1次/日", "2次/日", "3次/日", "4次/日", "1-2次/日", "2-3次/日", "必要时", "按需", "单次"],
   dose: ["0.5片", "1片", "2片", "1粒", "2粒", "0.5袋", "1袋", "2袋", "5ml", "10ml", "15ml", "1吸", "1滴", "适量", "薄涂", "每侧鼻孔2喷"]
 };
 
-export function configureMedicineUnitBindings({ getContext } = {}) {
+export function configureMedicineUnitBindings({ getContext, onFieldResult } = {}) {
   getPrescriptionContext = typeof getContext === "function" ? getContext : () => ({});
+  onMedicineFieldUpdated = typeof onFieldResult === "function" ? onFieldResult : () => {};
 }
 
 function applyMedicineFieldResult(row, fieldNode, result) {
@@ -18,15 +20,7 @@ function applyMedicineFieldResult(row, fieldNode, result) {
   if (result.medicineWarningsResolved) {
     row?.classList.remove("medicine-table__row--warning-linked");
   }
-  if (result.recordWarningsResolved) {
-    const panel = row?.closest(".prescription-panel");
-    const warning = panel?.querySelector("[data-inline-risk-warning]");
-    if (warning) {
-      warning.hidden = true;
-      warning.classList.remove("is-visible");
-      panel?.classList.remove("has-inline-risk-warning");
-    }
-  }
+  onMedicineFieldUpdated({ row, fieldNode, result });
 }
 
 function closeMedicineUnitDropdown(control) {

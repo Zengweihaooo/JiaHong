@@ -106,27 +106,13 @@ export function openConsultAttachmentDialog(button, event) {
   setOverlayOpen(overlay, true, { focusSelector: ".consult-attachment-dialog__close" });
 }
 
-export function openFollowUpVoiceDialog(button, event) {
-  stopEvent(event);
-  const overlay = document.querySelector(".followup-voice-overlay");
-  if (!overlay) return;
-  markFollowUpVoucherViewed(button);
-  const title = button?.dataset.followupVoiceTitle || "语音凭证";
-  const duration = button?.dataset.followupVoiceDuration || "8";
-  const titleNode = overlay.querySelector("[data-followup-voice-dialog-title]");
-  const durationNode = overlay.querySelector("[data-followup-voice-dialog-duration]");
-  if (titleNode) titleNode.textContent = title;
-  if (durationNode) durationNode.textContent = `${duration}”`;
-  setOverlayOpen(overlay, true, { focusSelector: ".followup-voice-dialog__close" });
-}
-
 function markFollowUpVoucherViewed(button) {
   if (button?.dataset?.followupVoucherItem !== "true") return;
   button.dataset.followupVoucherStatus = "viewed";
   button.classList.remove("followup-voucher-item--unviewed");
   button.classList.add("followup-voucher-item--viewed");
   const label = button.getAttribute("aria-label") || "";
-  button.setAttribute("aria-label", label.replace("请点击检查复诊凭证：", "已检查复诊凭证："));
+  button.setAttribute("aria-label", label.replace("未读病例附件：", "已读病例附件："));
 }
 
 function markConsultAttachmentViewed(button) {
@@ -151,10 +137,6 @@ function switchConsultAttachment(direction, event) {
 
 function closeConsultAttachmentDialog(event) {
   closeOverlay(".consult-attachment-overlay", event);
-}
-
-function closeFollowUpVoiceDialog(event) {
-  closeOverlay(".followup-voice-overlay", event);
 }
 
 export function openConsultConfirmDialog(kind) {
@@ -355,27 +337,15 @@ function bindConsultAttachmentOverlay() {
   });
 }
 
-function bindFollowUpVoiceOverlay() {
-  const followUpVoiceOverlay = document.querySelector(".followup-voice-overlay");
-  if (!followUpVoiceOverlay) return;
-  bindOverlayDismiss(followUpVoiceOverlay, {
-    close: closeFollowUpVoiceDialog,
-    closeSelector: ".followup-voice-dialog__close",
-    dialogSelector: ".followup-voice-dialog"
-  });
-}
-
 export function bindConsultDialogOverlays() {
   bindQuickReplyOverlay();
   bindRiskWarningOverlay();
   bindConsultAttachmentOverlay();
-  bindFollowUpVoiceOverlay();
 }
 
 export function closeConsultDialogOverlays(event) {
   closeQuickReplyDialog();
   closeRiskWarningDialog();
   closeConsultAttachmentDialog(event);
-  closeFollowUpVoiceDialog(event);
   closeAllConsultConfirmDialogs();
 }

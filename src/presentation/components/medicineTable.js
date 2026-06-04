@@ -1,4 +1,5 @@
-import { renderButton, renderRiskTag } from "./primitives.js?v=20260527-36";
+import { renderButton, renderRiskTag } from "./primitives.js?v=20260604-37";
+import { getHighestMedicineRiskLevel, getMedicineRiskWarnings, prescriptionRiskLevels } from "../../domain/prescriptionRisk.js";
 import { escapeHtml } from "../ui/html.js";
 
 const medicineUnitOptions = ["盒", "瓶", "支", "袋", "板", "片"];
@@ -13,13 +14,11 @@ function getMedicineWarningFields(row = {}) {
 }
 
 function getMedicineRowWarningLevel(row = {}) {
-  const statusPriority = { general: 1, severe: 2, must: 3 };
-  const statuses = Object.values(row.warningColumns || {}).filter((value) => statusPriority[value]);
-  if (!statuses.length) return Array.isArray(row.warningFields) && row.warningFields.length ? "severe" : "";
-  return statuses.reduce((current, next) => (statusPriority[next] > statusPriority[current] ? next : current), "general");
+  return getHighestMedicineRiskLevel(row);
 }
 
 function getMedicineWarningClass(warningFields, field) {
+  if (field === "name") return "";
   return warningFields.has(field) ? " medicine-warning-target" : "";
 }
 
@@ -106,6 +105,8 @@ function renderUnitSelector(row, warningFields, readonly = false) {
 export function renderMedicineTableRow(row, readonly = false) {
   const warningFields = getMedicineWarningFields(row);
   const rowWarningLevel = getMedicineRowWarningLevel(row);
+  const riskWarnings = getMedicineRiskWarnings(row);
+  const warningCategories = riskWarnings.map((warning) => warning.category).join("、");
   const rowWarningClass = rowWarningLevel ? ` medicine-table__row--warning-linked medicine-table__row--warning-${rowWarningLevel}` : "";
   const warningMessage = row.warningMessage || `[警示信息]${row.name || "当前药品"}需完成风险核对`;
   const warningSuggestion = row.warningSuggestion || "[建议信息]请结合患者基础信息、过敏史和用药风险完成处方确认。";
@@ -115,10 +116,10 @@ export function renderMedicineTableRow(row, readonly = false) {
       class="medicine-table__row${rowWarningClass}"
       data-medicine-index="${row.index}"
       data-medicine-name="${escapeHtml(row.name)}"
-      ${rowWarningLevel ? `data-warning-level="${rowWarningLevel}" data-warning-message="${escapeHtml(warningMessage)}" data-warning-suggestion="${escapeHtml(warningSuggestion)}"` : ""}
+      ${rowWarningLevel ? `data-warning-level="${rowWarningLevel}" data-warning-level-label="${prescriptionRiskLevels[rowWarningLevel]}" data-warning-categories="${escapeHtml(warningCategories)}" data-warning-message="${escapeHtml(warningMessage)}" data-warning-suggestion="${escapeHtml(warningSuggestion)}" title="点击查看风险提示"` : ""}
     >
       <span>${row.index}</span>
-      <span class="${getMedicineWarningClass(warningFields, "name").trim()}">${escapeHtml(row.name)}</span>
+      <span>${escapeHtml(row.name)}</span>
       <span>${escapeHtml(row.type)}</span>
       <span class="medicine-spec-text">${escapeHtml(row.spec)}</span>
       ${renderFieldCombobox(row, warningFields, "usage", "用法", readonly)}
@@ -126,7 +127,7 @@ export function renderMedicineTableRow(row, readonly = false) {
       ${renderFieldCombobox(row, warningFields, "dose", "用量", readonly)}
       ${renderEditableBox(row, warningFields, "quantity", "数量", readonly)}
       ${renderUnitSelector(row, warningFields, readonly)}
-      ${renderRiskTag({ text: row.risk, size: "sm", className: "risk-small" })}
+      ${["高", "低"].includes(row.risk) ? renderRiskTag({ text: row.risk, size: "sm", className: "risk-small" }) : ""}
       ${
         readonly
           ? ""

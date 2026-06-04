@@ -267,6 +267,74 @@ test("updating warning medicine fields clears field warnings and hides record wa
   assert.equal(record.prescriptionMedicines[0].dose, "0.5g");
 });
 
+test("removing or editing risky medicines resolves matching risk reminders", () => {
+  resetAppData({
+    consultations: {
+      records: [
+        {
+          id: "r1",
+          type: "text",
+          targetView: "text",
+          state: "ongoing",
+          inlineRiskWarningVisible: true,
+          prescriptionMedicines: [
+            {
+              index: 1,
+              name: "布洛芬缓释胶囊",
+              frequency: "2次/日",
+              riskWarnings: [{ category: "重复用药", level: "must" }],
+              warningFields: ["name"],
+              warningMessage: "布洛芬缓释胶囊与双氯芬酸钠肠溶片同属非甾体抗炎药。",
+              warningSuggestion: "请删除布洛芬缓释胶囊或双氯芬酸钠肠溶片其中一种。"
+            },
+            {
+              index: 2,
+              name: "双氯芬酸钠肠溶片",
+              frequency: "3次/日",
+              riskWarnings: [{ category: "相互作用", level: "severe" }],
+              warningFields: ["name"],
+              warningMessage: "双氯芬酸钠肠溶片与布洛芬缓释胶囊作用机制重复。",
+              warningSuggestion: "请删除双氯芬酸钠肠溶片或布洛芬缓释胶囊其中一种。"
+            },
+            {
+              index: 3,
+              name: "氯雷他定片",
+              frequency: "1次/日",
+              riskWarnings: [{ category: "用法用量", level: "general" }],
+              warningFields: ["frequency"],
+              warningMessage: "氯雷他定片服用频次需核对。",
+              warningSuggestion: "请调整频次。"
+            }
+          ]
+        }
+      ],
+      ongoingChats: {}
+    }
+  });
+
+  const deleteResult = removeMedicineFromActiveRecord("双氯芬酸钠肠溶片", { sessionId: "r1" });
+  const recordAfterDelete = getOngoingConsultationRecordById("r1");
+  const ibuprofen = recordAfterDelete.prescriptionMedicines.find((medicine) => medicine.name === "布洛芬缓释胶囊");
+
+  assert.equal(deleteResult.ok, true);
+  assert.equal(deleteResult.resolvedWarnings, 1);
+  assert.equal("riskWarnings" in ibuprofen, false);
+  assert.equal("warningFields" in ibuprofen, false);
+  assert.equal(hasUnresolvedPrescriptionWarnings(recordAfterDelete), true);
+
+  const editResult = updateMedicineFieldInActiveRecord(2, "frequency", "2次/日", { sessionId: "r1" });
+  const recordAfterEdit = getOngoingConsultationRecordById("r1");
+  const loratadine = recordAfterEdit.prescriptionMedicines.find((medicine) => medicine.name === "氯雷他定片");
+
+  assert.equal(editResult.ok, true);
+  assert.equal(editResult.fieldWarningCleared, true);
+  assert.equal(editResult.medicineWarningsResolved, true);
+  assert.equal(editResult.recordWarningsResolved, true);
+  assert.equal("riskWarnings" in loratadine, false);
+  assert.equal("warningFields" in loratadine, false);
+  assert.equal(hasUnresolvedPrescriptionWarnings(recordAfterEdit), false);
+});
+
 test("chat controller appends timestamped doctor messages and recalls them once", () => {
   resetAppData({
     consultations: {

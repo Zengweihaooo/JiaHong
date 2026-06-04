@@ -284,47 +284,60 @@ test("video chat panel renders patient and doctor panes inside one video stage",
   assert.match(markup, /医生摄像头画面/);
 });
 
-test("follow-up vouchers render for text and video consultations with image and voice variants", async () => {
+test("legacy voucher media is merged into consult info instead of a separate card", async () => {
   setupBrowserGlobals("/text/");
   const {
     getFollowUpVoucher,
-    renderFollowUpVoucherCard,
-    renderFollowUpVoiceDialog
+    renderConsultInfoCard
   } = await import("../src/presentation/views/chatView.js?follow-up-vouchers");
 
-  const textImage = renderFollowUpVoucherCard({
+  const textImage = renderConsultInfoCard({
     id: "text_image",
     type: "text",
     followUpVoucher: { type: "image" }
   });
-  assert.match(textImage, /复诊凭证/);
-  assert.match(textImage, /请点击检查复诊凭证/);
-  assert.match(textImage, /followup-voucher-item--unviewed/);
-  assert.match(textImage, /图片凭证/);
+  assert.match(textImage, /咨询信息/);
+  assert.match(textImage, /病例信息/);
+  assert.match(textImage, /consult-attachment--unread/);
   assert.match(textImage, /consult-attachment/);
-  assert.doesNotMatch(textImage, /语音凭证/);
+  assert.doesNotMatch(textImage, /复诊凭证/);
+  assert.doesNotMatch(textImage, /病情描述：/);
+  assert.doesNotMatch(textImage, /followup-voucher-card/);
 
-  const videoVoice = renderFollowUpVoucherCard({
+  const videoVoice = renderConsultInfoCard({
     id: "video_voice",
     type: "video",
     followUpVoucher: { type: "voice" }
   });
-  assert.match(videoVoice, /语音凭证/);
+  assert.match(videoVoice, /咨询信息/);
   assert.match(videoVoice, /followup-voucher-voice/);
-  assert.doesNotMatch(videoVoice, /图片凭证/);
+  assert.match(videoVoice, /followup-voice-wave__icon/);
+  assert.match(videoVoice, /followup-voice-wave__active/);
+  assert.match(videoVoice, /data-followup-voice-current/);
+  assert.doesNotMatch(videoVoice, /followup-voice-progress"/);
+  assert.doesNotMatch(videoVoice, /followup-voice-overlay/);
 
-  const textMixed = renderFollowUpVoucherCard({
+  const textMixed = renderConsultInfoCard({
     id: "text_mixed",
     type: "text",
-    followUpVoucher: { type: "mixed" }
+    consultInfo: {
+      description: "病情描述只包含文字",
+      attachments: [{ title: "病例图片", image: "assets/figma-consult/attachment-preview.png" }],
+      caseVoices: [{ title: "病例语音", duration: 6 }]
+    },
+    followUpVoucher: {
+      type: "mixed",
+      images: [{ title: "补充病例图片", image: "assets/figma-consult/attachment-preview.png" }],
+      voices: [{ title: "补充病例语音", duration: 8 }]
+    }
   });
-  assert.match(textMixed, /语音凭证/);
-  assert.match(textMixed, /图片凭证/);
-  assert.match(textMixed, /followup-voucher-divider/);
+  assert.match(textMixed, /病情描述只包含文字/);
+  assert.equal((textMixed.match(/class="consult-attachment /g) || []).length, 2);
+  assert.equal((textMixed.match(/class="followup-voucher-voice /g) || []).length, 2);
+  assert.doesNotMatch(textMixed, /followup-voucher-divider/);
 
-  assert.equal(renderFollowUpVoucherCard({ id: "consult_1", type: "consult" }), "");
-  assert.equal(getFollowUpVoucher({ id: "video_1", type: "video" })?.images.length >= 0, true);
-  assert.match(renderFollowUpVoiceDialog(), /followup-voice-overlay/);
+  assert.equal(renderConsultInfoCard({ id: "video_1", type: "video" }), "");
+  assert.equal(getFollowUpVoucher({ id: "video_1", type: "video" }), null);
 });
 
 test("consult case attachments render unread state without styling message list cards", async () => {
@@ -340,8 +353,25 @@ test("consult case attachments render unread state without styling message list 
     }
   });
   assert.match(consultInfo, /病例信息/);
+  assert.doesNotMatch(consultInfo, /病情描述语音凭证/);
+  assert.match(consultInfo, /病例信息语音/);
+  assert.equal((consultInfo.match(/followup-voucher-voice/g) || []).length, 1);
   assert.match(consultInfo, /consult-attachment--unread/);
   assert.match(consultInfo, /data-consult-attachment-status="unread"/);
+
+  const textDemoConsultInfo = renderConsultInfoCard({
+    id: "text_demo_with_consult_info",
+    type: "text",
+    consultInfo: {
+      description: "病情描述只包含文字",
+      attachments: [{ title: "病例图片", image: "assets/figma-consult/attachment-preview.png" }],
+      caseVoices: [{ title: "病例语音", duration: 6 }]
+    }
+  });
+  assert.match(textDemoConsultInfo, /咨询信息/);
+  assert.match(textDemoConsultInfo, /病情描述只包含文字/);
+  assert.doesNotMatch(textDemoConsultInfo, /病情描述语音凭证/);
+  assert.match(textDemoConsultInfo, /病例信息语音/);
 
   const messageItem = renderMessageItem(
     { id: "consult_message", type: "consult", state: "ongoing", title: "咨询消息", preview: "病例附件待查看", unreadCount: 1 },
@@ -432,7 +462,7 @@ test("medicine table renders empty, editable, readonly, escaped, and warning sta
     quantity: "1",
     unit: "盒",
     risk: "中",
-    warningFields: ["dose", "unit"]
+    warningFields: ["name", "dose", "unit"]
   };
 
   assert.match(renderMedicineTable(), /暂无药品信息/);
@@ -443,7 +473,9 @@ test("medicine table renders empty, editable, readonly, escaped, and warning sta
   assert.match(editable, /0.25g\*&quot;24粒&quot;/);
   assert.match(editable, /data-medicine-field="dose"/);
   assert.match(editable, /medicine-delete-btn/);
-  assert.match(editable, /jh-risk-tag--medium/);
+  assert.match(editable, /medicine-warning-target/);
+  assert.doesNotMatch(editable, /<span class="medicine-warning-target">阿莫西林/);
+  assert.doesNotMatch(editable, /jh-risk-tag/);
 
   const readonly = renderMedicineTable([row], true);
   assert.match(readonly, /medicine-table--single/);
@@ -451,41 +483,48 @@ test("medicine table renders empty, editable, readonly, escaped, and warning sta
   assert.doesNotMatch(readonly, /<input class="table-input medicine-edit-field/);
 });
 
-test("prescription panel shows medicine risk warnings by default", async () => {
+test("editable panels show switchable medicine risk tips without inline risk warning cards", async () => {
   setupBrowserGlobals("/");
-  const { renderPrescriptionPanel } = await import("../src/presentation/views/prescriptionPanels.js?default-risk-tip");
+  const { renderConsultationPanel, renderPrescriptionPanel } = await import("../src/presentation/views/prescriptionPanels.js?default-risk-tip");
 
-  const markup = renderPrescriptionPanel({
-    record: {
-      id: "text_risk",
-      type: "text",
-      patient: "张三",
-      age: "32岁",
-      prescriptionMedicines: [
-        {
-          index: 1,
-          name: "布洛芬缓释胶囊",
-          type: "处方药",
-          spec: "0.3g*12粒",
-          usage: "口服",
-          frequency: "2次/日",
-          dose: "",
-          quantity: "1",
-          unit: "盒",
-          risk: "中",
-          warningFields: ["dose"],
-          warningColumns: { 3: "severe" },
-          warningMessage: "[警示信息]需核对剂量",
-          warningSuggestion: "[建议信息]补充剂量后再提交"
-        }
-      ]
-    }
-  });
+  const record = {
+    id: "text_risk",
+    type: "text",
+    patient: "张三",
+    age: "32岁",
+    prescriptionMedicines: [
+      {
+        index: 1,
+        name: "布洛芬缓释胶囊",
+        type: "处方药",
+        spec: "0.3g*12粒",
+        usage: "口服",
+        frequency: "2次/日",
+        dose: "",
+        quantity: "1",
+        unit: "盒",
+        risk: "中",
+        warningFields: ["dose"],
+        riskWarnings: [{ category: "用法用量", level: "severe" }],
+        warningColumns: { 3: "severe" },
+        warningMessage: "[警示信息]需核对剂量",
+        warningSuggestion: "[建议信息]补充剂量后再提交"
+      }
+    ]
+  };
+  const markup = renderPrescriptionPanel({ record });
+  const consultationMarkup = renderConsultationPanel({ record });
 
   assert.match(markup, /medicine-risk-tip/);
   assert.match(markup, /data-active-medicine-index="1"/);
+  assert.match(markup, /药品风险提示 · 布洛芬缓释胶囊/);
+  assert.match(markup, /点击有风险药品行切换详情/);
+  assert.match(markup, /严重警告/);
+  assert.match(markup, /用法用量/);
+  assert.match(markup, /title="点击查看风险提示"/);
   assert.match(markup, /\[警示信息\]需核对剂量/);
-  assert.match(markup, /inline-risk-warning is-visible/);
+  assert.doesNotMatch(markup, /inline-risk-warning/);
+  assert.doesNotMatch(consultationMarkup, /inline-risk-warning/);
   assert.doesNotMatch(markup, /data-medicine-risk-tip role="dialog" aria-label="药品风险提示" hidden/);
 });
 

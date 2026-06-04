@@ -1,4 +1,5 @@
 import { assetUrl } from "../../shared/core.js";
+import { getMedicineRiskWarnings, prescriptionRiskCategories } from "../../domain/prescriptionRisk.js";
 import { renderButton } from "./primitives.js";
 import { escapeHtml } from "../ui/html.js";
 
@@ -188,19 +189,7 @@ export function renderRiskWarningDialogView({ medicines = [] } = {}) {
     { status: "severe", label: "严重警告" },
     { status: "general", label: "一般警告" }
   ];
-  const headers = [
-    "药品名称",
-    "患者条件",
-    "重复用药",
-    "用法用量",
-    "给药途径",
-    "相互作用",
-    "生化指标",
-    "配伍",
-    "过敏",
-    "孕产",
-    "其他"
-  ];
+  const headers = ["药品名称", ...prescriptionRiskCategories];
   const compactHeaders = {
     "患者条件": ["患者", "条件"],
     "重复用药": ["重复", "用药"],
@@ -219,7 +208,9 @@ export function renderRiskWarningDialogView({ medicines = [] } = {}) {
   const rows = medicines.map((medicine, index) => ({
     name: medicine.name,
     linked: medicine === warningExampleMedicine,
-    warnings: medicine.warningColumns || (index === 0 ? { 2: "must", 5: medicine.risk === "低" ? "general" : "severe" } : { 4: "general" })
+    warnings: Object.fromEntries(
+      getMedicineRiskWarnings(medicine).map((warning) => [prescriptionRiskCategories.indexOf(warning.category) + 1, warning.level])
+    )
   }));
   const warningMessage = warningExampleMedicine?.warningMessage || `[警示信息]${rows[0]?.name || "当前药品"}需完成风险核对`;
   const warningSuggestion = warningExampleMedicine?.warningSuggestion || "[建议信息]请结合患者基础信息、过敏史和用药风险完成处方确认。";
