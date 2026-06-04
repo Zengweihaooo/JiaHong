@@ -5662,9 +5662,18 @@ body.page-view-room {
   gap: 10px;
 }
 
-.ai-reply__title .quick-reply-trigger {
-  flex: 0 0 auto;
-  min-width: 72px;
+.ai-reply__toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ai-reply__toggle:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid rgba(124, 92, 255, 0.45);
+  outline-offset: 3px;
 }
 
 .ai-spark {
@@ -5684,6 +5693,11 @@ body.page-view-room {
   font-size: 16px;
   font-weight: 700;
   line-height: 24px;
+}
+
+.ai-reply__toggle:hover h3 {
+  background: #7c5cff;
+  background-clip: text;
 }
 
 .ai-reply__hint {
@@ -5829,6 +5843,11 @@ body.page-view-room {
   gap: 8px;
   align-items: flex-start;
   width: 100%;
+}
+
+.jh-chat-input__top .quick-reply-trigger {
+  flex: 0 0 auto;
+  min-width: 72px;
 }
 
 .jh-chat-input textarea {

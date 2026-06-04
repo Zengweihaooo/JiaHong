@@ -22,7 +22,7 @@ import {
   closeChatMessageMenu,
   configureChatBindings
 } from "./interactions/chatBindings.js";
-import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260604-02";
+import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260604-03";
 import { bindDragScrollContainers } from "./interactions/dragScrollBindings.js?v=20260527-45";
 import { configurePrescriptionEditorBindings } from "./interactions/prescriptionEditorBindings.js?v=20260604-01";
 import { bindHomeInteractions, closeHomeOverlays } from "./interactions/homeInteractionBindings.js?v=20260604-03";

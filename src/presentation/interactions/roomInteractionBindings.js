@@ -8,7 +8,7 @@ import {
 import { rememberMessageBadgeDismissed } from "../../application/controllers/chatController.js";
 import { getConsultMainElement, isConsultReadonlyView, setConsultShellReadonly } from "../ui/dom.js";
 import { showToast } from "../ui/interactionPrimitives.js";
-import { renderTextMain, renderVideoMain } from "../views/consultRoomView.js?v=20260604-04";
+import { renderTextMain, renderVideoMain } from "../views/consultRoomView.js?v=20260604-05";
 import { renderPrescriptionTraceMain } from "../views/historyView.js?v=20260528-06";
 import { renderMessageList } from "../views/roomMessageListView.js?v=20260604-02";
 import { renderRoomMain } from "../views/roomShellView.js?v=20260528-06";

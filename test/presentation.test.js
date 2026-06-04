@@ -351,6 +351,18 @@ test("consult case attachments render unread state without styling message list 
   assert.doesNotMatch(messageItem, /message-item--unread|message-item--read/);
 });
 
+test("AI reply composer expands from its purple title and keeps quick reply inside the input", async () => {
+  setupBrowserGlobals("/text/");
+  const { renderAiReplyComposer } = await import("../src/presentation/views/chatView.js?ai-reply-toggle");
+
+  const markup = renderAiReplyComposer({ id: "text_ai", type: "text" });
+  assert.match(markup, /ai-reply__title ai-reply__toggle/);
+  assert.match(markup, /aria-label="展开智能推荐回复"/);
+  assert.match(markup, /ai-reply__close/);
+  assert.match(markup, /jh-chat-input__top[\s\S]*quick-reply-trigger/);
+  assert.doesNotMatch(markup, /双击智能回复展开或收起智能回复/);
+});
+
 test("room main keeps empty state without queue and shows pending workspace with queue", async () => {
   setupBrowserGlobals("/room/");
   const { setWaitingQueue } = await import("../src/application/state/runtimeState.js?v=20260528-06");

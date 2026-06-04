@@ -15,14 +15,14 @@ import {
 import {
   renderTextPage,
   renderVideoPage
-} from "./views/consultRoomView.js?v=20260604-04";
+} from "./views/consultRoomView.js?v=20260604-05";
 import { renderHistoryPage } from "./views/historyView.js?v=20260604-02";
 import { getActiveConsultationRecord } from "./views/renderRecordSelectors.js?v=20260528-06";
 import {
   renderChatMessageMenu,
   renderConsultAttachmentDialog,
   renderFollowUpVoiceDialog
-} from "./views/chatView.js?v=20260604-02";
+} from "./views/chatView.js?v=20260604-03";
 import {
   renderRoomMain,
   renderRoomTopbar,

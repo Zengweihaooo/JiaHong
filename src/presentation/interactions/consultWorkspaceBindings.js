@@ -56,48 +56,40 @@ function bindAiReplyOptions() {
     button.addEventListener("click", () => {
       const aiReply = button.closest(".ai-reply");
       if (!aiReply) return;
-      aiReply.dataset.aiReplyState = "collapsed";
-      aiReply.classList.add("ai-reply--collapsed");
-      aiReply.classList.remove("ai-reply--expanded");
+      setAiReplyState(aiReply, "collapsed");
+      aiReply.querySelector(".ai-reply__toggle")?.focus();
     });
   });
 }
 
-function toggleAiReply(button) {
-  const aiReply = button.closest(".ai-reply");
+function setAiReplyState(aiReply, state) {
   if (!aiReply) return;
-  const expanded = aiReply.dataset.aiReplyState === "expanded";
-  aiReply.dataset.aiReplyState = expanded ? "collapsed" : "expanded";
-  aiReply.classList.toggle("ai-reply--collapsed", expanded);
-  aiReply.classList.toggle("ai-reply--expanded", !expanded);
-  if (!expanded) {
-    aiReply.querySelector(".ai-reply__options button")?.focus();
-  } else {
-    button.focus();
-  }
+  const expanded = state === "expanded";
+  aiReply.dataset.aiReplyState = state;
+  aiReply.classList.toggle("ai-reply--collapsed", !expanded);
+  aiReply.classList.toggle("ai-reply--expanded", expanded);
+  const toggle = aiReply.querySelector(".ai-reply__toggle");
+  toggle?.setAttribute("aria-expanded", String(expanded));
+  toggle?.setAttribute("aria-label", expanded ? "智能推荐回复已展开" : "展开智能推荐回复");
+}
+
+function bindAiReplyToggles() {
+  document.querySelectorAll(".ai-reply__toggle").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const aiReply = button.closest(".ai-reply");
+      if (!aiReply || aiReply.dataset.aiReplyState === "expanded") return;
+      setAiReplyState(aiReply, "expanded");
+    });
+  });
 }
 
 function bindQuickReplyTriggers() {
   document.querySelectorAll(".quick-reply-trigger").forEach((button) => {
     if (button.dataset.bound === "true") return;
     button.dataset.bound = "true";
-    let clickTimer = null;
-    button.addEventListener("click", (event) => {
-      if (event.detail > 1) return;
-      clickTimer = window.setTimeout(() => {
-        clickTimer = null;
-        openQuickReplyDialog();
-      }, 260);
-    });
-    button.addEventListener("dblclick", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (clickTimer) {
-        window.clearTimeout(clickTimer);
-        clickTimer = null;
-      }
-      toggleAiReply(button);
-    });
+    button.addEventListener("click", openQuickReplyDialog);
   });
 }
 
@@ -177,6 +169,7 @@ export function bindConsultWorkspace() {
   bindDragScrollContainers();
   bindPrescriptionEditor();
   bindAiReplyOptions();
+  bindAiReplyToggles();
   bindQuickReplyTriggers();
   bindConsultAttachments();
   bindChatInputs();
