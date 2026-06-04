@@ -22,16 +22,16 @@ import {
   closeChatMessageMenu,
   configureChatBindings
 } from "./interactions/chatBindings.js";
-import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260603-01";
+import { bindConsultWorkspace } from "./interactions/consultWorkspaceBindings.js?v=20260604-01";
 import { bindDragScrollContainers } from "./interactions/dragScrollBindings.js?v=20260527-45";
-import { configurePrescriptionEditorBindings } from "./interactions/prescriptionEditorBindings.js?v=20260528-06";
-import { bindHomeInteractions, closeHomeOverlays } from "./interactions/homeInteractionBindings.js?v=20260603-03";
+import { configurePrescriptionEditorBindings } from "./interactions/prescriptionEditorBindings.js?v=20260604-01";
+import { bindHomeInteractions, closeHomeOverlays } from "./interactions/homeInteractionBindings.js?v=20260604-02";
 import {
   bindConsultConfirmDialogs,
   bindConsultDialogOverlays,
   closeConsultDialogOverlays,
   configureConsultDialogBindings
-} from "./interactions/consultDialogBindings.js?v=20260603-01";
+} from "./interactions/consultDialogBindings.js?v=20260604-01";
 import {
   bindRoomInteractions,
   configureRoomInteractionBindings,

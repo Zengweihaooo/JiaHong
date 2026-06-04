@@ -98,6 +98,13 @@ export function getConsultationRecordById(recordId) {
   return consultationRecords.find((entry) => entry.id === recordId) || null;
 }
 
+export function markAnnouncementRead(announcementId) {
+  const announcement = announcements.find((item) => item.id === announcementId) || latestAnnouncement;
+  if (!announcement) return null;
+  announcement.unread = false;
+  return announcement;
+}
+
 export function getOngoingConsultationRecordById(recordId) {
   return consultationRecords.find((entry) => entry.id === recordId && entry.state === "ongoing") || null;
 }

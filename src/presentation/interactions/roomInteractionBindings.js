@@ -8,12 +8,12 @@ import {
 import { rememberMessageBadgeDismissed } from "../../application/controllers/chatController.js";
 import { getConsultMainElement, isConsultReadonlyView, setConsultShellReadonly } from "../ui/dom.js";
 import { showToast } from "../ui/interactionPrimitives.js";
-import { renderTextMain, renderVideoMain } from "../views/consultRoomView.js?v=20260603-01";
+import { renderTextMain, renderVideoMain } from "../views/consultRoomView.js?v=20260604-03";
 import { renderPrescriptionTraceMain } from "../views/historyView.js?v=20260528-06";
 import { renderMessageList } from "../views/roomMessageListView.js?v=20260602-03";
 import { renderRoomMain } from "../views/roomShellView.js?v=20260528-06";
 import { bindChatMessageMenu } from "./chatBindings.js";
-import { bindConsultConfirmDialogs } from "./consultDialogBindings.js?v=20260603-01";
+import { bindConsultConfirmDialogs } from "./consultDialogBindings.js?v=20260604-01";
 import { setServiceTileState } from "./runtimeUiBindings.js?v=20260528-06";
 
 const videoConsultationLockedMessage = "请先结束当前视频问诊，再进入新的视频问诊";

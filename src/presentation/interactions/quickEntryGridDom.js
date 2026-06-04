@@ -1,5 +1,5 @@
 import { getQuickEntryFeature, maxQuickActionCards } from "../../domain/quickEntries.js?v=20260602-01";
-import { renderQuickCardMarkup } from "../components/quickEntryCards.js?v=20260602-01";
+import { renderQuickCardMarkup } from "../components/quickEntryCards.js?v=20260604-01";
 
 export const quickGridAnimationMs = 280;
 

@@ -1,7 +1,7 @@
 import { initAppStore } from "./src/application/store/appStore.js?v=20260528-06";
 import { appView } from "./src/shared/core.js";
-import { renderAppMarkup } from "./src/presentation/render.js?v=20260603-03";
-import { bindInteractions, startOngoingTimers, startRealtimeMockUpdates } from "./src/presentation/interactions.js?v=20260603-03";
+import { renderAppMarkup } from "./src/presentation/render.js?v=20260604-05";
+import { bindInteractions, startOngoingTimers, startRealtimeMockUpdates } from "./src/presentation/interactions.js?v=20260604-05";
 import { mountApp, mountAppError } from "./src/presentation/ui/dom.js";
 
 try {

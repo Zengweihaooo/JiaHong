@@ -9,7 +9,7 @@ import {
   removeMedicineFromActiveRecord,
   updateMedicineFieldInActiveRecord
 } from "../../application/controllers/prescriptionController.js";
-import { renderConsultationPanel, renderPrescriptionPanel } from "../views/prescriptionPanels.js?v=20260528-06";
+import { renderConsultationPanel, renderPrescriptionPanel } from "../views/prescriptionPanels.js?v=20260604-01";
 import { showToast } from "../ui/interactionPrimitives.js";
 import {
   bindMedicineUsageControls,

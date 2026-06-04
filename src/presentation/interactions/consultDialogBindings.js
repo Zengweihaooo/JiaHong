@@ -87,6 +87,7 @@ export function openConsultAttachmentDialog(button, event) {
   stopEvent(event);
   const overlay = document.querySelector(".consult-attachment-overlay");
   if (!overlay) return;
+  markFollowUpVoucherViewed(button);
   const index = button?.dataset.consultAttachmentIndex || "1";
   const total = button?.dataset.consultAttachmentTotal || "4";
   const title = button?.dataset.consultAttachmentTitle || `附件${index}`;
@@ -108,6 +109,7 @@ export function openFollowUpVoiceDialog(button, event) {
   stopEvent(event);
   const overlay = document.querySelector(".followup-voice-overlay");
   if (!overlay) return;
+  markFollowUpVoucherViewed(button);
   const title = button?.dataset.followupVoiceTitle || "语音凭证";
   const duration = button?.dataset.followupVoiceDuration || "8";
   const titleNode = overlay.querySelector("[data-followup-voice-dialog-title]");
@@ -115,6 +117,15 @@ export function openFollowUpVoiceDialog(button, event) {
   if (titleNode) titleNode.textContent = title;
   if (durationNode) durationNode.textContent = `${duration}”`;
   setOverlayOpen(overlay, true, { focusSelector: ".followup-voice-dialog__close" });
+}
+
+function markFollowUpVoucherViewed(button) {
+  if (button?.dataset?.followupVoucherItem !== "true") return;
+  button.dataset.followupVoucherStatus = "viewed";
+  button.classList.remove("followup-voucher-item--unviewed");
+  button.classList.add("followup-voucher-item--viewed");
+  const label = button.getAttribute("aria-label") || "";
+  button.setAttribute("aria-label", label.replace("请点击检查复诊凭证：", "已检查复诊凭证："));
 }
 
 function switchConsultAttachment(direction, event) {

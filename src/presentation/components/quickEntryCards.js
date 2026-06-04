@@ -12,9 +12,11 @@ export function renderQuickCardMarkup(entry = {}) {
   const feature = getQuickEntryFeature(entry);
   const classes = `quick-card${isAdd ? " quick-card--add" : " quick-card--custom"}`;
   const featureAttribute = feature ? ` data-quick-feature="${escapeHtml(feature)}"` : "";
+  const needsAttention = !isAdd && feature === "schedule";
+  const attentionAttribute = needsAttention ? ' data-attention="unpunched-schedule"' : "";
 
   return `
-    <div class="${classes}" role="button" tabindex="0" data-action="${escapeHtml(desc)}" data-quick-title="${escapeHtml(title)}"${featureAttribute}${isAdd ? "" : ' data-custom-quick-entry="true"'}>
+    <div class="${classes}" role="button" tabindex="0" data-action="${escapeHtml(desc)}" data-quick-title="${escapeHtml(title)}"${featureAttribute}${attentionAttribute}${isAdd ? "" : ' data-custom-quick-entry="true"'}>
       ${
         isAdd
           ? ""
@@ -25,6 +27,7 @@ export function renderQuickCardMarkup(entry = {}) {
             </button>
              <button class="quick-card__drag" type="button" aria-label="拖动排序：${escapeHtml(title)}" draggable="true"></button>`
       }
+      ${needsAttention ? '<span class="quick-card__attention-dot" aria-label="存在未打卡排班"></span>' : ""}
       <span class="quick-card__body">
         <span class="icon-box">${renderQuickEntryIcon(icon)}</span>
         ${title ? `<span class="quick-card__title">${escapeHtml(title)}</span>` : ""}

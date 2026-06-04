@@ -5,7 +5,7 @@ import {
   recallOngoingChatMessage
 } from "../../application/controllers/chatController.js";
 import { getActiveChatKey } from "../views/renderRecordSelectors.js?v=20260528-06";
-import { renderChatThread } from "../views/chatView.js?v=20260603-01";
+import { renderChatThread } from "../views/chatView.js?v=20260604-01";
 import { isConsultReadonlyView, refreshChatThread } from "../ui/dom.js";
 import { showToast } from "../ui/interactionPrimitives.js";
 

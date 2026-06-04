@@ -12,7 +12,7 @@ import {
   quickEntryOptions,
   updateConsultationRecordState
 } from "../src/application/state/dataStore.js";
-import { getAnnouncementById, getQuickEntryOption } from "../src/application/controllers/contentController.js";
+import { getAnnouncementById, getQuickEntryOption, markAnnouncementRead } from "../src/application/controllers/contentController.js";
 import {
   addDiagnosisToActiveRecord,
   addMedicineToActiveRecord,
@@ -74,6 +74,25 @@ test("hydrateAppData resets exported store bindings and content selectors use fa
   assert.deepEqual(getAnnouncementById("missing"), { id: "a1", title: "第一条公告" });
   assert.deepEqual(getQuickEntryOption("1"), { title: "快捷问诊" });
   assert.equal(getQuickEntryOption("9"), null);
+});
+
+test("markAnnouncementRead clears unread state while preserving announcement history", () => {
+  resetAppData({
+    home: {
+      quickActions: [],
+      quickEntryOptions: [],
+      announcements: [
+        { id: "a1", title: "第一条公告", unread: true },
+        { id: "a2", title: "第二条公告", unread: false }
+      ]
+    }
+  });
+
+  const readAnnouncement = markAnnouncementRead("a1");
+
+  assert.equal(readAnnouncement.unread, false);
+  assert.equal(getAnnouncementById("a1").unread, false);
+  assert.equal(getAnnouncementById("a2").title, "第二条公告");
 });
 
 test("data store inserts ongoing records by message-list order and rejects duplicates", () => {

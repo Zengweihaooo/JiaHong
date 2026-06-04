@@ -11,18 +11,18 @@ import {
   renderMain,
   renderQuickEntryDialog,
   renderScheduleDialog
-} from "./views/homeView.js?v=20260603-03";
+} from "./views/homeView.js?v=20260604-02";
 import {
   renderTextPage,
   renderVideoPage
-} from "./views/consultRoomView.js?v=20260603-01";
-import { renderHistoryPage } from "./views/historyView.js?v=20260528-06";
+} from "./views/consultRoomView.js?v=20260604-03";
+import { renderHistoryPage } from "./views/historyView.js?v=20260604-01";
 import { getActiveConsultationRecord } from "./views/renderRecordSelectors.js?v=20260528-06";
 import {
   renderChatMessageMenu,
   renderConsultAttachmentDialog,
   renderFollowUpVoiceDialog
-} from "./views/chatView.js?v=20260603-01";
+} from "./views/chatView.js?v=20260604-01";
 import {
   renderRoomMain,
   renderRoomTopbar,

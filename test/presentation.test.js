@@ -95,7 +95,10 @@ test("quick entry cards escape user text and mark add/custom variants", async ()
   assert.match(custom, /常用入口&quot;&lt;&gt;/);
   assert.match(custom, /查看&amp;编辑/);
 
-  assert.match(renderQuickCardMarkup({ title: "排班管理" }), /data-quick-feature="schedule"/);
+  const scheduleQuickCard = renderQuickCardMarkup({ title: "排班管理" });
+  assert.match(scheduleQuickCard, /data-quick-feature="schedule"/);
+  assert.match(scheduleQuickCard, /data-attention="unpunched-schedule"/);
+  assert.match(scheduleQuickCard, /quick-card__attention-dot/);
 
   const add = renderQuickCardMarkup({ isAdd: true });
   assert.match(add, /quick-card--add/);
@@ -117,6 +120,37 @@ test("home quick actions keep one add entry at the end when capacity remains", a
   assert.equal(entries[0].title, "排班管理");
   assert.equal(entries[1].title, "历史问诊");
   assert.equal(entries[2].isAdd, true);
+});
+
+test("home announcements render history entry and read state", async () => {
+  setupBrowserGlobals("/");
+  const { hydrateAppData } = await import("../src/application/state/dataStore.js");
+  hydrateAppData({
+    schemaVersion: 1,
+    home: {
+      quickActions: [],
+      quickEntryOptions: [],
+      announcements: [
+        { id: "a1", date: "2026-04-08", title: "第一条公告", publisher: "运营中心", unread: false, content: "公告正文" },
+        { id: "a2", date: "2026-04-01", title: "第二条公告", publisher: "运营中心", unread: true, content: "历史公告正文" }
+      ]
+    },
+    services: [],
+    consultations: { records: [], ongoingChats: {} },
+    navigation: { menuGroups: [] },
+    quickReplies: { categories: [], messages: [] }
+  });
+  const { renderNoticeCard, renderAnnouncementListDialog } = await import("../src/presentation/views/homeView.js?announcement-read-state");
+
+  const noticeMarkup = renderNoticeCard();
+  assert.match(noticeMarkup, /查看历史公告/);
+  assert.match(noticeMarkup, /jh-read-tag--read/);
+  assert.doesNotMatch(noticeMarkup, /notice-card__unread-dot/);
+
+  const historyMarkup = renderAnnouncementListDialog();
+  assert.match(historyMarkup, /历史公告/);
+  assert.match(historyMarkup, /第二条公告/);
+  assert.match(historyMarkup, /announcement-list-item__unread-dot/);
 });
 
 test("schedule panel renders punch controls and ending-soon warning state", async () => {
@@ -210,6 +244,41 @@ test("video contact list only renders one ongoing video while the video queue is
   assert.match(markup, /图文药房/);
 });
 
+test("video chat panel renders patient and doctor panes inside one video stage", async () => {
+  setupBrowserGlobals("/video/");
+  const { hydrateAppData } = await import("../src/application/state/dataStore.js");
+  hydrateAppData({
+    schemaVersion: 1,
+    consultations: {
+      records: [
+        {
+          id: "video_1",
+          type: "video",
+          state: "ongoing",
+          title: "视频药房",
+          patient: "张三",
+          age: "30岁",
+          targetView: "video",
+          time: "10:00"
+        }
+      ],
+      ongoingChats: { video_1: { sessionDate: "2026-06-04", messages: [] } }
+    },
+    navigation: { menuGroups: [] },
+    home: { quickActions: [], quickEntryOptions: [], announcements: [] },
+    services: [],
+    quickReplies: { categories: [], messages: [] }
+  });
+  const { renderVideoChatPanel } = await import("../src/presentation/views/consultRoomView.js?video-stage-layout");
+
+  const markup = renderVideoChatPanel();
+  assert.match(markup, /video-window__stage/);
+  assert.match(markup, /video-window__pane--patient/);
+  assert.match(markup, /video-window__pane--doctor/);
+  assert.match(markup, /患者视频画面/);
+  assert.match(markup, /医生摄像头画面/);
+});
+
 test("follow-up vouchers render for text and video consultations with image and voice variants", async () => {
   setupBrowserGlobals("/text/");
   const {
@@ -224,6 +293,8 @@ test("follow-up vouchers render for text and video consultations with image and 
     followUpVoucher: { type: "image" }
   });
   assert.match(textImage, /复诊凭证/);
+  assert.match(textImage, /请点击检查复诊凭证/);
+  assert.match(textImage, /followup-voucher-item--unviewed/);
   assert.match(textImage, /图片凭证/);
   assert.match(textImage, /consult-attachment/);
   assert.doesNotMatch(textImage, /语音凭证/);
@@ -337,6 +408,44 @@ test("medicine table renders empty, editable, readonly, escaped, and warning sta
   assert.match(readonly, /medicine-table--single/);
   assert.doesNotMatch(readonly, /medicine-delete-btn/);
   assert.doesNotMatch(readonly, /<input class="table-input medicine-edit-field/);
+});
+
+test("prescription panel shows medicine risk warnings by default", async () => {
+  setupBrowserGlobals("/");
+  const { renderPrescriptionPanel } = await import("../src/presentation/views/prescriptionPanels.js?default-risk-tip");
+
+  const markup = renderPrescriptionPanel({
+    record: {
+      id: "text_risk",
+      type: "text",
+      patient: "张三",
+      age: "32岁",
+      prescriptionMedicines: [
+        {
+          index: 1,
+          name: "布洛芬缓释胶囊",
+          type: "处方药",
+          spec: "0.3g*12粒",
+          usage: "口服",
+          frequency: "2次/日",
+          dose: "",
+          quantity: "1",
+          unit: "盒",
+          risk: "中",
+          warningFields: ["dose"],
+          warningColumns: { 3: "severe" },
+          warningMessage: "[警示信息]需核对剂量",
+          warningSuggestion: "[建议信息]补充剂量后再提交"
+        }
+      ]
+    }
+  });
+
+  assert.match(markup, /medicine-risk-tip/);
+  assert.match(markup, /data-active-medicine-index="1"/);
+  assert.match(markup, /\[警示信息\]需核对剂量/);
+  assert.match(markup, /inline-risk-warning is-visible/);
+  assert.doesNotMatch(markup, /data-medicine-risk-tip role="dialog" aria-label="药品风险提示" hidden/);
 });
 
 test("prescription actions choose readonly, consultation, locked, and submitted controls", async () => {

@@ -10,7 +10,7 @@ import {
   removeCustomQuickCardWithMotion,
   replaceQuickCard,
   setQuickCardEditControlsState
-} from "./quickEntryGridDom.js?v=20260602-01";
+} from "./quickEntryGridDom.js?v=20260604-01";
 
 let quickEntryEditingCard = null;
 let activeQuickCardDrag = null;
@@ -192,6 +192,10 @@ function bindQuickSchedulePanel() {
       const unpunchedCount = panel?.querySelector("[data-schedule-unpunched-count]");
       if (punchedCount) punchedCount.textContent = String(Number(punchedCount.textContent || 0) + 1);
       if (unpunchedCount) unpunchedCount.textContent = String(Math.max(0, Number(unpunchedCount.textContent || 0) - 1));
+      document.querySelectorAll('.quick-card[data-attention="unpunched-schedule"]').forEach((card) => {
+        delete card.dataset.attention;
+        card.querySelector(".quick-card__attention-dot")?.remove();
+      });
       showToast("打卡成功");
     });
   });

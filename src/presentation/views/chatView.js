@@ -298,7 +298,7 @@ function renderVoiceWaveform() {
 
 function renderFollowUpVoucherImage(image, index, total) {
   return `
-    <button class="followup-voucher-image consult-attachment" type="button" aria-label="预览${escapeHtml(image.title)}" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${total}" data-consult-attachment-title="${escapeHtml(image.title)}" data-consult-attachment-image="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}">
+    <button class="followup-voucher-image followup-voucher-item followup-voucher-item--unviewed consult-attachment" type="button" aria-label="请点击检查复诊凭证：预览${escapeHtml(image.title)}" data-followup-voucher-item="true" data-followup-voucher-status="unviewed" data-consult-attachment-index="${index + 1}" data-consult-attachment-total="${total}" data-consult-attachment-title="${escapeHtml(image.title)}" data-consult-attachment-image="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}">
       <span class="followup-voucher-image__thumb">
         <img src="${assetUrl(image.image || "assets/figma-consult/attachment-preview.png")}" alt="${escapeHtml(image.title)}" loading="lazy" />
       </span>
@@ -308,7 +308,7 @@ function renderFollowUpVoucherImage(image, index, total) {
 function renderFollowUpVoucherVoice(voice, index) {
   const duration = Number(voice.duration || 0) || (index === 0 ? 8 : 7);
   return `
-    <button class="followup-voucher-voice" type="button" aria-label="查看${escapeHtml(voice.title || `语音凭证${index + 1}`)}，${duration}秒" data-followup-voice-title="${escapeHtml(voice.title || `语音凭证${index + 1}`)}" data-followup-voice-duration="${duration}">
+    <button class="followup-voucher-voice followup-voucher-item followup-voucher-item--unviewed" type="button" aria-label="请点击检查复诊凭证：查看${escapeHtml(voice.title || `语音凭证${index + 1}`)}，${duration}秒" data-followup-voucher-item="true" data-followup-voucher-status="unviewed" data-followup-voice-title="${escapeHtml(voice.title || `语音凭证${index + 1}`)}" data-followup-voice-duration="${duration}">
       ${renderVoiceWaveform()}
       <span>${duration}”</span>
     </button>`;
@@ -319,7 +319,10 @@ export function renderFollowUpVoucherCard(record) {
   if (!voucher) return "";
   return `
     <section class="followup-voucher-card followup-voucher-card--${voucher.type}" aria-label="复诊凭证">
-      <h3>复诊凭证</h3>
+      <div class="followup-voucher-card__head">
+        <h3>复诊凭证</h3>
+        <p>请点击检查复诊凭证</p>
+      </div>
       ${
         voucher.voices.length
           ? `<div class="followup-voucher-row">

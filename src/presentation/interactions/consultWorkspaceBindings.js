@@ -5,9 +5,9 @@ import {
   openFollowUpVoiceDialog,
   openQuickReplyDialog,
   requestPrescriptionSubmit
-} from "./consultDialogBindings.js?v=20260603-01";
+} from "./consultDialogBindings.js?v=20260604-01";
 import { bindDragScrollContainers } from "./dragScrollBindings.js";
-import { bindPrescriptionEditor } from "./prescriptionEditorBindings.js?v=20260528-06";
+import { bindPrescriptionEditor } from "./prescriptionEditorBindings.js?v=20260604-01";
 import { bindVideoControls } from "./videoControls.js";
 import { bindVideoPrescriptionSubmitCountdown } from "./videoSubmitLockBindings.js";
 
