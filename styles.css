@@ -6745,10 +6745,11 @@ body.page-view-room {
 
 .inline-risk-warning {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 12px;
   width: calc(100% - 48px);
-  margin: 0 24px 16px;
+  margin: 20px 24px 16px;
   overflow: visible;
   color: #424751;
 }
@@ -6764,9 +6765,11 @@ body.page-view-room {
 .inline-risk-warning__legend {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 12px 28px;
   width: 100%;
+  min-height: 28px;
 }
 
 .inline-risk-warning__legend-item {
@@ -7665,6 +7668,7 @@ body.page-view-room {
 
 .medicine-risk-tip {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 8px;
   margin: 12px 24px 0;
