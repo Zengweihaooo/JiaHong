@@ -3665,23 +3665,22 @@ body.page-view-room {
   padding: 0;
 }
 
-.room-card--pending-consult .room-refresh {
+.room-pending-toolbar {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 3;
-}
-
-.room-card--pending-consult::before {
-  position: absolute;
-  top: 56px;
+  top: 0;
   right: 0;
   left: 0;
-  z-index: 2;
-  height: 1px;
-  background: #eef0f2;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 10px 24px;
+  background: #ffffff;
   box-shadow: var(--jh-shadow);
-  content: "";
+}
+
+.room-card--pending-consult .room-refresh {
+  flex: 0 0 auto;
 }
 
 .room-pending-workspace {

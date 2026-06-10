@@ -234,7 +234,9 @@ function renderPendingConsultWorkspace() {
   return `
     <main class="room-main">
       <section class="room-card room-card--pending-consult" aria-label="待接诊问诊室">
-        ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "room-refresh" })}
+        <div class="room-pending-toolbar">
+          ${renderButton({ text: "刷新列表", tone: "outline-secondary", size: "md", className: "room-refresh" })}
+        </div>
         <div class="consult-workspace room-pending-workspace">
           ${renderPendingChatPanel()}
           ${renderPendingPrescriptionPanel()}
