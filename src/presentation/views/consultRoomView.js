@@ -5,7 +5,7 @@ import { renderAiReplyComposer, renderChatPanel, renderChatThread, renderConsult
 import { renderConsultationPanel, renderPrescriptionPanel } from "./prescriptionPanels.js?v=20260604-02";
 import { renderRoomSidebar } from "./roomMessageListView.js?v=20260604-02";
 import { renderRoomTopbar } from "./roomShellView.js?v=20260528-06";
-import { renderVideoToolbar, videoMediaState } from "./videoMedia.js";
+import { renderVideoControlDock, videoMediaState } from "./videoMedia.js";
 
 function getRecordMedicineTypeLabel(record) {
   if (record?.type === "consult") return record.consultationAttribute === "with-medicine" ? "带药" : "珮文";
@@ -86,8 +86,10 @@ export function renderVideoChatPanel() {
             <div class="video-window__camera-status" data-camera-status>正在连接摄像头</div>
             <div class="video-window__pip-off" aria-hidden="${cameraOn}">摄像头已关闭</div>
           </div>
+          <div class="video-window__controls-overlay">
+            ${renderVideoControlDock()}
+          </div>
         </div>
-        ${renderVideoToolbar()}
       </div>
       ${renderConsultInfoCard(record)}
       ${renderChatThread(record?.id, { threadClass: "video-chat-thread" })}

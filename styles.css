@@ -7971,10 +7971,18 @@ body.page-view-room {
 }
 
 .video-window__stage {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   width: 100%;
   height: 100%;
+}
+
+.video-window__controls-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .video-window__pane {
@@ -7989,42 +7997,113 @@ body.page-view-room {
   border-left: 1px solid rgba(255, 255, 255, 0.64);
 }
 
-.video-toolbar {
+.video-window__dock {
   position: absolute;
-  bottom: 14px;
-  left: 50%;
-  z-index: 3;
+  right: 0;
+  bottom: 16px;
+  z-index: 1;
   display: flex;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 28px;
-  background: rgba(16, 24, 32, 0.5);
-  transform: translateX(-50%);
-  transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.video-window__dock-toggle,
+.video-window__dock-panel {
   pointer-events: auto;
 }
 
-.video-window[data-video-controls]:hover .video-toolbar,
-.video-window[data-video-controls]:focus-within .video-toolbar,
-.video-window[data-video-controls].is-media-off .video-toolbar {
-  background: rgba(16, 24, 32, 0.82);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-  transform: translateX(-50%) translateY(-2px);
+.video-window__dock-panel {
+  display: flex;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(4px);
+  transition:
+    max-width 0.24s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.video-window__dock-panel[hidden] {
+  display: flex;
+}
+
+.video-window__dock.is-open .video-window__dock-panel {
+  max-width: 96px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.video-window__dock-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 36px;
+  padding: 0 1px 0 0;
+  border: 0;
+  border-radius: 18px 0 0 18px;
+  background: rgba(28, 36, 48, 0.72);
+  box-shadow: -1px 0 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.video-window__dock-toggle:hover,
+.video-window__dock-toggle:focus-visible {
+  background: rgba(28, 36, 48, 0.88);
+  outline: none;
+}
+
+.video-window__dock-chevron {
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 5px solid rgba(255, 255, 255, 0.82);
+  transition: transform 0.2s ease;
+}
+
+.video-window__dock.is-open .video-window__dock-chevron {
+  transform: rotate(180deg);
+}
+
+.video-window__dock .video-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border-radius: 16px;
+  background: rgba(28, 36, 48, 0.88);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.video-window.is-media-off .video-window__dock-toggle {
+  background: rgba(92, 36, 36, 0.72);
+}
+
+.video-window.is-media-off .video-window__dock-toggle:hover,
+.video-window.is-media-off .video-window__dock-toggle:focus-visible {
+  background: rgba(92, 36, 36, 0.88);
+}
+
+.video-window.is-media-off .video-window__dock .video-toolbar {
+  background: rgba(92, 36, 36, 0.88);
 }
 
 .video-toolbar__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: #3a4654;
   color: #ffffff;
   cursor: pointer;
   transition:
@@ -8035,25 +8114,25 @@ body.page-view-room {
 
 .video-toolbar__btn:hover,
 .video-toolbar__btn:focus-visible {
-  background: rgba(255, 255, 255, 0.22);
+  background: #4a5868;
   outline: none;
   transform: scale(1.05);
 }
 
 .video-toolbar__btn.is-off {
-  background: rgba(120, 32, 32, 0.55);
+  background: #7a3030;
   color: #ffb4b4;
 }
 
 .video-toolbar__btn.is-off:hover,
 .video-toolbar__btn.is-off:focus-visible {
-  background: rgba(140, 40, 40, 0.72);
+  background: #923838;
 }
 
 .video-control-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
 }
 
 .video-window__pip--local {

@@ -55,3 +55,27 @@ export function renderVideoToolbar() {
       </button>
     </div>`;
 }
+
+export function renderVideoControlDock() {
+  return `
+    <aside class="video-window__dock">
+      <div id="video-control-dock-panel" class="video-window__dock-panel" hidden>
+        ${renderVideoToolbar()}
+      </div>
+      <button
+        type="button"
+        class="video-window__dock-toggle"
+        data-video-dock-toggle
+        aria-expanded="false"
+        aria-controls="video-control-dock-panel"
+        aria-label="展开视频控制"
+      >
+        <span class="video-window__dock-chevron" aria-hidden="true"></span>
+      </button>
+    </aside>`;
+}
+
+/** @deprecated Use renderVideoControlDock */
+export function renderVideoLocalDock() {
+  return renderVideoControlDock();
+}

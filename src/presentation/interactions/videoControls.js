@@ -80,6 +80,19 @@ export function bindVideoControls() {
     videoWindow.dataset.bound = "true";
     setupLocalCamera(videoWindow);
 
+    videoWindow.querySelectorAll("[data-video-dock-toggle]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const dock = videoWindow.querySelector(".video-window__dock");
+        const panel = videoWindow.querySelector("#video-control-dock-panel");
+        dock?.classList.toggle("is-open");
+        const isOpen = dock?.classList.contains("is-open");
+        panel?.toggleAttribute("hidden", !isOpen);
+        button.setAttribute("aria-expanded", String(Boolean(isOpen)));
+        button.setAttribute("aria-label", isOpen ? "收起视频控制" : "展开视频控制");
+      });
+    });
+
     videoWindow.querySelectorAll("[data-video-action]").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.stopPropagation();

@@ -280,6 +280,12 @@ test("video chat panel renders patient and doctor panes inside one video stage",
   const markup = renderVideoChatPanel();
   assert.match(markup, /video-window__stage/);
   assert.match(markup, /video-window__pane--patient/);
+  assert.match(markup, /video-window__controls-overlay/);
+  assert.match(markup, /video-window__dock/);
+  assert.match(markup, /video-window__dock-toggle/);
+  assert.match(markup, /video-window__dock-chevron/);
+  assert.doesNotMatch(markup, /video-window__dock-label/);
+  assert.match(markup, /video-window__pip--local/);
   assert.match(markup, /video-window__pane--doctor/);
   assert.match(markup, /患者视频画面/);
   assert.match(markup, /医生摄像头画面/);
