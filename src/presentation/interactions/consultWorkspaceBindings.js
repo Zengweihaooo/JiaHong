@@ -70,6 +70,9 @@ function setAiReplyState(aiReply, state) {
   const toggle = aiReply.querySelector(".ai-reply__toggle");
   toggle?.setAttribute("aria-expanded", String(expanded));
   toggle?.setAttribute("aria-label", expanded ? "智能推荐回复已展开" : "展开智能推荐回复");
+  const smartReplyTrigger = aiReply.querySelector(".smart-reply-trigger");
+  smartReplyTrigger?.setAttribute("aria-expanded", String(expanded));
+  smartReplyTrigger?.setAttribute("aria-label", expanded ? "收起智能推荐回复" : "展开智能推荐回复");
 }
 
 function bindAiReplyToggles() {
@@ -80,6 +83,17 @@ function bindAiReplyToggles() {
       const aiReply = button.closest(".ai-reply");
       if (!aiReply || aiReply.dataset.aiReplyState === "expanded") return;
       setAiReplyState(aiReply, "expanded");
+    });
+  });
+
+  document.querySelectorAll(".smart-reply-trigger").forEach((button) => {
+    if (button.dataset.bound === "true") return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => {
+      const aiReply = button.closest(".ai-reply");
+      if (!aiReply) return;
+      const expanded = aiReply.dataset.aiReplyState === "expanded";
+      setAiReplyState(aiReply, expanded ? "collapsed" : "expanded");
     });
   });
 }

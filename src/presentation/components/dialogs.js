@@ -158,7 +158,7 @@ export function renderConsultConfirmDialogs() {
           : `
     <div class="consult-confirm-overlay" data-confirm-kind="${kind}" aria-hidden="true">
       <section
-        class="consult-confirm-dialog"
+        class="consult-confirm-dialog consult-confirm-dialog--end-anchor"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="consult-confirm-title-${kind}"

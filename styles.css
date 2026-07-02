@@ -303,6 +303,26 @@ button {
   white-space: nowrap;
 }
 
+.user-chip__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.user-chip__chevron img {
+  display: block;
+  width: 9.4px;
+  height: 5.4px;
+}
+
+.user-menu-trigger[aria-expanded="true"] .user-chip__chevron,
+.user-menu-trigger[aria-expanded="true"] .room-user__chevron {
+  transform: rotate(180deg);
+}
+
 .user-menu {
   position: absolute;
   top: calc(100% + 12px);
@@ -588,10 +608,10 @@ button {
 
 .jh-btn--success:disabled,
 .jh-btn--success[aria-disabled="true"] {
-  border-color: #bfe4d4;
-  background-color: #bfe4d4;
+  border-color: var(--jh-btn-neutral-disabled-bg);
+  background-color: var(--jh-btn-neutral-disabled-bg);
   background-image: none;
-  color: #ffffff;
+  color: var(--jh-btn-neutral-disabled-text);
 }
 
 .jh-btn--outline {
@@ -3476,6 +3496,7 @@ body.page-view-room {
   justify-content: center;
   width: 16px;
   height: 16px;
+  transition: transform 0.2s ease;
 }
 
 .room-user__chevron img {
@@ -4236,6 +4257,29 @@ body.page-view-room {
     0 8px 8px rgba(16, 42, 67, 0.1);
 }
 
+.consult-confirm-overlay[data-confirm-kind="end"] {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.consult-confirm-overlay[data-confirm-kind="end"] .consult-confirm-dialog {
+  position: fixed;
+  right: var(--consult-confirm-end-right, 24px);
+  bottom: var(--consult-confirm-end-bottom, 24px);
+  width: min(340px, calc(100vw - 32px));
+  margin: 0;
+}
+
+.consult-confirm-dialog--end-anchor .consult-confirm-dialog__body {
+  padding: 16px 16px 8px;
+}
+
+.consult-confirm-dialog--end-anchor .consult-confirm-dialog__footer {
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+
 .consult-confirm-dialog--cancel-reason {
   width: min(520px, calc(100vw - 32px));
 }
@@ -4797,6 +4841,12 @@ body.page-view-room {
   width: 100%;
   height: calc(100% - 56px);
   min-width: 0;
+  min-height: 0;
+}
+
+.consult-workspace > .prescription-panel,
+.consult-workspace > .chat-panel {
+  min-height: 0;
 }
 
 .video-shell .consult-workspace {
@@ -4806,16 +4856,37 @@ body.page-view-room {
 .chat-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   width: 100%;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
   background: #f8f8f9;
 }
 
+.chat-panel__body {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-panel__composer {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.chat-panel__body .chat-thread,
+.chat-panel__body .video-chat-thread {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
 .chat-thread {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 16px;
   width: 100%;
@@ -5458,6 +5529,54 @@ body.page-view-room {
   line-height: 20px;
 }
 
+.chat-bubble__quote {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border-left: 3px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.chat-bubble--doctor .chat-bubble__quote {
+  border-left-color: rgba(41, 121, 255, 0.45);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.chat-bubble__quote-author {
+  display: block;
+  color: var(--jh-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.chat-bubble__quote-text {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: var(--jh-text-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.chat-bubble__text {
+  max-width: 100%;
+  margin: 0;
+}
+
+.chat-bubble__edited {
+  display: block;
+  align-self: flex-end;
+  margin-top: 4px;
+  color: var(--jh-text-tertiary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
 .chat-message-menu {
   position: fixed;
   z-index: 1200;
@@ -5513,8 +5632,51 @@ body.page-view-room {
   min-height: 172px;
 }
 
-.ai-reply--expanded {
+.ai-reply__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ai-reply--expanded:not(.ai-reply--ab-a):not(.ai-reply--ab-b):not(.ai-reply--ab-c) {
+  box-sizing: border-box;
   min-height: 345px;
+}
+
+.ai-reply--expanded:not(.ai-reply--ab-a):not(.ai-reply--ab-b):not(.ai-reply--ab-c) .ai-reply__panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ai-reply--collapsed:not(.ai-reply--ab-a):not(.ai-reply--ab-b):not(.ai-reply--ab-c) {
+  min-height: auto;
+  height: auto;
+  max-height: none;
+  padding: 0;
+  gap: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ai-reply--collapsed:not(.ai-reply--ab-a):not(.ai-reply--ab-b):not(.ai-reply--ab-c) .ai-reply__panel {
+  display: none;
+}
+
+.ai-reply--expanded:not(.ai-reply--ab-a):not(.ai-reply--ab-b):not(.ai-reply--ab-c) .jh-chat-input {
+  flex: 0 0 auto;
+  min-height: 120px;
+  height: auto;
+  margin-top: auto;
+}
+
+.ai-reply--collapsed:not(.ai-reply--ab-a):not(.ai-reply--ab-b):not(.ai-reply--ab-c) .jh-chat-input {
+  flex: 0 0 auto;
+  min-height: 120px;
+  height: auto;
+  margin-top: 0;
 }
 
 .ai-reply__head {
@@ -5707,7 +5869,7 @@ body.page-view-room {
   justify-content: space-between;
   width: 100%;
   min-width: 0;
-  height: 120px;
+  min-height: 120px;
   padding: 12px;
   border: 1px solid #eceef0;
   border-radius: 8px;
@@ -5722,6 +5884,14 @@ body.page-view-room {
   width: 100%;
 }
 
+.chat-reply-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.jh-chat-input__top .smart-reply-trigger,
 .jh-chat-input__top .quick-reply-trigger {
   flex: 0 0 auto;
   min-width: 72px;
@@ -5759,6 +5929,96 @@ body.page-view-room {
   justify-content: flex-end;
   width: 100%;
   height: 32px;
+}
+
+.chat-composer-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.chat-composer-preview[hidden] {
+  display: none;
+}
+
+.chat-composer-quote,
+.chat-composer-edit {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.chat-composer-quote {
+  background: #f5f6f7;
+}
+
+.chat-composer-edit {
+  align-items: center;
+  background: #fff7e6;
+}
+
+.chat-composer-quote__bar {
+  flex: 0 0 3px;
+  border-radius: 2px;
+  background: var(--jh-primary, #2979ff);
+}
+
+.chat-composer-edit__icon {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M11.1 2.2 13.8 4.9 5.4 13.3 2.7 10.6 11.1 2.2Z' stroke='%23fa8c16' stroke-width='1.2' stroke-linejoin='round'/%3E%3Cpath d='M9.4 3.9 12.1 6.6' stroke='%23fa8c16' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.chat-composer-quote__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chat-composer-quote__author,
+.chat-composer-edit__label {
+  display: block;
+  color: var(--jh-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.chat-composer-quote__text {
+  margin: 2px 0 0;
+  overflow: hidden;
+  color: var(--jh-text-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.chat-composer-quote__close,
+.chat-composer-edit__close {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--jh-text-tertiary);
+  font-size: 16px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.chat-composer-quote__close:hover,
+.chat-composer-edit__close:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--jh-text-secondary);
 }
 
 .quick-reply-overlay {
@@ -6627,16 +6887,24 @@ body.page-view-room {
 .prescription-panel {
   display: flex;
   min-width: 0;
+  min-height: 0;
   height: 100%;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-anchor: none;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
+  overflow: hidden;
   background: #ffffff;
   box-shadow:
     0 6px 16px -8px rgba(16, 42, 67, 0.08),
     0 1px 3px 0 rgba(16, 42, 67, 0.05);
+}
+
+.prescription-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .prescription-panel > * {
@@ -6806,16 +7074,26 @@ body.page-view-room {
   top: calc(100% + 4px);
   left: 0;
   z-index: 40;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 240px;
   max-height: 220px;
-  overflow-y: auto;
-  padding: 4px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--jh-input-field-border);
   border-radius: 6px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.diagnosis-options.jh-custom-scroll {
+  display: flex;
+  align-items: stretch;
+  height: 220px;
+  max-height: 220px;
+}
+
+.diagnosis-options > .jh-custom-scroll__viewport {
+  max-height: none;
 }
 
 .diagnosis-options[hidden] {
@@ -6842,14 +7120,17 @@ body.page-view-room {
 
 .diagnosis-input {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 8px;
   flex: 1 1 0;
   width: 100%;
   min-width: 0;
-  height: var(--jh-input-field-height-lg);
+  min-height: var(--jh-input-field-height-lg);
+  max-height: 84px;
   padding: 4px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--jh-tag-input-border);
   border-radius: 6px;
   background: #ffffff;
@@ -7084,21 +7365,35 @@ body.page-view-room {
   min-width: var(--jh-table-width);
 }
 
+.medicine-search-combobox:has(.medicine-options:not([hidden])) {
+  z-index: 60;
+}
+
 .medicine-options {
-  position: absolute;
-  top: calc(100% + 4px);
+  position: fixed;
+  top: 0;
   left: 0;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
+  z-index: 1000;
+  display: block;
   width: 320px;
   max-height: 260px;
-  overflow-y: auto;
-  padding: 4px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--jh-input-field-border);
   border-radius: 6px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.medicine-options.jh-custom-scroll {
+  display: flex;
+  align-items: stretch;
+  height: 260px;
+  max-height: 260px;
+}
+
+.medicine-options > .jh-custom-scroll__viewport {
+  max-height: none;
 }
 
 .medicine-options[hidden] {
@@ -7142,7 +7437,6 @@ body.page-view-room {
   width: 100%;
   min-width: 0;
   overflow-x: auto;
-  overflow-y: hidden;
 }
 
 .medicine-scroll-area > .medicine-search-combobox,
@@ -7333,7 +7627,7 @@ body.page-view-room {
 .medicine-table__row {
   display: grid;
   grid-template-columns:
-    minmax(0, 17fr)
+    32px
     minmax(0, 103fr)
     minmax(0, 56fr)
     minmax(0, 82fr)
@@ -7370,6 +7664,48 @@ body.page-view-room {
   color: var(--jh-table-head-text);
 }
 
+.medicine-table__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  min-width: 32px;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.medicine-table__index--head {
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.medicine-table__row > .medicine-table__index {
+  overflow: visible;
+}
+
+.medicine-risk-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.medicine-table__head > span:nth-child(10),
+.medicine-table__head > span:nth-child(11) {
+  justify-self: center;
+  text-align: center;
+}
+
+.medicine-table__row:not(.medicine-table__head) > .jh-risk-tag {
+  justify-self: center;
+}
+
 .medicine-table__row + .medicine-table__row {
   border-top: 1px solid var(--jh-table-row-border);
 }
@@ -7390,8 +7726,11 @@ body.page-view-room {
   background: #fff0f0;
 }
 
+/* Use a background tint instead of filter: a filter would turn the row into
+   the containing block for its position: fixed dropdown menus, making them
+   jump/flicker whenever the row is hovered. */
 .medicine-table__row--warning-linked:hover {
-  filter: brightness(0.995);
+  background-color: rgba(16, 42, 67, 0.015);
 }
 
 .medicine-table__row--warning-active {
@@ -7428,11 +7767,17 @@ body.page-view-room {
   flex: 0 0 auto;
   flex-direction: column;
   gap: 8px;
-  margin: 12px 24px 0;
+  margin: 12px 0 0;
   padding: 12px;
   border: 1px solid #ffd7d7;
   border-radius: 8px;
   background: #fff7f7;
+}
+
+.medicine-section > .medicine-risk-tip {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .medicine-risk-tip[hidden] {
@@ -7440,19 +7785,72 @@ body.page-view-room {
 }
 
 .medicine-risk-tip__head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  column-gap: 12px;
 }
 
 .medicine-risk-tip__head h4 {
+  grid-column: 1;
+  justify-self: start;
   flex: 0 1 auto;
   margin: 0;
   color: #b42318;
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
+  min-width: 0;
+}
+
+.medicine-risk-tip__legend {
+  grid-column: 2;
+  justify-self: center;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.medicine-risk-tip__head-side {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.medicine-risk-tip__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8a5b55;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.medicine-risk-tip__legend-item i {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.medicine-risk-tip__legend-item--must i {
+  background: #cb2c2c;
+}
+
+.medicine-risk-tip__legend-item--severe i {
+  background: #e37318;
+}
+
+.medicine-risk-tip__legend-item--general i {
+  background: #f4bc1c;
 }
 
 .medicine-risk-tip__meta {
@@ -7463,7 +7861,7 @@ body.page-view-room {
 }
 
 .medicine-risk-tip__level,
-.medicine-risk-tip__categories {
+.medicine-risk-tip__category {
   display: inline-flex;
   align-items: center;
   min-height: 22px;
@@ -7492,16 +7890,35 @@ body.page-view-room {
 }
 
 .medicine-risk-tip__categories {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 6px;
   min-width: 0;
-  background: #fff0f0;
-  color: #8f2d25;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.medicine-risk-tip__category {
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 
+.medicine-risk-tip__category--must {
+  background: #cb2c2c;
+  color: #ffffff;
+}
+
+.medicine-risk-tip__category--severe {
+  background: #e37318;
+  color: #ffffff;
+}
+
+.medicine-risk-tip__category--general {
+  background: #f4bc1c;
+  color: #5f4600;
+}
+
 .medicine-risk-tip__hint {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   color: #8a5b55;
   font-size: 12px;
   line-height: 20px;
@@ -7568,20 +7985,49 @@ body.page-view-room {
   white-space: nowrap;
 }
 
-.medicine-warning-target {
-  border-color: #ff3b30 !important;
-  background: #fff7f7 !important;
-  color: #d92d20 !important;
-  box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.72);
+.medicine-warning-target--must {
+  border-color: #cb2c2c !important;
+  background: #fff0f0 !important;
+  color: #cb2c2c !important;
+  box-shadow: 0 0 0 1px rgba(203, 44, 44, 0.72);
 }
 
-.medicine-table__row > span.medicine-warning-target {
+.medicine-warning-target--severe {
+  border-color: #e37318 !important;
+  background: #fff7ed !important;
+  color: #c9610d !important;
+  box-shadow: 0 0 0 1px rgba(227, 115, 24, 0.72);
+}
+
+.medicine-warning-target--general {
+  border-color: #f4bc1c !important;
+  background: #fffbeb !important;
+  color: #9a7200 !important;
+  box-shadow: 0 0 0 1px rgba(244, 188, 28, 0.72);
+}
+
+.medicine-table__row > span.medicine-warning-target,
+.medicine-table__row > span.medicine-warning-target--must,
+.medicine-table__row > span.medicine-warning-target--severe,
+.medicine-table__row > span.medicine-warning-target--general {
   display: inline-flex;
   align-items: center;
   height: 40px;
   padding: 9px 8px;
-  border: 1px solid #ff3b30;
+  border: 1px solid #cb2c2c;
   border-radius: 6px;
+}
+
+.medicine-table__row > span.medicine-warning-target--must {
+  border-color: #cb2c2c;
+}
+
+.medicine-table__row > span.medicine-warning-target--severe {
+  border-color: #e37318;
+}
+
+.medicine-table__row > span.medicine-warning-target--general {
+  border-color: #f4bc1c;
 }
 
 .medicine-usage-control,
@@ -7732,7 +8178,7 @@ body.page-view-room {
 }
 
 .medicine-delete-btn {
-  justify-self: end;
+  justify-self: center;
   min-width: 0;
   padding-right: 0;
   padding-left: 0;
@@ -7743,11 +8189,6 @@ body.page-view-room {
 .medicine-delete-btn:hover,
 .medicine-delete-btn:focus-visible {
   color: var(--jh-table-action);
-}
-
-.medicine-table__row > :last-child {
-  justify-self: end;
-  text-align: right;
 }
 
 .consultation-panel .diagnosis-section {
@@ -7830,8 +8271,8 @@ body.page-view-room {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex: 0 0 auto;
   flex-wrap: wrap;
-  margin-top: auto;
   padding: 16px 24px 24px;
   border-top: 1px solid #e5e8eb;
   background: #ffffff;
@@ -7914,20 +8355,81 @@ body.page-view-room {
   right: 0;
   bottom: calc(100% + 4px);
   z-index: 40;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 260px;
   max-height: 220px;
-  overflow-y: auto;
-  padding: 4px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--jh-input-field-border);
   border-radius: 6px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
+.prescription-remark-options.jh-custom-scroll {
+  display: flex;
+  align-items: stretch;
+  height: 220px;
+  max-height: 220px;
+}
+
+.prescription-remark-options > .jh-custom-scroll__viewport {
+  max-height: none;
+}
+
 .prescription-remark-options[hidden] {
   display: none;
+}
+
+.jh-custom-scroll__viewport {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.jh-custom-scroll__viewport::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.jh-custom-scroll__content {
+  padding: 4px;
+}
+
+.jh-custom-scroll__bar {
+  flex: 0 0 8px;
+  align-self: stretch;
+  width: 8px;
+  min-height: 0;
+  margin: 4px 4px 4px 0;
+  border-radius: 999px;
+  background: #eef1f4;
+  position: relative;
+  touch-action: none;
+}
+
+.jh-custom-scroll__thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 32px;
+  border-radius: 999px;
+  background: #bec5cd;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.jh-custom-scroll__thumb:hover {
+  background: #a8b1bb;
 }
 
 .prescription-remark-option {
@@ -8235,7 +8737,6 @@ body.page-view-room {
 
 .video-input-wrap {
   width: 100%;
-  margin-top: auto;
   padding: 0 12px 12px;
 }
 
@@ -8342,12 +8843,15 @@ body.page-view-room {
     top: 56px;
     margin-top: 0;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
     height: calc(100% - 56px);
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .consult-shell .chat-panel {
     min-height: 0;
+    height: 100%;
+    overflow: hidden;
   }
 
   .consult-shell .video-chat-panel {
@@ -8357,9 +8861,8 @@ body.page-view-room {
   }
 
   .consult-shell .prescription-panel {
-    height: auto;
-    min-height: max-content;
-    overflow-x: auto;
-    overflow-y: visible;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 }

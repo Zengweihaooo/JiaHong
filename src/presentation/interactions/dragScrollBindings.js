@@ -1,6 +1,6 @@
 export function bindDragScrollContainers(root = document) {
   root
-    .querySelectorAll(".message-list, .chat-thread, .video-chat-thread, .quick-reply-categories, .quick-reply-list, .prescription-panel")
+    .querySelectorAll(".message-list, .chat-thread, .video-chat-thread, .quick-reply-categories, .quick-reply-list, .prescription-panel__body")
     .forEach((node) => {
       if (node.dataset.dragScrollBound === "true") return;
       node.dataset.dragScrollBound = "true";

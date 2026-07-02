@@ -1,3 +1,4 @@
+import { buildChatQuote } from "../../domain/chatComposer.js";
 import { generatePatientAutoReply } from "../../infrastructure/api/appApi.js";
 import { consultationRecords, ongoingChatState } from "../state/dataStore.js";
 import { rememberDismissedMessageBadge } from "../state/runtimeState.js?v=20260528-06";
@@ -22,15 +23,28 @@ export function rememberMessageBadgeDismissed(badgeKey) {
   rememberDismissedMessageBadge(badgeKey);
 }
 
-export function appendDoctorChatMessage(chatKey, text, date = new Date()) {
+export function editOngoingChatMessage(chatKey, messageId, text) {
+  const message = getOngoingChatMessage(chatKey, messageId);
+  const content = String(text || "").trim();
+  if (!message || message.from !== "doctor" || message.recalled || !content) return null;
+  message.text = content;
+  message.edited = true;
+  message.editedAt = formatChatDateTime();
+  return message;
+}
+
+export function appendDoctorChatMessage(chatKey, text, { quote = null, date = new Date() } = {}) {
   if (!chatKey || !ongoingChatState[chatKey]) return null;
   const chat = ongoingChatState[chatKey];
+  const normalizedQuote = quote ? buildChatQuote(quote) : null;
   const message = {
     id: `${chatKey}-doctor-${date.getTime()}`,
     from: "doctor",
     text,
     time: formatChatDateTime(date),
-    recalled: false
+    recalled: false,
+    edited: false,
+    quote: normalizedQuote
   };
   chat.messages = [...(chat.messages || []), message];
   return message;

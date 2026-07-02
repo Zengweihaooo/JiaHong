@@ -1,5 +1,5 @@
 import { searchDiagnosisCatalog, searchMedicineCatalog } from "../../infrastructure/api/appApi.js";
-import { getMedicineRiskWarnings } from "../../domain/prescriptionRisk.js";
+import { getMedicineRiskWarnings, getPrescriptionRiskCategoryLevel } from "../../domain/prescriptionRisk.js";
 import { getActiveOngoingConsultationRecord } from "../state/dataStore.js";
 
 export async function getDiagnosisOptions(keyword = "", context = {}) {
@@ -75,6 +75,18 @@ export function hasUnresolvedPrescriptionWarnings(record = null) {
   return Boolean(
     record?.prescriptionMedicines?.some((medicine) => getMedicineRiskWarnings(medicine).length > 0)
   );
+}
+
+export function hasUnresolvedMustPrescriptionWarnings(record = null) {
+  return Boolean(
+    record?.prescriptionMedicines?.some((medicine) =>
+      getMedicineRiskWarnings(medicine).some((warning) => warning.level === "must")
+    )
+  );
+}
+
+export function canEndConsultation(record = null) {
+  return Boolean(record?.prescriptionSubmitted && !hasUnresolvedMustPrescriptionWarnings(record));
 }
 
 export async function addMedicineToActiveRecord(input = "", context = {}) {
@@ -161,7 +173,7 @@ function rebuildMedicineWarningsFromFields(medicine, previousWarningColumns = {}
   medicine.warningColumns = warningFields.reduce((columns, warningField) => {
     const column = warningFieldColumns[warningField];
     if (!column) return columns;
-    return { ...columns, [column]: previousWarningColumns[column] || "severe" };
+    return { ...columns, [column]: previousWarningColumns[column] || getPrescriptionRiskCategoryLevel(warningFieldCategories[warningField]) };
   }, {});
 
   if (Array.isArray(medicine.riskWarnings)) {

@@ -1,5 +1,5 @@
 import { renderButton, renderRiskTag } from "./primitives.js?v=20260604-37";
-import { getHighestMedicineRiskLevel, getMedicineRiskWarnings, prescriptionRiskLevels } from "../../domain/prescriptionRisk.js";
+import { getHighestMedicineRiskLevel, getMedicineRiskWarnings, prescriptionRiskLevels, getPrescriptionRiskCategoryLevel } from "../../domain/prescriptionRisk.js";
 import { escapeHtml } from "../ui/html.js";
 
 const medicineUnitOptions = ["盒", "瓶", "支", "袋", "板", "片"];
@@ -17,9 +17,21 @@ function getMedicineRowWarningLevel(row = {}) {
   return getHighestMedicineRiskLevel(row);
 }
 
+const warningFieldCategories = {
+  name: "重复用药",
+  frequency: "用法用量",
+  dose: "用法用量",
+  quantity: "用法用量",
+  unit: "用法用量",
+  usage: "给药途径"
+};
+
 function getMedicineWarningClass(warningFields, field) {
   if (field === "name") return "";
-  return warningFields.has(field) ? " medicine-warning-target" : "";
+  if (!warningFields.has(field)) return "";
+  const category = warningFieldCategories[field];
+  const level = getPrescriptionRiskCategoryLevel(category);
+  return ` medicine-warning-target medicine-warning-target--${level}`;
 }
 
 function renderEditableBox(row, warningFields, field, label, readonly = false) {
@@ -118,7 +130,7 @@ export function renderMedicineTableRow(row, readonly = false) {
       data-medicine-name="${escapeHtml(row.name)}"
       ${rowWarningLevel ? `data-warning-level="${rowWarningLevel}" data-warning-level-label="${prescriptionRiskLevels[rowWarningLevel]}" data-warning-categories="${escapeHtml(warningCategories)}" data-warning-message="${escapeHtml(warningMessage)}" data-warning-suggestion="${escapeHtml(warningSuggestion)}" title="点击查看风险提示"` : ""}
     >
-      <span>${row.index}</span>
+      <span class="medicine-table__index">${row.index}</span>
       <span>${escapeHtml(row.name)}</span>
       <span>${escapeHtml(row.type)}</span>
       <span class="medicine-spec-text">${escapeHtml(row.spec)}</span>
@@ -144,7 +156,7 @@ export function renderMedicineTable(medicines = [], readonly = false) {
   return `
     <div class="medicine-table${medicines.length === 1 ? " medicine-table--single" : ""}">
       <div class="medicine-table__row medicine-table__head">
-        <span>序号</span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
+        <span class="medicine-table__index medicine-table__index--head" aria-label="序号"><span>序</span><span>号</span></span><span>药品名称</span><span>类型</span><span>规格</span><span>用法</span><span>服用频次</span><span>用量</span><span>数量</span><span>单位</span><span>风险</span><span>操作</span>
       </div>
       ${medicines.map((row) => renderMedicineTableRow(row, readonly)).join("")}
     </div>`;

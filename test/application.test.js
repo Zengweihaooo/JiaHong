@@ -348,7 +348,7 @@ test("chat controller appends timestamped doctor messages and recalls them once"
   });
 
   const date = new Date(2026, 4, 28, 1, 2, 3);
-  const message = appendDoctorChatMessage("r1", "请补充体温", date);
+  const message = appendDoctorChatMessage("r1", "请补充体温", { date });
 
   assert.equal(message.id, `r1-doctor-${date.getTime()}`);
   assert.equal(message.time, "2026-05-28 01:02:03");

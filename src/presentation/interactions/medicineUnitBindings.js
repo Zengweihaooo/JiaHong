@@ -15,7 +15,12 @@ export function configureMedicineUnitBindings({ getContext, onFieldResult } = {}
 
 function applyMedicineFieldResult(row, fieldNode, result) {
   if (result.fieldWarningCleared) {
-    fieldNode?.classList.remove("medicine-warning-target");
+    fieldNode?.classList.remove(
+      "medicine-warning-target",
+      "medicine-warning-target--must",
+      "medicine-warning-target--severe",
+      "medicine-warning-target--general"
+    );
   }
   if (result.medicineWarningsResolved) {
     row?.classList.remove("medicine-table__row--warning-linked");

@@ -3,6 +3,7 @@ import { renderData } from "../../application/viewModels/renderViewModel.js?v=20
 import { renderButton } from "../components/primitives.js";
 import { escapeHtml } from "../ui/html.js";
 import { getActiveChatKey } from "./renderRecordSelectors.js?v=20260528-06";
+import { renderChatQuoteBubbleMarkup } from "../ui/chatComposerUi.js";
 
 const defaultMessageIntervalSeconds = 58;
 const defaultAiReplyHighlights = ["多久", "体温", "几天", "位置", "程度", "痰色", "胸闷气促", "呼吸", "低头", "热敷", "活动颈部"];
@@ -19,11 +20,18 @@ const followUpVoucherVoices = [
 ];
 const defaultConsultCaseVoices = [{ title: "病例信息语音", duration: 7 }];
 
-export function renderChatInput({ className = "" } = {}) {
+export function renderChatInput({ className = "", showSmartReplyTrigger = true } = {}) {
+  const toolbarMarkup = showSmartReplyTrigger
+    ? `<div class="chat-reply-toolbar">
+        ${renderButton({ text: "智能推荐回复", tone: "outline-primary", className: "smart-reply-trigger", size: "sm" })}
+        ${renderButton({ text: "快捷回复", tone: "outline-primary", className: "quick-reply-trigger", size: "sm" })}
+      </div>`
+    : renderButton({ text: "快捷回复", tone: "outline-primary", className: "quick-reply-trigger", size: "sm" });
   return `
     <div class="jh-chat-input${className ? ` ${className}` : ""}">
       <div class="jh-chat-input__top">
-        ${renderButton({ text: "快捷回复", tone: "outline-primary", className: "quick-reply-trigger", size: "sm" })}
+        <div class="chat-composer-preview" hidden></div>
+        ${toolbarMarkup}
         <textarea aria-label="回复内容" placeholder="输入回复内容，或点击上方AI推荐快速填充..."></textarea>
       </div>
       <div class="jh-chat-input__actions">
@@ -111,27 +119,29 @@ function getAiReplies(record = null) {
 export function renderAiReplyComposer(record = null) {
   return `
     <div class="ai-reply ai-reply--collapsed" data-ai-reply-state="collapsed">
-      <div class="ai-reply__head">
-        <button class="ai-reply__title ai-reply__toggle" type="button" aria-label="展开智能推荐回复" aria-expanded="false">
-          <span class="ai-spark" aria-hidden="true"></span>
-          <h3>智能推荐回复</h3>
-        </button>
-        <div class="ai-reply__actions">
-          <button class="ai-reply__refresh" type="button" aria-label="换一批智能推荐回复">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path d="M13.4 5.8A5.5 5.5 0 0 0 3.1 4.2L1.5 5.8M1.5 2.4v3.4h3.4M2.6 10.2a5.5 5.5 0 0 0 10.3 1.6l1.6-1.6m0 3.4v-3.4h-3.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
-            </svg>
-            <span>换一批</span>
+      <div class="ai-reply__panel">
+        <div class="ai-reply__head">
+          <button class="ai-reply__title ai-reply__toggle" type="button" aria-label="展开智能推荐回复" aria-expanded="false">
+            <span class="ai-spark" aria-hidden="true"></span>
+            <h3>智能推荐回复</h3>
           </button>
-          <button class="ai-reply__close" type="button" aria-label="关闭智能推荐回复">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
-            </svg>
-          </button>
+          <div class="ai-reply__actions">
+            <button class="ai-reply__refresh" type="button" aria-label="换一批智能推荐回复">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M13.4 5.8A5.5 5.5 0 0 0 3.1 4.2L1.5 5.8M1.5 2.4v3.4h3.4M2.6 10.2a5.5 5.5 0 0 0 10.3 1.6l1.6-1.6m0 3.4v-3.4h-3.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+              </svg>
+              <span>换一批</span>
+            </button>
+            <button class="ai-reply__close" type="button" aria-label="关闭智能推荐回复">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+              </svg>
+            </button>
+          </div>
         </div>
+        ${renderAiReplyOptions(getAiReplies(record))}
+        <p class="ai-reply__notice">AI辅助内容基于患者档案与对话语境生成，仅供医生参考，发送前请核实。</p>
       </div>
-      ${renderAiReplyOptions(getAiReplies(record))}
-      <p class="ai-reply__notice">AI辅助内容基于患者档案与对话语境生成，仅供医生参考，发送前请核实。</p>
       ${renderChatInput()}
     </div>`;
 }
@@ -201,13 +211,18 @@ export function renderChatBubble(message, context = {}) {
   }
 
   const isDoctor = message.from === "doctor";
+  const quoteMarkup = renderChatQuoteBubbleMarkup(message.quote);
+  const editedMarkup = message.edited ? `<span class="chat-bubble__edited">已编辑</span>` : "";
   const bubble = `
       <div
-        class="chat-bubble chat-bubble--${message.from}${isDoctor ? " chat-bubble--actionable" : ""}"
+        class="chat-bubble chat-bubble--${message.from}${isDoctor ? " chat-bubble--actionable" : " chat-bubble--actionable"}"
         data-message-id="${message.id}"
-        ${isDoctor ? 'data-chat-context="doctor"' : ""}
+        data-message-from="${message.from}"
+        ${isDoctor ? 'data-chat-context="doctor"' : 'data-chat-context="patient"'}
       >
-        <p>${escapeHtml(message.text)}</p>
+        ${quoteMarkup}
+        <p class="chat-bubble__text">${escapeHtml(message.text)}</p>
+        ${editedMarkup}
       </div>`;
   return isDoctor
     ? `
@@ -415,7 +430,8 @@ export function renderConsultAttachmentDialog() {
 export function renderChatMessageMenu() {
   return `
     <div class="chat-message-menu" role="menu" aria-hidden="true" hidden>
-      <button type="button" class="chat-message-menu__item" role="menuitem" data-action="recall">撤回</button>
+      <button type="button" class="chat-message-menu__item chat-message-menu__item--doctor-only" role="menuitem" data-action="recall">撤回</button>
+      <button type="button" class="chat-message-menu__item chat-message-menu__item--doctor-only" role="menuitem" data-action="edit">编辑</button>
       <button type="button" class="chat-message-menu__item" role="menuitem" data-action="copy">复制</button>
       <button type="button" class="chat-message-menu__item" role="menuitem" data-action="quote">引用</button>
     </div>`;
@@ -424,8 +440,12 @@ export function renderChatMessageMenu() {
 export function renderChatPanel(chatKey = getActiveChatKey(), { record = null } = {}) {
   return `
     <section class="chat-panel" aria-label="聊天区域">
-      ${renderConsultInfoCard(record)}
-      ${renderChatThread(chatKey)}
-      ${renderAiReplyComposer(record)}
+      <div class="chat-panel__body">
+        ${renderConsultInfoCard(record)}
+        ${renderChatThread(chatKey)}
+      </div>
+      <div class="chat-panel__composer">
+        ${renderAiReplyComposer(record)}
+      </div>
     </section>`;
 }

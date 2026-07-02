@@ -17,6 +17,25 @@ export const prescriptionRiskLevels = {
   general: "一般警告"
 };
 
+export const prescriptionRiskCategoryLevels = {
+  重复用药: "must",
+  患者条件: "general",
+  生化指标: "severe",
+  用法用量: "severe",
+  给药途径: "severe",
+  相互作用: "severe",
+  配伍: "severe",
+  过敏: "must",
+  孕产: "general",
+  其他: "general"
+};
+
+export const prescriptionRiskLegendItems = [
+  { level: "must", text: "必须处理" },
+  { level: "severe", text: "严重警告" },
+  { level: "general", text: "一般警告" }
+];
+
 const warningFieldCategories = {
   name: "重复用药",
   frequency: "用法用量",
@@ -26,20 +45,32 @@ const warningFieldCategories = {
   usage: "给药途径"
 };
 
+export function getPrescriptionRiskCategoryLevel(category = "") {
+  return prescriptionRiskCategoryLevels[category] || "general";
+}
+
+export function normalizeMedicineRiskWarning(warning = {}) {
+  if (!warning?.category || !prescriptionRiskCategories.includes(warning.category)) return null;
+  return {
+    category: warning.category,
+    level: getPrescriptionRiskCategoryLevel(warning.category)
+  };
+}
+
 export function getMedicineRiskWarnings(medicine = {}) {
   const explicitWarnings = Array.isArray(medicine.riskWarnings)
-    ? medicine.riskWarnings.filter(
-        (warning) => prescriptionRiskCategories.includes(warning?.category) && prescriptionRiskLevels[warning?.level]
-      )
+    ? medicine.riskWarnings.map(normalizeMedicineRiskWarning).filter(Boolean)
     : [];
   if (explicitWarnings.length) return explicitWarnings;
 
   const columnWarnings = Object.entries(medicine.warningColumns || {})
-    .map(([column, level]) => ({
-      category: prescriptionRiskCategories[Number(column) - 1],
-      level
-    }))
-    .filter((warning) => warning.category && prescriptionRiskLevels[warning.level]);
+    .map(([column, level]) =>
+      normalizeMedicineRiskWarning({
+        category: prescriptionRiskCategories[Number(column) - 1],
+        level
+      })
+    )
+    .filter(Boolean);
   if (columnWarnings.length) return columnWarnings;
 
   return Array.from(
@@ -48,7 +79,7 @@ export function getMedicineRiskWarnings(medicine = {}) {
         .map((field) => warningFieldCategories[field])
         .filter(Boolean)
     )
-  ).map((category) => ({ category, level: "severe" }));
+  ).map((category) => normalizeMedicineRiskWarning({ category }));
 }
 
 export function getHighestMedicineRiskLevel(medicine = {}) {

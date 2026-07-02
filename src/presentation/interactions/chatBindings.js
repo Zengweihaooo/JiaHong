@@ -1,5 +1,6 @@
 import {
   appendDoctorChatMessage,
+  editOngoingChatMessage,
   generatePatientReplyForChat,
   getOngoingChatMessage,
   recallOngoingChatMessage
@@ -8,6 +9,13 @@ import { getActiveChatKey } from "../views/renderRecordSelectors.js?v=20260528-0
 import { renderChatThread } from "../views/chatView.js?v=20260604-10";
 import { isConsultReadonlyView, refreshChatThread } from "../ui/dom.js";
 import { showToast } from "../ui/interactionPrimitives.js";
+import {
+  clearChatComposer,
+  getChatComposer,
+  setChatComposerEdit,
+  setChatComposerQuote,
+  syncChatComposerPreview
+} from "../ui/chatComposerUi.js";
 
 let onChatThreadRendered = () => {};
 
@@ -25,6 +33,13 @@ export function closeChatMessageMenu() {
   menu.style.top = "";
   delete menu.dataset.messageId;
   delete menu.dataset.chatKey;
+  delete menu.dataset.messageFrom;
+}
+
+function updateChatMessageMenuItems(menu, messageFrom = "") {
+  menu.querySelectorAll(".chat-message-menu__item--doctor-only").forEach((item) => {
+    item.hidden = messageFrom !== "doctor";
+  });
 }
 
 function openChatMessageMenu(bubble, event) {
@@ -34,8 +49,11 @@ function openChatMessageMenu(bubble, event) {
   if (!menu) return;
 
   const chatKey = bubble.closest("[data-chat-key]")?.dataset.chatKey || getActiveChatKey() || "";
+  const messageFrom = bubble.dataset.messageFrom || bubble.dataset.chatContext || "";
   menu.dataset.messageId = bubble.dataset.messageId || "";
   menu.dataset.chatKey = chatKey;
+  menu.dataset.messageFrom = messageFrom;
+  updateChatMessageMenuItems(menu, messageFrom);
   menu.hidden = false;
   menu.classList.add("is-open");
   menu.setAttribute("aria-hidden", "false");
@@ -67,6 +85,7 @@ function handleChatMessageMenuAction(action) {
   if (!menu) return;
   const chatKey = menu.dataset.chatKey;
   const messageId = menu.dataset.messageId;
+  const messageFrom = menu.dataset.messageFrom;
   const message = getOngoingChatMessage(chatKey, messageId);
   if (!message || message.recalled) {
     closeChatMessageMenu();
@@ -74,22 +93,40 @@ function handleChatMessageMenuAction(action) {
   }
 
   if (action === "recall") {
+    if (messageFrom !== "doctor") {
+      closeChatMessageMenu();
+      return;
+    }
     recallOngoingChatMessage(chatKey, messageId);
     refreshChatThread(renderChatThread, chatKey);
     showToast("消息已撤回");
+  } else if (action === "edit") {
+    if (messageFrom !== "doctor") {
+      closeChatMessageMenu();
+      return;
+    }
+    setChatComposerEdit(chatKey, { messageId, text: message.text });
+    fillChatInput(message.text);
+    syncChatComposerPreview(chatKey);
+    showToast("已进入编辑");
   } else if (action === "copy") {
     copyChatMessageText(message.text);
   } else if (action === "quote") {
-    fillChatInput(`引用：${message.text}`, { append: true });
-    showToast("已引用到输入框");
+    setChatComposerQuote(chatKey, {
+      messageId,
+      from: message.from,
+      text: message.text
+    });
+    syncChatComposerPreview(chatKey);
+    showToast("已引用消息");
   }
 
   closeChatMessageMenu();
 }
 
-function appendActiveDoctorChatMessage(text) {
+function appendActiveDoctorChatMessage(text, { quote = null } = {}) {
   const chatKey = getActiveChatKey();
-  const message = appendDoctorChatMessage(chatKey, text);
+  const message = appendDoctorChatMessage(chatKey, text, { quote });
   if (!message) return null;
   refreshChatThread(renderChatThread, chatKey);
   bindChatMessageMenu();
@@ -129,16 +166,36 @@ export function sendChatInputMessage(input) {
   if (isConsultReadonlyView()) return;
   const text = input?.value.trim();
   if (!text) return;
-  const sent = appendActiveDoctorChatMessage(text);
+  const chatKey = getActiveChatKey();
+  const composer = getChatComposer(chatKey);
+
+  if (composer.edit?.messageId) {
+    const updated = editOngoingChatMessage(chatKey, composer.edit.messageId, text);
+    if (!updated) {
+      showToast("当前消息不可编辑");
+      return;
+    }
+    clearChatComposer(chatKey);
+    syncChatComposerPreview(chatKey);
+    refreshChatThread(renderChatThread, chatKey);
+    bindChatMessageMenu();
+    input.value = "";
+    input.focus();
+    showToast("消息已更新");
+    return;
+  }
+
+  const sent = appendActiveDoctorChatMessage(text, { quote: composer.quote });
   if (!sent) {
     showToast("当前会话不可发送");
     return;
   }
+  clearChatComposer(chatKey);
+  syncChatComposerPreview(chatKey);
   input.value = "";
   input.focus();
   appendMockPatientReply(sent.chatKey, sent.message);
 }
-
 
 export function bindChatMessageMenu() {
   const menu = document.querySelector(".chat-message-menu");
@@ -148,7 +205,7 @@ export function bindChatMessageMenu() {
   document.addEventListener("contextmenu", (event) => {
     if (!document.querySelector(".text-card:not(.text-card--readonly)")) return;
     const bubble = event.target.closest(
-      '.chat-bubble--doctor[data-chat-context="doctor"]:not(.chat-bubble--recalled)'
+      '.chat-bubble--actionable:not(.chat-bubble--recalled)[data-message-id]'
     );
     if (!bubble) return;
     openChatMessageMenu(bubble, event);

@@ -18,7 +18,8 @@ function renderPrescriptionActionButtons({
   readonly = false,
   consultation = false,
   videoSubmitLock = false,
-  prescriptionSubmitted = false
+  prescriptionSubmitted = false,
+  canEndConsultation = false
 } = {}) {
   if (readonly) {
     return renderButton({ text: "查看开方历史", tone: "primary", size: "md", className: "prescription-history-open" });
@@ -34,7 +35,7 @@ function renderPrescriptionActionButtons({
     className: "jh-prescription-submit",
     disabled: submitLocked || prescriptionSubmitted
   });
-  return `${renderButton({ text: "结束问诊", tone: "success", size: "md", className: "end-consult-trigger", disabled: !prescriptionSubmitted })}
+  return `${renderButton({ text: "结束问诊", tone: "success", size: "md", className: "end-consult-trigger", disabled: !canEndConsultation })}
           ${
             submitLocked
               ? `<span class="video-prescription-submit-wrap">${renderVideoSubmitCountdown()}${submitButton}</span>`
@@ -46,13 +47,14 @@ export function renderPrescriptionActions({
   readonly = false,
   consultation = false,
   videoSubmitLock = false,
-  prescriptionSubmitted = false
+  prescriptionSubmitted = false,
+  canEndConsultation = false
 } = {}) {
   return `
       <div class="prescription-actions${consultation ? " consultation-actions" : ""}${readonly ? " prescription-actions--readonly" : ""}">
         ${renderArchivedActionHint(readonly)}
         <div class="prescription-actions__controls">
-          ${renderPrescriptionActionButtons({ readonly, consultation, videoSubmitLock, prescriptionSubmitted })}
+          ${renderPrescriptionActionButtons({ readonly, consultation, videoSubmitLock, prescriptionSubmitted, canEndConsultation })}
         </div>
       </div>`;
 }

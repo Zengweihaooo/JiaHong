@@ -16,7 +16,7 @@ import {
   setActiveVideoConsultation,
   setWaitingQueue
 } from "../state/runtimeState.js?v=20260528-06";
-import { hasUnresolvedPrescriptionWarnings } from "./prescriptionController.js";
+import { hasUnresolvedPrescriptionWarnings, hasUnresolvedMustPrescriptionWarnings, canEndConsultation } from "./prescriptionController.js";
 
 const terminalConsultationEvents = {
   cancel: {
@@ -68,6 +68,14 @@ export function openRiskReviewForActiveConsultation(context = {}) {
 
 export function activePrescriptionHasWarnings(context = {}) {
   return hasUnresolvedPrescriptionWarnings(getActiveConsultationRecord(context));
+}
+
+export function activePrescriptionHasMustWarnings(context = {}) {
+  return hasUnresolvedMustPrescriptionWarnings(getActiveConsultationRecord(context));
+}
+
+export function activeConsultationCanEnd(context = {}) {
+  return canEndConsultation(getActiveConsultationRecord(context));
 }
 
 export function showPrescriptionWarningsForActiveConsultation(context = {}) {

@@ -1,5 +1,6 @@
 import { getActiveConsultationRecord } from "../../application/controllers/consultationController.js";
-import { getHighestMedicineRiskLevel, getMedicineRiskWarnings, prescriptionRiskLevels } from "../../domain/prescriptionRisk.js";
+import { syncEndConsultTriggerState } from "./consultDialogBindings.js";
+import { getHighestMedicineRiskLevel, getMedicineRiskWarnings, prescriptionRiskLevels, getPrescriptionRiskCategoryLevel } from "../../domain/prescriptionRisk.js";
 import {
   addDiagnosisToActiveRecord,
   addMedicineToActiveRecord,
@@ -10,15 +11,16 @@ import {
   removeMedicineFromActiveRecord,
   updateMedicineFieldInActiveRecord
 } from "../../application/controllers/prescriptionController.js";
-import { renderConsultationPanel, renderPrescriptionPanel } from "../views/prescriptionPanels.js?v=20260604-02";
+import { renderConsultationPanel, renderPrescriptionPanel } from "../views/prescriptionPanels.js?v=20260528-06";
 import { showToast } from "../ui/interactionPrimitives.js";
+import { getCustomScrollContent, resetFloatingScrollList, syncCustomScrollList, syncFloatingScrollList } from "../ui/customScrollList.js";
 import {
   bindMedicineUsageControls,
   bindMedicineUnitControls,
   closeMedicineUsageDropdowns,
   closeMedicineUnitDropdowns,
   configureMedicineUnitBindings
-} from "./medicineUnitBindings.js?v=20260604-01";
+} from "./medicineUnitBindings.js?v=20260528-06";
 
 let getPrescriptionContext = () => ({});
 let onPrescriptionPanelRendered = () => {};
@@ -66,21 +68,25 @@ function hideMedicineRiskTip(panel) {
 function showMedicineRiskTip(panel, row) {
   const tip = panel?.querySelector("[data-medicine-risk-tip]");
   if (!tip || !row?.dataset?.warningLevel) return;
-  const message = row.dataset.warningMessage || "";
-  const suggestion = row.dataset.warningSuggestion || "";
   const titleNode = tip.querySelector("[data-medicine-risk-title]");
-  const levelNode = tip.querySelector("[data-medicine-risk-level]");
   const categoriesNode = tip.querySelector("[data-medicine-risk-categories]");
   const messageNode = tip.querySelector("[data-medicine-risk-message]");
   const suggestionNode = tip.querySelector("[data-medicine-risk-suggestion]");
   if (titleNode) titleNode.textContent = `药品风险提示 · ${row.dataset.medicineName || "当前药品"}`;
-  if (levelNode) {
-    levelNode.className = `medicine-risk-tip__level medicine-risk-tip__level--${row.dataset.warningLevel || ""}`;
-    levelNode.textContent = row.dataset.warningLevelLabel || "";
+  if (categoriesNode) {
+    const categories = (row.dataset.warningCategories || "").split("、").filter(Boolean);
+    categoriesNode.replaceChildren(
+      ...categories.map((category) => {
+        const tag = document.createElement("span");
+        const level = getPrescriptionRiskCategoryLevel(category);
+        tag.className = `medicine-risk-tip__category medicine-risk-tip__category--${level}`;
+        tag.textContent = category;
+        return tag;
+      })
+    );
   }
-  if (categoriesNode) categoriesNode.textContent = row.dataset.warningCategories || "";
-  if (messageNode) messageNode.textContent = message;
-  if (suggestionNode) suggestionNode.textContent = suggestion;
+  if (messageNode) messageNode.textContent = row.dataset.warningMessage || "";
+  if (suggestionNode) suggestionNode.textContent = row.dataset.warningSuggestion || "";
   tip.dataset.activeMedicineIndex = row.dataset.medicineIndex || "";
   tip.hidden = false;
   syncMedicineRiskSelection(panel, tip.dataset.activeMedicineIndex);
@@ -90,18 +96,26 @@ function shouldIgnoreMedicineRiskRowTarget(target) {
   return Boolean(target?.closest?.(".medicine-delete-btn, .medicine-usage-options, .medicine-unit-options"));
 }
 
+function clearMedicineWarningTargetClasses(fieldNode) {
+  fieldNode?.classList.remove(
+    "medicine-warning-target",
+    "medicine-warning-target--must",
+    "medicine-warning-target--severe",
+    "medicine-warning-target--general"
+  );
+}
+
 function handleMedicineFieldResult({ row, fieldNode, result } = {}) {
   if (result?.fieldWarningCleared) {
-    fieldNode?.classList.remove("medicine-warning-target");
+    clearMedicineWarningTargetClasses(fieldNode);
   }
   if (result?.medicineWarningsResolved) {
     row?.classList.remove("medicine-table__row--warning-linked");
   }
   applyMedicineRowWarningState(row, result);
-}
-
-function getRowWarningLevel(medicine = {}) {
-  return getHighestMedicineRiskLevel(medicine);
+  if (result?.record) {
+    syncEndConsultTriggerState(result.record);
+  }
 }
 
 function applyMedicineRowWarningState(row, result) {
@@ -109,8 +123,14 @@ function applyMedicineRowWarningState(row, result) {
   const medicine = result?.record?.prescriptionMedicines?.find((item) => Number(item.index) === rowIndex);
   if (!row || !medicine) return;
   const panel = row.closest(".prescription-panel");
-  const level = getRowWarningLevel(medicine);
-  row.classList.remove("medicine-table__row--warning-linked", "medicine-table__row--warning-active", "medicine-table__row--warning-must", "medicine-table__row--warning-severe", "medicine-table__row--warning-general");
+  const level = getHighestMedicineRiskLevel(medicine);
+  row.classList.remove(
+    "medicine-table__row--warning-linked",
+    "medicine-table__row--warning-active",
+    "medicine-table__row--warning-must",
+    "medicine-table__row--warning-severe",
+    "medicine-table__row--warning-general"
+  );
   if (!level) {
     delete row.dataset.warningLevel;
     delete row.dataset.warningLevelLabel;
@@ -135,6 +155,11 @@ function applyMedicineRowWarningState(row, result) {
   }
 }
 
+function getOptionListContainer(dropdown) {
+  syncCustomScrollList(dropdown);
+  return getCustomScrollContent(dropdown);
+}
+
 async function renderDiagnosisDropdown(input) {
   const panel = input.closest(".prescription-panel");
   const dropdown = panel?.querySelector(".diagnosis-options");
@@ -144,7 +169,8 @@ async function renderDiagnosisDropdown(input) {
   const context = getPrescriptionContext();
   const options = await getDiagnosisOptions(input.value, context);
   if (input.dataset.diagnosisRequestId !== requestId) return;
-  dropdown.innerHTML = "";
+  const list = getOptionListContainer(dropdown);
+  list.innerHTML = "";
   options.forEach((diagnosis) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -156,10 +182,11 @@ async function renderDiagnosisDropdown(input) {
       event.stopPropagation();
       handlePrescriptionResult(addDiagnosisToActiveRecord(diagnosis, context));
     });
-    dropdown.appendChild(button);
+    list.appendChild(button);
   });
   dropdown.hidden = options.length === 0;
   input.setAttribute("aria-expanded", String(options.length > 0));
+  syncCustomScrollList(dropdown);
 }
 
 function closeDiagnosisDropdown(input) {
@@ -184,6 +211,7 @@ function renderPrescriptionRemarkDropdown(input, { filter = true } = {}) {
   });
   dropdown.hidden = visibleCount === 0;
   input.setAttribute("aria-expanded", String(visibleCount > 0));
+  syncCustomScrollList(dropdown);
 }
 
 function closePrescriptionRemarkDropdown(input) {
@@ -203,7 +231,8 @@ async function renderMedicineDropdown(input) {
   const context = getPrescriptionContext();
   const options = await getMedicineOptions(input.value, context);
   if (input.dataset.medicineRequestId !== requestId) return;
-  dropdown.innerHTML = "";
+  const list = getOptionListContainer(dropdown);
+  list.innerHTML = "";
   options.forEach((medicine) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -215,10 +244,15 @@ async function renderMedicineDropdown(input) {
       event.stopPropagation();
       handlePrescriptionResult(addMedicineToActiveRecord(medicine, context));
     });
-    dropdown.appendChild(button);
+    list.appendChild(button);
   });
   dropdown.hidden = options.length === 0;
   input.setAttribute("aria-expanded", String(options.length > 0));
+  if (options.length > 0) {
+    syncFloatingScrollList(dropdown, input, { gap: 4, width: 320 });
+  } else {
+    resetFloatingScrollList(dropdown);
+  }
 }
 
 function closeMedicineDropdown(input) {
@@ -227,12 +261,14 @@ function closeMedicineDropdown(input) {
   if (!dropdown) return;
   dropdown.hidden = true;
   input.setAttribute("aria-expanded", "false");
+  resetFloatingScrollList(dropdown);
 }
 
 async function handlePrescriptionResult(resultOrPromise) {
   const result = await resultOrPromise;
   if (result?.record) {
     refreshActivePrescriptionPanel(result.record);
+    syncEndConsultTriggerState(result.record);
   }
   if (result?.message) {
     showToast(result.message);
@@ -382,6 +418,7 @@ export function bindPrescriptionEditor() {
   });
   bindMedicineUsageControls(panel);
   bindMedicineUnitControls(panel);
+  syncEndConsultTriggerState(getActiveConsultationRecord(getPrescriptionContext()));
   const riskTip = panel.querySelector("[data-medicine-risk-tip]");
   syncMedicineRiskSelection(panel, riskTip?.dataset.activeMedicineIndex);
   riskTip?.querySelector(".medicine-risk-tip__close")?.addEventListener("click", (event) => {

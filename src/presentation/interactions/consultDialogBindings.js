@@ -1,10 +1,12 @@
 import { getRoomHref } from "../../shared/core.js";
 import {
-  activePrescriptionHasWarnings,
+  activePrescriptionHasMustWarnings,
+  getActiveConsultationRecord,
   openRiskReviewForActiveConsultation,
   resolveActiveConsultation,
   submitPrescriptionForActiveConsultation
 } from "../../application/controllers/consultationController.js";
+import { canEndConsultation } from "../../application/controllers/prescriptionController.js";
 import {
   bindOverlayDismiss,
   closeOverlay,
@@ -13,6 +15,11 @@ import {
   showToast,
   stopEvent
 } from "../ui/interactionPrimitives.js";
+import {
+  bindEndConsultConfirmPositionSync,
+  clearEndConsultConfirmPosition,
+  syncEndConsultConfirmPosition
+} from "../ui/consultConfirmPosition.js";
 import { fillChatInput, sendChatInputMessage } from "./chatBindings.js";
 
 let getConsultContext = () => ({ sessionId: "", view: "" });
@@ -31,29 +38,35 @@ function closeQuickReplyDialog() {
   closeOverlay(".quick-reply-overlay");
 }
 
-function setPrescriptionSubmittedControlsState(submitted) {
+export function syncEndConsultTriggerState(record) {
+  const enabled = canEndConsultation(record);
   document.querySelectorAll(".end-consult-trigger").forEach((button) => {
     if (button.classList.contains("consultation-complete-trigger")) return;
-    button.disabled = !submitted;
-    button.setAttribute("aria-disabled", String(!submitted));
+    button.disabled = !enabled;
+    button.setAttribute("aria-disabled", String(!enabled));
     button.classList.remove("jh-btn--soft-danger", "jh-btn--danger");
     button.classList.add("jh-btn--success");
   });
+  const submitted = Boolean(record?.prescriptionSubmitted);
   document.querySelectorAll(".jh-prescription-submit, .cancel-consult-trigger").forEach((button) => {
     button.disabled = submitted;
     button.setAttribute("aria-disabled", String(submitted));
   });
 }
 
+function setPrescriptionSubmittedControlsState(record) {
+  syncEndConsultTriggerState(record);
+}
+
 export async function requestPrescriptionSubmit() {
   const context = getConsultContext();
-  if (activePrescriptionHasWarnings(context)) {
-    showToast("存在用药风险，请点击高亮药品行查看具体提示并完成修改");
+  if (activePrescriptionHasMustWarnings(context)) {
+    showToast("存在必须处理的用药风险，请点击高亮药品行查看具体提示并完成修改");
     return;
   }
   try {
     await submitPrescriptionForActiveConsultation(context);
-    setPrescriptionSubmittedControlsState(true);
+    setPrescriptionSubmittedControlsState(getActiveConsultationRecord(context));
     showToast("处方已提交，可结束问诊");
   } catch {
     showToast("处方状态同步失败");
@@ -144,6 +157,15 @@ export function openConsultConfirmDialog(kind) {
     `.consult-confirm-overlay[data-confirm-kind="${kind}"]`,
     kind === "cancel" ? ".consult-cancel-reason.is-active:not([hidden])" : ".consult-confirm-submit"
   );
+  if (kind === "end") {
+    bindEndConsultConfirmPositionSync();
+    window.requestAnimationFrame(() => {
+      syncEndConsultConfirmPosition();
+      window.requestAnimationFrame(syncEndConsultConfirmPosition);
+    });
+  } else {
+    clearEndConsultConfirmPosition();
+  }
 }
 
 function closeConsultConfirmDialog(kind) {

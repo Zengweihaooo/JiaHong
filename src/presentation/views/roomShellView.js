@@ -54,6 +54,9 @@ export function renderTopbar() {
               <img src="${assetUrl("assets/figma-home/avatar-source.png")}" alt="" />
             </span>
             <span>张医生</span>
+            <span class="user-chip__chevron" aria-hidden="true">
+              <img src="${assetUrl("assets/figma-consult/chevron-down.svg")}" alt="" />
+            </span>
           </button>
           ${renderUserMenu()}
         </div>
@@ -171,7 +174,7 @@ function renderPendingMedicineTable() {
   return `
           <div class="medicine-table room-pending-medicine-table" aria-label="所需药品">
             <div class="medicine-table__row medicine-table__head">
-              <span>序号</span>
+              <span class="medicine-table__index medicine-table__index--head" aria-label="序号"><span>序</span><span>号</span></span>
               <span>药品名称</span>
               <span>类型</span>
               <span>规格</span>
@@ -209,7 +212,7 @@ function renderPendingPrescriptionPanel() {
             <h3>诊断意见</h3>
             <div class="diagnosis-row">
               <label><span>*</span>诊断</label>
-              <button class="jh-input-field jh-input-field--lg diagnosis-select" type="button" disabled>请选择诊断</button>
+              <button class="jh-input-field jh-input-field--lg diagnosis-select" type="button" disabled>请输入诊断</button>
               <div class="diagnosis-input" aria-disabled="true"></div>
             </div>
           </div>
